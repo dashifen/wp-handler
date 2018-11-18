@@ -1,12 +1,12 @@
 <?php
 
-namespace Engage\WordPress\Pages;
+namespace Dashifen\WPHandler\Pages;
 
 use Dashifen\Exception\Exception;
 
 /**
  * Class PageException
- * @package Engage\WordPress\Pages
+ * @package Dashifen\WPHandler\Pages
  */
 class PageException extends Exception {
 	const CANNOT_RENDER_TEMPLATE = 1;

@@ -1,12 +1,12 @@
 <?php
 
-namespace Engage\WordPress\Hooks;
+namespace Dashifen\WPHandler\Hooks;
 
 use Dashifen\Exception\Exception;
 
 /**
  * Class HookException
- * @package Engage\WordPress\Hooks
+ * @package Dashifen\WPHandler\Hooks
  */
 class HookException extends Exception {
 	const INVALID_PRIORITY = 1;

@@ -2,7 +2,7 @@
 
 /** @noinspection PhpUndefinedFunctionInspection */
 
-namespace Engage\WordPress\Traits;
+namespace Dashifen\WPHandler\Traits;
 
 /**
  * Trait CustomPostTypeUITrait
@@ -10,7 +10,7 @@ namespace Engage\WordPress\Traits;
  * Restricts access to the CPT UI menu item to only those users that
  * have an engagedc.com email address.
  *
- * @package Engage\WordPress\Traits
+ * @package Dashifen\WPHandler\Traits
  */
 trait HideCustomPostTypeUITrait {
 	/**

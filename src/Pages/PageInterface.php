@@ -1,10 +1,10 @@
 <?php
 
-namespace Engage\WordPress\Pages;
+namespace Dashifen\WPHandler\Pages;
 
 /**
  * Interface PageInterface
- * @package Engage\WordPress\Pages
+ * @package Dashifen\WPHandler\Pages
  */
 interface PageInterface {
 	/**

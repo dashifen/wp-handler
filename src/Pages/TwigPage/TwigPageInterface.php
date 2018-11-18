@@ -2,7 +2,7 @@
 
 /** @noinspection PhpUndefinedClassInspection */
 
-namespace Engage\WordPress\Pages\TwigPage;
+namespace Dashifen\WPHandler\Pages\TwigPage;
 
 use Twig_Environment;
 

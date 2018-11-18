@@ -3,10 +3,11 @@
 /** @noinspection PhpUndefinedClassInspection */
 /** @noinspection PhpUndefinedFunctionInspection */
 
-namespace Engage\WordPress\Handlers;
+namespace Dashifen\WPHandler\Handlers;
 
-use Engage\WordPress\Hooks\Hook;
-use Engage\WordPress\Hooks\HookException;
+use Dashifen\WPHandler\Hooks\Hook;
+use Dashifen\WPHandler\Hooks\HookException;
+use Throwable;
 
 /**
  * Class AbstractHandler
@@ -16,7 +17,7 @@ use Engage\WordPress\Hooks\HookException;
  * WordPress hooks preventing accidental/malicious execution of a theme's
  * methods elsewhere.
  *
- * @package Engage\WordPress\Handlers
+ * @package Dashifen\WPHandler\Handlers
  */
 abstract class AbstractHandler implements HandlerInterface {
 	/**
@@ -53,7 +54,7 @@ abstract class AbstractHandler implements HandlerInterface {
 	 *
 	 * @return void
 	 */
-	public static function debug($stuff, $die = false) {
+	public static function debug($stuff, $die = false): void {
 		if (!self::isDebug()) {
 
 			// this return ensures that we don't print debugging statements
@@ -81,7 +82,7 @@ abstract class AbstractHandler implements HandlerInterface {
 	 *
 	 * @return void
 	 */
-	public static function writeLog($data) {
+	public static function writeLog($data): void {
 
 		// source:  https://www.elegantthemes.com/blog/tips-tricks/using-the-wordpress-debug-log
 		// accessed:  2018-07-09
@@ -106,8 +107,23 @@ abstract class AbstractHandler implements HandlerInterface {
 	 *
 	 * @return bool
 	 */
-	public static function isDebug() {
+	public static function isDebug(): bool {
 		return defined("WP_DEBUG") && WP_DEBUG;
+	}
+
+	/**
+	 * catcher
+	 *
+	 * This serves as a general-purpose Exception handler which displays
+	 * the caught object when we're debugging and writes it to the log when
+	 * we're not.
+	 *
+	 * @param Throwable $thrown
+	 *
+	 * @return void
+	 */
+	public static function catcher(Throwable $thrown): void {
+		self::isDebug() ? self::debug($thrown, true) : self::writeLog($thrown);
 	}
 
 
@@ -161,7 +177,7 @@ abstract class AbstractHandler implements HandlerInterface {
 	 *
 	 * @return string
 	 */
-	protected function getHookIndex(string $method) {
+	protected function getHookIndex(string $method): string {
 		$action = current_action();
 
 		// the has_filter() WordPress function returns a boolean when it
@@ -189,7 +205,7 @@ abstract class AbstractHandler implements HandlerInterface {
 	 *
 	 * @return void
 	 */
-	abstract public function initialize();
+	abstract public function initialize(): void;
 
 	/**
 	 * addAction
@@ -205,7 +221,7 @@ abstract class AbstractHandler implements HandlerInterface {
 	 * @return void
 	 * @throws HookException
 	 */
-	protected function addAction(string $hook, string $method, int $priority = 10, int $arguments = 1) {
+	protected function addAction(string $hook, string $method, int $priority = 10, int $arguments = 1): void {
 
 		add_action($hook, [$this, $method], $priority, $arguments);
 		$hookIndex = Hook::getHookIndex($hook, $this, $method, $priority);
@@ -224,7 +240,7 @@ abstract class AbstractHandler implements HandlerInterface {
 	 *
 	 * @return void
 	 */
-	protected function removeAction(string $hook, string $method, int $priority = 10) {
+	protected function removeAction(string $hook, string $method, int $priority = 10): void {
 		remove_action($hook, [$this, $method], $priority);
 		$hookIndex = Hook::getHookIndex($hook, $this, $method, $priority);
 		unset($this->hooked[$hookIndex]);
@@ -245,7 +261,7 @@ abstract class AbstractHandler implements HandlerInterface {
 	 *
 	 * @throws HookException
 	 */
-	protected function addFilter(string $hook, string $method, int $priority = 10, int $arguments = 1) {
+	protected function addFilter(string $hook, string $method, int $priority = 10, int $arguments = 1): void {
 		add_filter($hook, [$this, $method], $priority, $arguments);
 		$hookIndex = Hook::getHookIndex($hook, $this, $method, $priority);
 		$this->hooked[$hookIndex] = new Hook($hook, $this, $method, $priority, $arguments);
@@ -263,9 +279,60 @@ abstract class AbstractHandler implements HandlerInterface {
 	 *
 	 * @return void
 	 */
-	protected function removeFilter(string $hook, string $method, int $priority = 10) {
+	protected function removeFilter(string $hook, string $method, int $priority = 10): void {
 		remove_filter($hook, [$this, $method], $priority);
 		$hookIndex = Hook::getHookIndex($hook, $this, $method, $priority);
 		unset($this->hooked[$hookIndex]);
+	}
+
+	/**
+	 * enqueue
+	 *
+	 * Adds a script or style to the DOM.
+	 *
+	 * @param string           $file
+	 * @param array            $dependencies
+	 * @param string|bool|null $finalArg
+	 *
+	 * @return void
+	 */
+	protected function enqueue(string $file, array $dependencies = [], $finalArg = null): void {
+		$fileInfo = pathinfo($file);
+		$isScript = $fileInfo["extension"] === "js";
+
+		// the $function variable will be used as a variable function.  we
+		// want to set it to either the WP function that enqueues scripts or
+		// the one for styles.  then, we can call that function below using
+		// $function().
+
+		$function = $isScript ? "wp_enqueue_script" : "wp_enqueue_style";
+
+		if (is_null($finalArg)) {
+
+			// the final argument for our $function is either a Boolean or
+			// a string for scripts and styles respectively.  if it's null
+			// at the moment, we'll default it to the following.  otherwise,
+			// we assume the calling scope knows what it's doing.
+
+			$finalArg = $isScript ? true : "all";
+		}
+
+		// if the asset we're enqueuing begins with "//" then it's a remote
+		// asset.  we don't want to prefix it with our local URL and DIR
+		// values.  first, we replace the protocol designation just to be
+		// sure it's not present for our test.
+
+		$file = preg_replace("/^https?:/", "", $file);
+		$isRemote = substr($file, 0, 2) === "//";
+
+		// the include is either the $file itself or that prefixed by our
+		// URL property.  but, for the version of that file, we use the last
+		// modified timestamp for local files and this year and month for
+		// remote ones.  that should force browsers to update their cache
+		// at least once per month for remote assets.
+
+		$include = !$isRemote ? ($this->url . $file) : $file;
+		$version = !$isRemote ? filemtime($this->dir . $file) : date("Ym");
+		$function($fileInfo["filename"], $include, $dependencies, $version, $finalArg);
 	}
 }

@@ -1,10 +1,12 @@
 <?php
 
-namespace Engage\WordPress\Handlers;
+namespace Dashifen\WPHandler\Handlers;
+
+use Throwable;
 
 /**
  * Interface HandlerInterface
- * @package Engage\WordPress\Handlers
+ * @package Dashifen\WPHandler\Handlers
  */
 interface HandlerInterface {
 	/**
@@ -16,7 +18,7 @@ interface HandlerInterface {
 	 *
 	 * @return void
 	 */
-	public function initialize();
+	public function initialize(): void;
 
 	/**
 	 * debug
@@ -29,7 +31,7 @@ interface HandlerInterface {
 	 *
 	 * @return void
 	 */
-	public static function debug($stuff, $die = false);
+	public static function debug($stuff, $die = false): void;
 
 	/**
 	 * writeLog
@@ -40,7 +42,7 @@ interface HandlerInterface {
 	 *
 	 * @return void
 	 */
-	public static function writeLog($data);
+	public static function writeLog($data): void;
 
 	/**
 	 * isDebug
@@ -49,7 +51,20 @@ interface HandlerInterface {
 	 *
 	 * @return bool
 	 */
-	public static function isDebug();
+	public static function isDebug(): bool;
+
+	/**
+	 * catcher
+	 *
+	 * This serves as a general-purpose Exception handler which displays
+	 * the caught object when we're debugging and writes it to the log when
+	 * we're not.
+	 *
+	 * @param Throwable $thrown
+	 *
+	 * @return void
+	 */
+	public static function catcher(Throwable $thrown): void;
 
 	/**
 	 * __call

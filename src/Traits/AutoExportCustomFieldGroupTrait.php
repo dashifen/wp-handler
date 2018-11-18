@@ -8,7 +8,7 @@
 /** @noinspection PhpUndefinedClassInspection */
 /** @noinspection SqlResolve */
 
-namespace Engage\WordPress\Traits;
+namespace Dashifen\WPHandler\Traits;
 
 use WP_Post;
 
@@ -18,7 +18,7 @@ use WP_Post;
  * Automatically exports ACF JSON data to a specified folder so that it can
  * be checked into git for safe-keeping.
  *
- * @package Engage\WordPress\Traits
+ * @package Dashifen\WPHandler\Traits
  */
 trait AutoExportCustomFieldGroupTrait {
 	/**

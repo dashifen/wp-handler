@@ -1,23 +1,23 @@
 {
-    "name": "engagedc/wp-handler",
-    "description": "An object oriented boilerplate for WordPress themes and plugins.",
+    "name": "dashifen/wp-handler",
+    "description": "An object to define handlers for various WordPress action and filter hooks using protected methods. ",
     "type": "project",
     "license": "MIT",
     "authors": [
         {
             "name": "David Dashifen Kees",
-            "email": "david.kees@engagedc.com",
+            "email": "dashifen@dashifen.com",
             "role": "developer"
         }
     ],
     "autoload": {
         "psr-4": {
-            "Engage\\WordPress\\": "src"
+            "Dashifen\\WPHandler\\": "src"
         }
     },
     "minimum-stability": "stable",
     "require": {
-        "php": "^7.0",
+        "php": "^7.2",
         "dashifen/exception": "1.1.*"
     }
 }

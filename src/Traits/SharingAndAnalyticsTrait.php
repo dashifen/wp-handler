@@ -2,7 +2,7 @@
 
 /** @noinspection PhpUndefinedFunctionInspection */
 
-namespace Engage\WordPress\Traits;
+namespace Dashifen\WPHandler\Traits;
 
 /**
  * Trait SharingTrait
@@ -11,7 +11,7 @@ namespace Engage\WordPress\Traits;
  * this trait provides the basic Twitter, Facebook, and Google fields to
  * provide for basic sharing and analytics.
  *
- * @package Engage\WordPress\Traits
+ * @package Dashifen\WPHandler\Traits
  */
 trait SharingAndAnalyticsTrait {
 	/**

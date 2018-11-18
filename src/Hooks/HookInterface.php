@@ -1,11 +1,11 @@
 <?php
 
-namespace Engage\WordPress\Hooks;
-use Engage\WordPress\Handlers\HandlerInterface;
+namespace Dashifen\WPHandler\Hooks;
+use Dashifen\WPHandler\Handlers\HandlerInterface;
 
 /**
  * Interface HookInterface
- * @package Engage\WordPress\Hooks
+ * @package Dashifen\WPHandler\Hooks
  */
 interface HookInterface {
 	/**

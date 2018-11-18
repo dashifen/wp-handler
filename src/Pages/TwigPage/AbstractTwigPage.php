@@ -4,10 +4,10 @@
 /** @noinspection PhpUndefinedFunctionInspection */
 /** @noinspection PhpUndefinedClassInspection */
 
-namespace Engage\WordPress\Pages\TwigPage;
+namespace Dashifen\WPHandler\Pages\TwigPage;
 
-use Engage\WordPress\Pages\Page;
-use Engage\WordPress\Pages\PageException;
+use Dashifen\WPHandler\Pages\Page;
+use Dashifen\WPHandler\Pages\PageException;
 use Twig_Loader_Filesystem;
 use Twig_Environment;
 

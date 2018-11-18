@@ -1,15 +1,15 @@
 <?php
 
-namespace Engage\WordPress\Hooks;
+namespace Dashifen\WPHandler\Hooks;
 
-use Engage\WordPress\Handlers\HandlerInterface;
-use ReflectionClass;
-use ReflectionMethod;
+use Dashifen\WPHandler\Handlers\HandlerInterface;
 use ReflectionException;
+use ReflectionMethod;
+use ReflectionClass;
 
 /**
  * Class Hook
- * @package Engage\WordPress\Hooks
+ * @package Dashifen\WPHandler\Hooks
  */
 class Hook implements HookInterface {
 	/**
