@@ -293,12 +293,31 @@ abstract class AbstractHandler implements HandlerInterface {
 	 * @param string           $file
 	 * @param array            $dependencies
 	 * @param string|bool|null $finalArg
+	 * @param string           $url
+	 * @param string           $dir
 	 *
 	 * @return void
 	 */
-	protected function enqueue(string $file, array $dependencies = [], $finalArg = null): void {
+	protected function enqueue(string $file, array $dependencies = [], $finalArg = null, string $url = "", string $dir = ""): void {
 		$fileInfo = pathinfo($file);
 		$isScript = $fileInfo["extension"] === "js";
+
+		// if either of our url or dir parameters are empty, we'll want to
+		// set them to the url and dir properties of this object.  this is the
+		// default behavior, but our AbstractPluginHandler sends us other
+		// strings.  then, we make sure that each of these has a trailing
+		// slash.
+
+		if (empty($url)) {
+			$url = $this->url;
+		}
+
+		if (empty($dir)) {
+			$dir = $this->dir;
+		}
+
+		$url = trailingslashit($url);
+		$dir = trailingslashit($dir);
 
 		// the $function variable will be used as a variable function.  we
 		// want to set it to either the WP function that enqueues scripts or
@@ -331,8 +350,8 @@ abstract class AbstractHandler implements HandlerInterface {
 		// remote ones.  that should force browsers to update their cache
 		// at least once per month for remote assets.
 
-		$include = !$isRemote ? ($this->url . $file) : $file;
-		$version = !$isRemote ? filemtime($this->dir . $file) : date("Ym");
+		$include = !$isRemote ? ($url . $file) : $file;
+		$version = !$isRemote ? filemtime($dir . $file) : date("Ym");
 		$function($fileInfo["filename"], $include, $dependencies, $version, $finalArg);
 	}
 }
