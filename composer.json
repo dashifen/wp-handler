@@ -1,0 +1,23 @@
+{
+    "name": "engagedc/wp-handler",
+    "description": "An object oriented boilerplate for WordPress themes and plugins.",
+    "type": "project",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "David Dashifen Kees",
+            "email": "david.kees@engagedc.com",
+            "role": "developer"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Engage\\WordPress\\": "src"
+        }
+    },
+    "minimum-stability": "stable",
+    "require": {
+        "php": "^7.0",
+        "dashifen/exception": "1.1.*"
+    }
+}
