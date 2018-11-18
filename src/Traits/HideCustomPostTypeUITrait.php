@@ -8,7 +8,7 @@ namespace Dashifen\WPHandler\Traits;
  * Trait CustomPostTypeUITrait
  *
  * Restricts access to the CPT UI menu item to only those users that
- * have an engagedc.com email address.
+ * have an email address at a specified domain.
  *
  * @package Dashifen\WPHandler\Traits
  */
@@ -16,10 +16,10 @@ trait HideCustomPostTypeUITrait {
 	/**
 	 * restrictCPTUI
 	 *
-	 * Checks the current user, and if it doesn't have an engagedc.com
-	 * email address, alters the admin menu to remove the CPT UI menu item.
-	 * The list of domains provided access to the CPT UI menu can be filtered
-	 * with the valid_cpt_admin_domains filter.
+	 * Checks the current user, and if it doesn't have an address at an allowed
+	 * domain, alters the admin menu to remove the CPT UI menu item.  The list
+	 * of domains provided access to the CPT UI menu can be filtered with the
+	 * valid_cpt_admin_domains filter.
 	 *
 	 * @return void
 	 */
@@ -45,12 +45,10 @@ trait HideCustomPostTypeUITrait {
 	 * default, see if the current user's email address's domain is in
 	 * that array.
 	 *
-	 * @param array $domains
-	 *
 	 * @return bool
 	 */
-	protected function mustRestrictCPTUI(array $domains = ["engagedc.com"]) {
-		$domains = apply_filters("valid_cpt_admin_domains", $domains);
+	protected function mustRestrictCPTUI() {
+		$domains = apply_filters("valid_cpt_admin_domains", []);
 
 		if (!is_array($domains)) {
 
@@ -79,6 +77,4 @@ trait HideCustomPostTypeUITrait {
 
 		return true;
 	}
-
-
 }
