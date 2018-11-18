@@ -288,7 +288,8 @@ abstract class AbstractHandler implements HandlerInterface {
 	/**
 	 * enqueue
 	 *
-	 * Adds a script or style to the DOM.
+	 * Adds a script or style to the DOM and returns the name by which
+	 * the file is now known to WordPress.
 	 *
 	 * @param string           $file
 	 * @param array            $dependencies
@@ -296,9 +297,9 @@ abstract class AbstractHandler implements HandlerInterface {
 	 * @param string           $url
 	 * @param string           $dir
 	 *
-	 * @return void
+	 * @return string
 	 */
-	protected function enqueue(string $file, array $dependencies = [], $finalArg = null, string $url = "", string $dir = ""): void {
+	protected function enqueue(string $file, array $dependencies = [], $finalArg = null, string $url = "", string $dir = ""): string {
 		$fileInfo = pathinfo($file);
 		$isScript = $fileInfo["extension"] === "js";
 
@@ -353,5 +354,7 @@ abstract class AbstractHandler implements HandlerInterface {
 		$include = !$isRemote ? ($url . $file) : $file;
 		$version = !$isRemote ? filemtime($dir . $file) : date("Ym");
 		$function($fileInfo["filename"], $include, $dependencies, $version, $finalArg);
+
+		return $fileInfo["filename"];
 	}
 }

@@ -34,7 +34,8 @@ abstract class AbstractPluginHandler extends AbstractHandler {
 	/**
 	 * enqueue
 	 *
-	 * Adds a script or style to the DOM.
+	 * Adds a script or style to the DOM and returns the name by which
+	 * the file is now known to WordPress
 	 *
 	 * @param string           $file
 	 * @param array            $dependencies
@@ -42,9 +43,9 @@ abstract class AbstractPluginHandler extends AbstractHandler {
 	 * @param string           $url
 	 * @param string           $dir
 	 *
-	 * @return void
+	 * @return string
 	 */
-	protected function enqueue(string $file, array $dependencies = [], $finalArg = null, string $url = "", string $dir = ""): void {
+	protected function enqueue(string $file, array $dependencies = [], $finalArg = null, string $url = "", string $dir = ""): string {
 
 		// our parent's enqueue function enqueues things that are in the
 		// stylesheet's directory.  but that won't work for plugins.  we'll
@@ -59,6 +60,6 @@ abstract class AbstractPluginHandler extends AbstractHandler {
 			$dir = $this->pluginDir;
 		}
 
-		parent::enqueue($file, $dependencies, $finalArg, $url, $dir);
+		return parent::enqueue($file, $dependencies, $finalArg, $url, $dir);
 	}
 }
