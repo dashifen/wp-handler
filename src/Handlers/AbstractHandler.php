@@ -301,7 +301,7 @@ abstract class AbstractHandler implements HandlerInterface {
 	 */
 	protected function enqueue(string $file, array $dependencies = [], $finalArg = null, string $url = "", string $dir = ""): string {
 		$fileInfo = pathinfo($file);
-		$isScript = $fileInfo["extension"] === "js";
+		$isScript = ($fileInfo["extension"] ?? "") === "js";
 
 		// if either of our url or dir parameters are empty, we'll want to
 		// set them to the url and dir properties of this object.  this is the
