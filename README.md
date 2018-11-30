@@ -24,10 +24,5 @@ Both the `addAction()` and `addFilter()` methods have similar arguments to WordP
 
 Simply put, having an object with only public methods helps avoid naming collisions, but does keep other parts of a plugin, theme, or the WordPress ecosystem from calling one of those methods inappropriately.  The AbstractHandler object makes sure that your protected methods can only be called on the action/filter hook for which they're intended at the priority level that you provide.  Any other attempt to use them will either cause a PHP error (because the methods are protected) or throw a `HandlerException`.
 
-## Additional Objects
-
-There are some additional helper objects in the `Pages` folder and a few traits in the one named `Traits`.  These are here because they're frequently utilized by handlers to display template files.  Conceivably, they could be in their own repo, but since these objects are so often used together, we might decided to let them live in the same one for now.
-
-
 ## Provenance
 I wrote this object to use at work with [Engage](https://enga.ge) in Alexandria, VA.  They've given me permission to make a copy of it and alter it for my own purposes, which is this repo.  Their copy, which is the initial commit into this repo, is their own and I think neither of us guarantee that, after some time passes, that they'll be interchangeable.
