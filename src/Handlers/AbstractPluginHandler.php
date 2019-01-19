@@ -16,8 +16,9 @@ abstract class AbstractPluginHandler extends AbstractHandler {
 	public function __construct() {
 		parent::__construct();
 
+		$pluginUrl = WP_PLUGIN_URL . "/" . $this->getPluginDirectory();
+		$this->pluginUrl = preg_replace("/^https?:/", "", $pluginUrl);
 		$this->pluginDir = WP_PLUGIN_DIR . "/" . $this->getPluginDirectory();
-		$this->pluginUrl = WP_PLUGIN_URL . "/" . $this->getPluginDirectory();
 	}
 
 	/**
