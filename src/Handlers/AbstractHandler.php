@@ -39,8 +39,16 @@ abstract class AbstractHandler implements HandlerInterface {
 	 * AbstractHandler constructor.
 	 */
 	public function __construct() {
-		$this->dir = get_stylesheet_directory();
-		$this->url = get_stylesheet_directory_uri();
+
+		// in case we're loading a minimalist WP environment for testing
+		// purposes, we only want to set these properties if the functions
+		// necessary for doing so exist.  95% of the time, they do, but in
+		// the 5% where they don't, we'd have fatal errors.
+
+		if (function_exists("get_stylesheet_directory_uri")) {
+			$this->url = get_stylesheet_directory_uri();
+			$this->dir = get_stylesheet_directory();
+		}
 	}
 
 	/**
