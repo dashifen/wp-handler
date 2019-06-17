@@ -2,6 +2,9 @@
 
 namespace Dashifen\WPHandler\Handlers;
 
+use ReflectionClass;
+use ReflectionException;
+
 abstract class AbstractPluginHandler extends AbstractHandler {
 	/**
 	 * @var string
@@ -21,16 +24,52 @@ abstract class AbstractPluginHandler extends AbstractHandler {
 		$this->pluginDir = WP_PLUGIN_DIR . "/" . $this->getPluginDirectory();
 	}
 
-	/**
-	 * getPluginDirectory
-	 *
-	 * Returns the name of the directory in which our concrete extension
-	 * of this class resides.  Avoids the use of a ReflectionClass simply
-	 * to get a simple string.
-	 *
-	 * @return string
-	 */
-	abstract protected function getPluginDirectory(): string;
+  /**
+   * getPluginDirectory
+   *
+   * Returns the name of the directory in which our concrete extension
+   * of this class resides.
+   *
+   * @return string
+   */
+	final protected function getPluginDirectory(): string {
+	  try {
+
+	    // to get the directory name of this object's children we need to
+      // reflect the static::class name of that child.  then, we can get
+      // it's directory from it's full, absolute filename.  ordinarily,
+      // we might want to avoid using a ReflectionClass since they can be
+      // expensive, but because the object is already in memory, it's
+      // much less so.
+
+	    $classInfo = new ReflectionClass(static::class);
+	    $absPath = dirname($classInfo->getFileName());
+
+	    // now, all we really want is the final directory in the path.
+      // that'll be the one in which our plugin lives, and keeping all
+      // of the other information would actually cause our links to
+      // fail.
+
+      $absPathParts = explode(DIRECTORY_SEPARATOR, $absPath);
+      $directory = array_pop($absPathParts);
+    } catch (ReflectionException $exception) {
+
+      // a ReflectionException is thrown when the class that we're
+      // trying to reflect doesn't exist.  but, since we're reflecting
+      // this class, we know it exists.  in order to avoid IDE related
+      // messages about uncaught exceptions, we'll trigger the following
+      // error, but we also know that we should never get here.
+
+      trigger_error("Unable to reflect.", E_ERROR);
+    }
+
+    // the trigger_error() call in the catch block would halt our execution
+    // of this method, but IDEs may flag the following line as a problem
+    // because $directory would only exist if the exception isn't thrown.
+    // thus, we'll use the null coalescing operator to make them happy.
+
+    return $directory ?? "";
+  }
 
 	/**
 	 * enqueue
