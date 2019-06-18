@@ -226,14 +226,15 @@ abstract class AbstractHandler implements HandlerInterface {
 	 * @param int    $priority
 	 * @param int    $arguments
 	 *
-	 * @return void
+	 * @return string
 	 * @throws HookException
 	 */
-	protected function addAction(string $hook, string $method, int $priority = 10, int $arguments = 1): void {
-
-		add_action($hook, [$this, $method], $priority, $arguments);
+	protected function addAction(string $hook, string $method, int $priority = 10, int $arguments = 1): string {
+		$actionHook = add_action($hook, [$this, $method], $priority, $arguments);
 		$hookIndex = Hook::getHookIndex($hook, $this, $method, $priority);
 		$this->hooked[$hookIndex] = new Hook($hook, $this, $method, $priority, $arguments);
+
+		return $actionHook;
 	}
 
 	/**
@@ -246,12 +247,14 @@ abstract class AbstractHandler implements HandlerInterface {
 	 * @param string $method
 	 * @param int    $priority
 	 *
-	 * @return void
+	 * @return bool
 	 */
-	protected function removeAction(string $hook, string $method, int $priority = 10): void {
-		remove_action($hook, [$this, $method], $priority);
+	protected function removeAction(string $hook, string $method, int $priority = 10): bool {
+		$removed = remove_action($hook, [$this, $method], $priority);
 		$hookIndex = Hook::getHookIndex($hook, $this, $method, $priority);
 		unset($this->hooked[$hookIndex]);
+
+		return $removed;
 	}
 
 	/**
@@ -265,14 +268,15 @@ abstract class AbstractHandler implements HandlerInterface {
 	 * @param int    $priority
 	 * @param int    $arguments
 	 *
-	 * @return void
-	 *
+	 * @return string
 	 * @throws HookException
 	 */
-	protected function addFilter(string $hook, string $method, int $priority = 10, int $arguments = 1): void {
-		add_filter($hook, [$this, $method], $priority, $arguments);
+	protected function addFilter(string $hook, string $method, int $priority = 10, int $arguments = 1): string {
+		$filterHook = add_filter($hook, [$this, $method], $priority, $arguments);
 		$hookIndex = Hook::getHookIndex($hook, $this, $method, $priority);
 		$this->hooked[$hookIndex] = new Hook($hook, $this, $method, $priority, $arguments);
+
+		return $filterHook;
 	}
 
 	/**
@@ -285,12 +289,14 @@ abstract class AbstractHandler implements HandlerInterface {
 	 * @param string $method
 	 * @param int    $priority
 	 *
-	 * @return void
+	 * @return bool
 	 */
-	protected function removeFilter(string $hook, string $method, int $priority = 10): void {
-		remove_filter($hook, [$this, $method], $priority);
+	protected function removeFilter(string $hook, string $method, int $priority = 10): bool {
+		$removed = remove_filter($hook, [$this, $method], $priority);
 		$hookIndex = Hook::getHookIndex($hook, $this, $method, $priority);
 		unset($this->hooked[$hookIndex]);
+
+		return $removed;
 	}
 
 	/**
