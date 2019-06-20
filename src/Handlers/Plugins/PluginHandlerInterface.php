@@ -9,17 +9,17 @@ interface PluginHandlerInterface {
    * A wrapper for the WordPress core function of similar name that registers
    * the callback function as a Hook.
    *
-   * @param string        $pageTitle
-   * @param string        $menuTitle
-   * @param string        $capability
-   * @param string        $menuSlug
-   * @param callable|null $function
-   * @param string        $iconUrl
-   * @param int|null      $position
+   * @param string   $pageTitle
+   * @param string   $menuTitle
+   * @param string   $capability
+   * @param string   $menuSlug
+   * @param string   $method
+   * @param string   $iconUrl
+   * @param int|null $position
    *
    * @return string
    */
-  public function addMenuPage (string $pageTitle, string $menuTitle, string $capability, string $menuSlug, ?callable $function = null, string $iconUrl = '', ?int $position = null): string;
+  public function addMenuPage (string $pageTitle, string $menuTitle, string $capability, string $menuSlug, string $method = "", string $iconUrl = '', ?int $position = null): string;
 
   /**
    * addSubmenuPage
@@ -27,16 +27,16 @@ interface PluginHandlerInterface {
    * A wrapper for the WordPress core function of similar name that registers
    * the callback function as a Hook.
    *
-   * @param string        $parentSlug
-   * @param string        $pageTitle
-   * @param string        $menuTitle
-   * @param string        $capability
-   * @param string        $menuSlug
-   * @param callable|null $function
+   * @param string $parentSlug
+   * @param string $pageTitle
+   * @param string $menuTitle
+   * @param string $capability
+   * @param string $menuSlug
+   * @param string $method
    *
    * @return string
    */
-  public function addSubmenuPage (string $parentSlug, string $pageTitle, string $menuTitle, string $capability, string $menuSlug, ?callable $function = null): string;
+  public function addSubmenuPage (string $parentSlug, string $pageTitle, string $menuTitle, string $capability, string $menuSlug, string $method = ""): string;
 
   /**
    * addDashboardPage
@@ -44,15 +44,15 @@ interface PluginHandlerInterface {
    * A wrapper for the WordPress core function of similar name that registers
    * the callback function as a Hook.
    *
-   * @param string        $pageTitle
-   * @param string        $menuTitle
-   * @param string        $capability
-   * @param string        $menuSlug
-   * @param callable|null $function
+   * @param string $pageTitle
+   * @param string $menuTitle
+   * @param string $capability
+   * @param string $menuSlug
+   * @param string $method
    *
    * @return string
    */
-  public function addDashboardPage (string $pageTitle, string $menuTitle, string $capability, string $menuSlug, ?callable $function = null): string;
+  public function addDashboardPage (string $pageTitle, string $menuTitle, string $capability, string $menuSlug, string $method = ""): string;
 
   /**
    * addPostsPage
@@ -60,15 +60,15 @@ interface PluginHandlerInterface {
    * A wrapper for the WordPress core function of similar name that registers
    * the callback function as a Hook.
    *
-   * @param string        $pageTitle
-   * @param string        $menuTitle
-   * @param string        $capability
-   * @param string        $menuSlug
-   * @param callable|null $function
+   * @param string $pageTitle
+   * @param string $menuTitle
+   * @param string $capability
+   * @param string $menuSlug
+   * @param string $method
    *
    * @return string
    */
-  public function addPostsPage (string $pageTitle, string $menuTitle, string $capability, string $menuSlug, ?callable $function = null): string;
+  public function addPostsPage (string $pageTitle, string $menuTitle, string $capability, string $menuSlug, string $method = ""): string;
 
   /**
    * addMediaPage
@@ -76,15 +76,15 @@ interface PluginHandlerInterface {
    * A wrapper for the WordPress core function of similar name that registers
    * the callback function as a Hook.
    *
-   * @param string        $pageTitle
-   * @param string        $menuTitle
-   * @param string        $capability
-   * @param string        $menuSlug
-   * @param callable|null $function
+   * @param string $pageTitle
+   * @param string $menuTitle
+   * @param string $capability
+   * @param string $menuSlug
+   * @param string $method
    *
    * @return string
    */
-  public function addMediaPage (string $pageTitle, string $menuTitle, string $capability, string $menuSlug, ?callable $function = null): string;
+  public function addMediaPage (string $pageTitle, string $menuTitle, string $capability, string $menuSlug, string $method = ""): string;
 
   /**
    * addCommentsPage
@@ -92,15 +92,15 @@ interface PluginHandlerInterface {
    * A wrapper for the WordPress core function of similar name that registers
    * the callback function as a Hook.
    *
-   * @param string        $pageTitle
-   * @param string        $menuTitle
-   * @param string        $capability
-   * @param string        $menuSlug
-   * @param callable|null $function
+   * @param string $pageTitle
+   * @param string $menuTitle
+   * @param string $capability
+   * @param string $menuSlug
+   * @param string $method
    *
    * @return string
    */
-  public function addCommentsPage (string $pageTitle, string $menuTitle, string $capability, string $menuSlug, ?callable $function = null): string;
+  public function addCommentsPage (string $pageTitle, string $menuTitle, string $capability, string $menuSlug, string $method = ""): string;
 
   /**
    * addThemePage
@@ -108,15 +108,15 @@ interface PluginHandlerInterface {
    * A wrapper for the WordPress core function of similar name that registers
    * the callback function as a Hook.
    *
-   * @param string        $pageTitle
-   * @param string        $menuTitle
-   * @param string        $capability
-   * @param string        $menuSlug
-   * @param callable|null $function
+   * @param string $pageTitle
+   * @param string $menuTitle
+   * @param string $capability
+   * @param string $menuSlug
+   * @param string $method
    *
    * @return string
    */
-  public function addThemePage (string $pageTitle, string $menuTitle, string $capability, string $menuSlug, ?callable $function = null): string;
+  public function addThemePage (string $pageTitle, string $menuTitle, string $capability, string $menuSlug, string $method = ""): string;
 
   /**
    * addPluginsPage
@@ -124,15 +124,15 @@ interface PluginHandlerInterface {
    * A wrapper for the WordPress core function of similar name that registers
    * the callback function as a Hook.
    *
-   * @param string        $pageTitle
-   * @param string        $menuTitle
-   * @param string        $capability
-   * @param string        $menuSlug
-   * @param callable|null $function
+   * @param string $pageTitle
+   * @param string $menuTitle
+   * @param string $capability
+   * @param string $menuSlug
+   * @param string $method
    *
    * @return string
    */
-  public function addPluginsPage (string $pageTitle, string $menuTitle, string $capability, string $menuSlug, ?callable $function = null): string;
+  public function addPluginsPage (string $pageTitle, string $menuTitle, string $capability, string $menuSlug, string $method = ""): string;
 
   /**
    * addUsersPage
@@ -140,15 +140,15 @@ interface PluginHandlerInterface {
    * A wrapper for the WordPress core function of similar name that registers
    * the callback function as a Hook.
    *
-   * @param string        $pageTitle
-   * @param string        $menuTitle
-   * @param string        $capability
-   * @param string        $menuSlug
-   * @param callable|null $function
+   * @param string $pageTitle
+   * @param string $menuTitle
+   * @param string $capability
+   * @param string $menuSlug
+   * @param string $method
    *
    * @return string
    */
-  public function addUsersPage (string $pageTitle, string $menuTitle, string $capability, string $menuSlug, ?callable $function = null): string;
+  public function addUsersPage (string $pageTitle, string $menuTitle, string $capability, string $menuSlug, string $method = ""): string;
 
   /**
    * addManagementPage
@@ -156,15 +156,15 @@ interface PluginHandlerInterface {
    * A wrapper for the WordPress core function of similar name that registers
    * the callback function as a Hook.
    *
-   * @param string        $pageTitle
-   * @param string        $menuTitle
-   * @param string        $capability
-   * @param string        $menuSlug
-   * @param callable|null $function
+   * @param string $pageTitle
+   * @param string $menuTitle
+   * @param string $capability
+   * @param string $menuSlug
+   * @param string $method
    *
    * @return string
    */
-  public function addManagementPage (string $pageTitle, string $menuTitle, string $capability, string $menuSlug, ?callable $function = null): string;
+  public function addManagementPage (string $pageTitle, string $menuTitle, string $capability, string $menuSlug, string $method = ""): string;
 
   /**
    * addOptionsPage
@@ -172,15 +172,15 @@ interface PluginHandlerInterface {
    * A wrapper for the WordPress core function of similar name that registers
    * the callback function as a Hook.
    *
-   * @param string        $pageTitle
-   * @param string        $menuTitle
-   * @param string        $capability
-   * @param string        $menuSlug
-   * @param callable|null $function
+   * @param string $pageTitle
+   * @param string $menuTitle
+   * @param string $capability
+   * @param string $menuSlug
+   * @param string $method
    *
    * @return string
    */
-  public function addOptionsPage (string $pageTitle, string $menuTitle, string $capability, string $menuSlug, ?callable $function = null): string;
+  public function addOptionsPage (string $pageTitle, string $menuTitle, string $capability, string $menuSlug, string $method = ""): string;
 
   /**
    * addPostTypePage
@@ -188,14 +188,14 @@ interface PluginHandlerInterface {
    * A convenience function that allows for easier registration of submenu
    * pages within the menu for a custom post type.
    *
-   * @param string        $postType
-   * @param string        $pageTitle
-   * @param string        $menuTitle
-   * @param string        $capability
-   * @param string        $menuSlug
-   * @param callable|null $function
+   * @param string $postType
+   * @param string $pageTitle
+   * @param string $menuTitle
+   * @param string $capability
+   * @param string $menuSlug
+   * @param string $method
    *
    * @return string
    */
-  public function addPostTypePage (string $postType, string $pageTitle, string $menuTitle, string $capability, string $menuSlug, ?callable $function = null): string;
+  public function addPostTypePage (string $postType, string $pageTitle, string $menuTitle, string $capability, string $menuSlug, string $method = ""): string;
 }

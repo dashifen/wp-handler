@@ -2,28 +2,31 @@
 
 namespace Dashifen\WPHandler\Handlers\Plugins;
 
+use Dashifen\Container\ContainerException;
+use Dashifen\WPHandler\Containers\MenuItem;
+use Dashifen\WPHandler\Containers\MenuItemException;
 use ReflectionClass;
 use ReflectionException;
 use Dashifen\WPHandler\Handlers\AbstractHandler;
 
 abstract class AbstractPluginHandler extends AbstractHandler implements PluginHandlerInterface {
-	/**
-	 * @var string
-	 */
-	protected $pluginDir = "";
+  /**
+   * @var string
+   */
+  protected $pluginDir = "";
 
-	/**
-	 * @var string
-	 */
-	protected $pluginUrl = "";
+  /**
+   * @var string
+   */
+  protected $pluginUrl = "";
 
-	public function __construct() {
-		parent::__construct();
+  public function __construct () {
+    parent::__construct();
 
-		$pluginUrl = WP_PLUGIN_URL . "/" . $this->getPluginDirectory();
-		$this->pluginUrl = preg_replace("/^https?:/", "", $pluginUrl);
-		$this->pluginDir = WP_PLUGIN_DIR . "/" . $this->getPluginDirectory();
-	}
+    $pluginUrl = WP_PLUGIN_URL . "/" . $this->getPluginDirectory();
+    $this->pluginUrl = preg_replace("/^https?:/", "", $pluginUrl);
+    $this->pluginDir = WP_PLUGIN_DIR . "/" . $this->getPluginDirectory();
+  }
 
   /**
    * getPluginDirectory
@@ -33,20 +36,20 @@ abstract class AbstractPluginHandler extends AbstractHandler implements PluginHa
    *
    * @return string
    */
-	final protected function getPluginDirectory(): string {
-	  try {
+  final protected function getPluginDirectory (): string {
+    try {
 
-	    // to get the directory name of this object's children we need to
+      // to get the directory name of this object's children we need to
       // reflect the static::class name of that child.  then, we can get
       // it's directory from it's full, absolute filename.  ordinarily,
       // we might want to avoid using a ReflectionClass since they can be
       // expensive, but because the object is already in memory, it's
       // much less so.
 
-	    $classInfo = new ReflectionClass(static::class);
-	    $absPath = dirname($classInfo->getFileName());
+      $classInfo = new ReflectionClass(static::class);
+      $absPath = dirname($classInfo->getFileName());
 
-	    // now, all we really want is the final directory in the path.
+      // now, all we really want is the final directory in the path.
       // that'll be the one in which our plugin lives, and keeping all
       // of the other information would actually cause our links to
       // fail.
@@ -72,37 +75,37 @@ abstract class AbstractPluginHandler extends AbstractHandler implements PluginHa
     return $directory ?? "";
   }
 
-	/**
-	 * enqueue
-	 *
-	 * Adds a script or style to the DOM and returns the name by which
-	 * the file is now known to WordPress
-	 *
-	 * @param string           $file
-	 * @param array            $dependencies
-	 * @param string|bool|null $finalArg
-	 * @param string           $url
-	 * @param string           $dir
-	 *
-	 * @return string
-	 */
-	protected function enqueue(string $file, array $dependencies = [], $finalArg = null, string $url = "", string $dir = ""): string {
+  /**
+   * enqueue
+   *
+   * Adds a script or style to the DOM and returns the name by which
+   * the file is now known to WordPress
+   *
+   * @param string           $file
+   * @param array            $dependencies
+   * @param string|bool|null $finalArg
+   * @param string           $url
+   * @param string           $dir
+   *
+   * @return string
+   */
+  protected function enqueue (string $file, array $dependencies = [], $finalArg = null, string $url = "", string $dir = ""): string {
 
-		// our parent's enqueue function enqueues things that are in the
-		// stylesheet's directory.  but that won't work for plugins.  we'll
-		// set different defaults for our url and dir parameters and then
-		// pass them to our parent's function as follows.
+    // our parent's enqueue function enqueues things that are in the
+    // stylesheet's directory.  but that won't work for plugins.  we'll
+    // set different defaults for our url and dir parameters and then
+    // pass them to our parent's function as follows.
 
-		if (empty($url)) {
-			$url = $this->pluginUrl;
-		}
+    if (empty($url)) {
+      $url = $this->pluginUrl;
+    }
 
-		if (empty($dir)) {
-			$dir = $this->pluginDir;
-		}
+    if (empty($dir)) {
+      $dir = $this->pluginDir;
+    }
 
-		return parent::enqueue($file, $dependencies, $finalArg, $url, $dir);
-	}
+    return parent::enqueue($file, $dependencies, $finalArg, $url, $dir);
+  }
 
   /**
    * addMenuPage
@@ -110,18 +113,38 @@ abstract class AbstractPluginHandler extends AbstractHandler implements PluginHa
    * A wrapper for the WordPress core function of similar name that registers
    * the callback function as a Hook.
    *
-   * @param string        $pageTitle
-   * @param string        $menuTitle
-   * @param string        $capability
-   * @param string        $menuSlug
-   * @param callable|null $function
-   * @param string        $iconUrl
-   * @param int|null      $position
+   * @param string   $pageTitle
+   * @param string   $menuTitle
+   * @param string   $capability
+   * @param string   $menuSlug
+   * @param string   $method
+   * @param string   $iconUrl
+   * @param int|null $position
    *
    * @return string
+   * @throws MenuItemException
    */
-  public function addMenuPage (string $pageTitle, string $menuTitle, string $capability, string $menuSlug, ?callable $function = null, string $iconUrl = '', ?int $position = null): string {
-    // TODO: Implement addMenuPage() method.
+  public function addMenuPage (string $pageTitle, string $menuTitle, string $capability, string $menuSlug, string $method = "", string $iconUrl = '', ?int $position = null): string {
+
+    // the primary difference between our wrapper and the core WP function
+    // of similar name is that we simply receive the name of a $method to use
+    // as our callback instead of a callable of some kind.  here, we want to
+    // add that method as a Hook within this Handler object and also call the
+    // WP function which actually adds the menu item.
+
+    try {
+      $menuItem = new MenuItem(func_get_args());
+      $menuItem->setCallable([$this, $method]);
+      $loadingHook = add_menu_page(...$menuItem->toArray());
+      return $loadingHook;
+    } catch (ContainerException $e) {
+
+      // rather than throwing a ContainerException, we'll "convert" it
+      // to the type of exception that's more specific to the situation
+      // in which we find ourselves.
+
+      throw new MenuItemException($e->getMessage(), $e->getCode(), $e);
+    }
   }
 
   /**
@@ -130,17 +153,25 @@ abstract class AbstractPluginHandler extends AbstractHandler implements PluginHa
    * A wrapper for the WordPress core function of similar name that registers
    * the callback function as a Hook.
    *
-   * @param string        $parentSlug
-   * @param string        $pageTitle
-   * @param string        $menuTitle
-   * @param string        $capability
-   * @param string        $menuSlug
-   * @param callable|null $function
+   * @param string $parentSlug
+   * @param string $pageTitle
+   * @param string $menuTitle
+   * @param string $capability
+   * @param string $menuSlug
+   * @param string $method
    *
    * @return string
+   * @throws MenuItemException
    */
-  public function addSubmenuPage (string $parentSlug, string $pageTitle, string $menuTitle, string $capability, string $menuSlug, ?callable $function = null): string {
-
+  public function addSubmenuPage (string $parentSlug, string $pageTitle, string $menuTitle, string $capability, string $menuSlug, string $method = ""): string {
+    try{
+      $menuItem = new MenuItem(func_get_args());
+      $menuItem->setCallable([$this, $method]);
+      $loadingHook = add_submenu_page(...$menuItem->toArray());
+      return $loadingHook;
+    } catch (ContainerException $e) {
+      throw new MenuItemException($e->getMessage(), $e->getCode(), $e);
+    }
   }
 
   /**
@@ -149,15 +180,16 @@ abstract class AbstractPluginHandler extends AbstractHandler implements PluginHa
    * A wrapper for the WordPress core function of similar name that registers
    * the callback function as a Hook.
    *
-   * @param string        $pageTitle
-   * @param string        $menuTitle
-   * @param string        $capability
-   * @param string        $menuSlug
-   * @param callable|null $function
+   * @param string $pageTitle
+   * @param string $menuTitle
+   * @param string $capability
+   * @param string $menuSlug
+   * @param string $method
    *
    * @return string
+   * @throws MenuItemException
    */
-  public function addDashboardPage (string $pageTitle, string $menuTitle, string $capability, string $menuSlug, ?callable $function = null): string {
+  public function addDashboardPage (string $pageTitle, string $menuTitle, string $capability, string $menuSlug, string $method = ""): string {
 
     // this, and the subsequent methods, use the spread operator and the
     // func_get_args() function to pass the parameters to this method over
@@ -176,15 +208,16 @@ abstract class AbstractPluginHandler extends AbstractHandler implements PluginHa
    * A wrapper for the WordPress core function of similar name that registers
    * the callback function as a Hook.
    *
-   * @param string        $pageTitle
-   * @param string        $menuTitle
-   * @param string        $capability
-   * @param string        $menuSlug
-   * @param callable|null $function
+   * @param string $pageTitle
+   * @param string $menuTitle
+   * @param string $capability
+   * @param string $menuSlug
+   * @param string $method
    *
    * @return string
+   * @throws MenuItemException
    */
-  public function addPostsPage (string $pageTitle, string $menuTitle, string $capability, string $menuSlug, ?callable $function = null): string {
+  public function addPostsPage (string $pageTitle, string $menuTitle, string $capability, string $menuSlug, string $method = ""): string {
     return $this->addSubmenuPage("edit.php", ...func_get_args());
   }
 
@@ -194,15 +227,16 @@ abstract class AbstractPluginHandler extends AbstractHandler implements PluginHa
    * A wrapper for the WordPress core function of similar name that registers
    * the callback function as a Hook.
    *
-   * @param string        $pageTitle
-   * @param string        $menuTitle
-   * @param string        $capability
-   * @param string        $menuSlug
-   * @param callable|null $function
+   * @param string $pageTitle
+   * @param string $menuTitle
+   * @param string $capability
+   * @param string $menuSlug
+   * @param string $method
    *
    * @return string
+   * @throws MenuItemException
    */
-  public function addMediaPage (string $pageTitle, string $menuTitle, string $capability, string $menuSlug, ?callable $function = null): string {
+  public function addMediaPage (string $pageTitle, string $menuTitle, string $capability, string $menuSlug, string $method = ""): string {
     return $this->addSubmenuPage("upload.php", ...func_get_args());
   }
 
@@ -212,15 +246,16 @@ abstract class AbstractPluginHandler extends AbstractHandler implements PluginHa
    * A wrapper for the WordPress core function of similar name that registers
    * the callback function as a Hook.
    *
-   * @param string        $pageTitle
-   * @param string        $menuTitle
-   * @param string        $capability
-   * @param string        $menuSlug
-   * @param callable|null $function
+   * @param string $pageTitle
+   * @param string $menuTitle
+   * @param string $capability
+   * @param string $menuSlug
+   * @param string $method
    *
    * @return string
+   * @throws MenuItemException
    */
-  public function addCommentsPage (string $pageTitle, string $menuTitle, string $capability, string $menuSlug, ?callable $function = null): string {
+  public function addCommentsPage (string $pageTitle, string $menuTitle, string $capability, string $menuSlug, string $method = ""): string {
     return $this->addSubmenuPage("edit-comments.php", ...func_get_args());
   }
 
@@ -230,15 +265,16 @@ abstract class AbstractPluginHandler extends AbstractHandler implements PluginHa
    * A wrapper for the WordPress core function of similar name that registers
    * the callback function as a Hook.
    *
-   * @param string        $pageTitle
-   * @param string        $menuTitle
-   * @param string        $capability
-   * @param string        $menuSlug
-   * @param callable|null $function
+   * @param string $pageTitle
+   * @param string $menuTitle
+   * @param string $capability
+   * @param string $menuSlug
+   * @param string $method
    *
    * @return string
+   * @throws MenuItemException
    */
-  public function addThemePage (string $pageTitle, string $menuTitle, string $capability, string $menuSlug, ?callable $function = null): string {
+  public function addThemePage (string $pageTitle, string $menuTitle, string $capability, string $menuSlug, string $method = ""): string {
     return $this->addSubmenuPage("themes.php", ...func_get_args());
   }
 
@@ -248,15 +284,16 @@ abstract class AbstractPluginHandler extends AbstractHandler implements PluginHa
    * A wrapper for the WordPress core function of similar name that registers
    * the callback function as a Hook.
    *
-   * @param string        $pageTitle
-   * @param string        $menuTitle
-   * @param string        $capability
-   * @param string        $menuSlug
-   * @param callable|null $function
+   * @param string $pageTitle
+   * @param string $menuTitle
+   * @param string $capability
+   * @param string $menuSlug
+   * @param string $method
    *
    * @return string
+   * @throws MenuItemException
    */
-  public function addPluginsPage (string $pageTitle, string $menuTitle, string $capability, string $menuSlug, ?callable $function = null): string {
+  public function addPluginsPage (string $pageTitle, string $menuTitle, string $capability, string $menuSlug, string $method = ""): string {
     return $this->addSubmenuPage("plugins.php", ...func_get_args());
   }
 
@@ -266,15 +303,16 @@ abstract class AbstractPluginHandler extends AbstractHandler implements PluginHa
    * A wrapper for the WordPress core function of similar name that registers
    * the callback function as a Hook.
    *
-   * @param string        $pageTitle
-   * @param string        $menuTitle
-   * @param string        $capability
-   * @param string        $menuSlug
-   * @param callable|null $function
+   * @param string $pageTitle
+   * @param string $menuTitle
+   * @param string $capability
+   * @param string $menuSlug
+   * @param string $method
    *
    * @return string
+   * @throws MenuItemException
    */
-  public function addUsersPage (string $pageTitle, string $menuTitle, string $capability, string $menuSlug, ?callable $function = null): string {
+  public function addUsersPage (string $pageTitle, string $menuTitle, string $capability, string $menuSlug, string $method = ""): string {
     return $this->addSubmenuPage("users.php", ...func_get_args());
   }
 
@@ -284,15 +322,16 @@ abstract class AbstractPluginHandler extends AbstractHandler implements PluginHa
    * A wrapper for the WordPress core function of similar name that registers
    * the callback function as a Hook.
    *
-   * @param string        $pageTitle
-   * @param string        $menuTitle
-   * @param string        $capability
-   * @param string        $menuSlug
-   * @param callable|null $function
+   * @param string $pageTitle
+   * @param string $menuTitle
+   * @param string $capability
+   * @param string $menuSlug
+   * @param string $method
    *
    * @return string
+   * @throws MenuItemException
    */
-  public function addManagementPage (string $pageTitle, string $menuTitle, string $capability, string $menuSlug, ?callable $function = null): string {
+  public function addManagementPage (string $pageTitle, string $menuTitle, string $capability, string $menuSlug, string $method = ""): string {
     return $this->addSubmenuPage("tools.php", ...func_get_args());
   }
 
@@ -302,15 +341,16 @@ abstract class AbstractPluginHandler extends AbstractHandler implements PluginHa
    * A wrapper for the WordPress core function of similar name that registers
    * the callback function as a Hook.
    *
-   * @param string        $pageTitle
-   * @param string        $menuTitle
-   * @param string        $capability
-   * @param string        $menuSlug
-   * @param callable|null $function
+   * @param string $pageTitle
+   * @param string $menuTitle
+   * @param string $capability
+   * @param string $menuSlug
+   * @param string $method
    *
    * @return string
+   * @throws MenuItemException
    */
-  public function addOptionsPage (string $pageTitle, string $menuTitle, string $capability, string $menuSlug, ?callable $function = null): string {
+  public function addOptionsPage (string $pageTitle, string $menuTitle, string $capability, string $menuSlug, string $method = ""): string {
     return $this->addSubmenuPage("options-general.php", ...func_get_args());
   }
 
@@ -320,16 +360,17 @@ abstract class AbstractPluginHandler extends AbstractHandler implements PluginHa
    * A convenience function that allows for easier registration of submenu
    * pages within the menu for a custom post type.
    *
-   * @param string        $postType
-   * @param string        $pageTitle
-   * @param string        $menuTitle
-   * @param string        $capability
-   * @param string        $menuSlug
-   * @param callable|null $function
+   * @param string $postType
+   * @param string $pageTitle
+   * @param string $menuTitle
+   * @param string $capability
+   * @param string $menuSlug
+   * @param string $method
    *
    * @return string
+   * @throws MenuItemException
    */
-  public function addPostTypePage (string $postType, string $pageTitle, string $menuTitle, string $capability, string $menuSlug, ?callable $function = null): string {
+  public function addPostTypePage (string $postType, string $pageTitle, string $menuTitle, string $capability, string $menuSlug, string $method = ""): string {
 
     // unlike the other methods that refer to addSubmenuPage, we can't just
     // use the spread operator and the func_get_args() because of the "extra"

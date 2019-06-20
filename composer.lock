@@ -4,8 +4,46 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "d63e4434fb1360c04f22f7f753d2f157",
+    "content-hash": "9431b625ba34fcfc7eefaa655e5234e5",
     "packages": [
+        {
+            "name": "dashifen/containers",
+            "version": "1.1.4",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/dashifen/container.git",
+                "reference": "8f1f5a4b8170a91942faec4bb10c1d4fc77103f8"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/dashifen/container/zipball/8f1f5a4b8170a91942faec4bb10c1d4fc77103f8",
+                "reference": "8f1f5a4b8170a91942faec4bb10c1d4fc77103f8",
+                "shasum": ""
+            },
+            "require": {
+                "dashifen/exception": "1.1.*",
+                "php": "7.3.*"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Dashifen\\Container\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "WTFPL"
+            ],
+            "authors": [
+                {
+                    "name": "David Dashifen Kees",
+                    "email": "dashifen@dashifen.com",
+                    "role": "developer"
+                }
+            ],
+            "description": "A read-only with setters style object from which many objects can grow.",
+            "time": "2019-06-15T02:45:22+00:00"
+        },
         {
             "name": "dashifen/exception",
             "version": "1.1.1",
