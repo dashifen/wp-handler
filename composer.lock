@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "9431b625ba34fcfc7eefaa655e5234e5",
+    "content-hash": "4ba948bba176eacaf3eb1bf29cd04aa6",
     "packages": [
         {
             "name": "dashifen/containers",

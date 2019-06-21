@@ -164,12 +164,29 @@ abstract class AbstractPluginHandler extends AbstractHandler implements PluginHa
    * @throws MenuItemException
    */
   public function addSubmenuPage (string $parentSlug, string $pageTitle, string $menuTitle, string $capability, string $menuSlug, string $method = ""): string {
-    try{
+
+    // like the prior method, here we want to set up our submenu page and
+    // add a Hook for its callback to this Handler's list of hooked methods.
+
+    try {
       $menuItem = new MenuItem(func_get_args());
       $menuItem->setCallable([$this, $method]);
-      $loadingHook = add_submenu_page(...$menuItem->toArray());
-      return $loadingHook;
+
+      // here we create the submenu page in the Dashboard menu, but we
+      // have not yet created the Hook to it.  the name of the hook used
+      // by WordPress as the action for a submenu page is created by
+      // combining the menu and parent slugs.  we'll call the same WP
+      // internal function here as it does.
+
+      $pageDisplayHookname = get_plugin_page_hookname($menuItem->menuSlug, $menuItem->parentSlug);
+      $this->addAction($pageDisplayHookname, $menuItem->method);
+      return add_submenu_page(...$menuItem->toArray());
     } catch (ContainerException $e) {
+
+      // rather than throwing a general container exception, we'll toss a
+      // MenuItemExcpetion instead in order to be as precise as possible.
+      // it'll make catching it elsewhere easier.
+
       throw new MenuItemException($e->getMessage(), $e->getCode(), $e);
     }
   }

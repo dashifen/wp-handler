@@ -12,6 +12,7 @@ use Dashifen\WPHandler\Handlers\HandlerInterface;
  * @property string   $pageTitle
  * @property string   $menuTitle
  * @property string   $parentSlug
+ * @property string   $menuSlug
  * @property string   $capability
  * @property string   $method
  * @property callable $callable
@@ -22,6 +23,10 @@ class MenuItem extends Container {
   protected const MENU_ITEM_ARGS = ["pageTitle", "menuTitle", "capability", "menuSlug", "method", "iconUrl", "position"];
   protected const SUBMENU_ITEM_ARGS = ["parentSlug", "pageTitle", "menuTitle", "capability", "menuSlug", "method"];
 
+  /**
+   * @var string
+   */
+  protected $parentSlug = "";
 
   /**
    * @var string
@@ -36,12 +41,12 @@ class MenuItem extends Container {
   /**
    * @var string
    */
-  protected $parentSlug = "";
+  protected $capability = "";
 
   /**
    * @var string
    */
-  protected $capability = "";
+  protected $menuSlug = "";
 
   /**
    * @var string
@@ -74,7 +79,7 @@ class MenuItem extends Container {
     // a tantrum.
 
     $dataCount = sizeof($data);
-    if ($dataCount !== 6 || $dataCount !== 7) {
+    if ($dataCount !== 6 && $dataCount !== 7) {
       throw new MenuItemException("MenuItems must be constructed with arrays of six or seven indices.");
     }
 
@@ -111,6 +116,15 @@ class MenuItem extends Container {
     $returnThese = !empty($this->parentSlug)
       ? self::SUBMENU_ITEM_ARGS
       : self::MENU_ITEM_ARGS;
+
+    // our constants use the method property, but the calling scope expects
+    // the callable one instead.  that's because this is used to create the
+    // argument list (via unpacking the returned data) for add_menu_page()
+    // or add_submenu_page().
+
+    $returnThese = array_map(function (string $value) {
+      return $value === "method" ? "callable" : $value;
+    }, $returnThese);
 
     $returnValue = array_filter(get_object_vars($this), function(string $property) use ($returnThese) {
       return in_array($property, $returnThese);
@@ -162,6 +176,19 @@ class MenuItem extends Container {
    */
   public function setParentSlug (string $parentSlug): void {
     $this->parentSlug = $parentSlug;
+  }
+
+  /**
+   * setMenuSlug
+   *
+   * Sets the menu slug property.
+   *
+   * @param string $menuSlug
+   *
+   * @return void
+   */
+  public function setMenuSlug (string $menuSlug): void {
+    $this->menuSlug = $menuSlug;
   }
 
   /**
