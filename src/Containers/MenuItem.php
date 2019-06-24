@@ -11,7 +11,6 @@ use Dashifen\WPHandler\Handlers\HandlerInterface;
  * @package Dashifen\WPHandler\Containers
  * @property string   $pageTitle
  * @property string   $menuTitle
- * @property string   $parentSlug
  * @property string   $menuSlug
  * @property string   $capability
  * @property string   $method
@@ -19,14 +18,14 @@ use Dashifen\WPHandler\Handlers\HandlerInterface;
  * @property string   $iconUrl
  * @property int      $position
  */
-class MenuItem extends Container {
-  protected const MENU_ITEM_ARGS = ["pageTitle", "menuTitle", "capability", "menuSlug", "method", "iconUrl", "position"];
-  protected const SUBMENU_ITEM_ARGS = ["parentSlug", "pageTitle", "menuTitle", "capability", "menuSlug", "method"];
+class MenuItem extends Container implements MenuItemInterface {
 
-  /**
-   * @var string
-   */
-  protected $parentSlug = "";
+  // this item and it's extension, SubmenuItem, need to be converted to an
+  // array with a very particular order of indices.  that order is as follows
+  // based on the argument order to the WP core add_(sub)menu_item function.
+
+  protected const WP_ARGUMENT_ORDER = ["pageTitle", "menuTitle", "capability",
+      "menuSlug", "callable", "iconUrl", "position"];
 
   /**
    * @var string
@@ -68,81 +67,71 @@ class MenuItem extends Container {
    */
   protected $position = 26;           // after comments
 
-  public function __construct (array $data = []) {
-
-    // we cheat here because we never expect anyone else to use this
-    // object.  here that all you other programmers?  don't use this
-    // object.  great; now they're guaranteed to do something untoward
-    // with it.  regardless, since this is intended as a helper object
-    // for the plugin handler, we know it'll be called with either a
-    // seven count array or a six count one.  anything else, we throw
-    // a tantrum.
-
-    $dataCount = sizeof($data);
-    if ($dataCount !== 6 && $dataCount !== 7) {
-      throw new MenuItemException("MenuItems must be constructed with arrays of six or seven indices.");
-    }
-
-    // we call this constructor using func_get_args() so that the order
-    // prescribed by the plugin handler's addMenuPage and addSubmenuPage
-    // methods is preserved.  using that information, we can make an
-    // associative array for our parent's constructor as follows.
-
-    $associativeData = $dataCount === 6
-      ? array_combine(self::SUBMENU_ITEM_ARGS, $data)
-      : array_combine(self::MENU_ITEM_ARGS, $data);
-
-    parent::__construct($associativeData);
-  }
-
   /**
    * toArray
    *
-   * Returns an array of a subset of our properties based on whether this
-   * represents a menu item or a submenu item within the WP Dashboard.
+   * To absolutely guarantee that we return our properties in the order
+   * in which they're declared above, we're going to override the default
+   * toArray() method of our parent class and institute this one instead.
    *
    * @return array
    */
   public function toArray (): array {
 
-    // the way we can tell the difference between a menu and a submenu
-    // item is by checking on the existence of the parent slug property.
-    // if we have it, this is a submenu; if we don't, it's a menu.  based
-    // on that, we return our information in the order that the WP core
-    // add_menu_page() or add_submenu_page() expects it.  luckily, we can
-    // use our constants above to define the properties we want to return
-    // and then it's just a matter of looping.
+    // we want to use the WP_ARGUMENT_ORDER constant to be sure that we
+    // return our properties in that order.  this is to ensure compatibility
+    // with the WP core add_menu_item() and add_submenu_item() functions.
 
-    $returnThese = !empty($this->parentSlug)
-      ? self::SUBMENU_ITEM_ARGS
-      : self::MENU_ITEM_ARGS;
+    $properties = [];
+    foreach (self::WP_ARGUMENT_ORDER as $property) {
+      $properties[$property] = $this->{$property};
+    }
 
-    // our constants use the method property, but the calling scope expects
-    // the callable one instead.  that's because this is used to create the
-    // argument list (via unpacking the returned data) for add_menu_page()
-    // or add_submenu_page().
+    return $properties;
+  }
 
-    $returnThese = array_map(function (string $value) {
-      return $value === "method" ? "callable" : $value;
-    }, $returnThese);
+  /**
+   * getParentSlug
+   *
+   * Returns an empty string because only the SubmenuItem class, an extension
+   * of this one, has a parent slug.
+   *
+   * @return string
+   */
+  public function getParentSlug (): string {
+    return "";
+  }
 
-    $returnValue = array_filter(get_object_vars($this), function(string $property) use ($returnThese) {
-      return in_array($property, $returnThese);
-    }, ARRAY_FILTER_USE_KEY);
+  /**
+   * isComplete
+   *
+   * Returns true if this item is complete and ready to be used within the
+   * WordPress ecosystem.
+   *
+   * @return bool
+   */
+  public function isComplete (): bool {
 
-    // we know we're going to use the spread operator when we get back to
-    // the calling scope.  why?  because we're the programmer of this object,
-    // that's why.  remember:  you're not supposed to be using this because
-    // it's just an internal structure.  unless you're Dash.  in that case,
-    // you're allowed to use it ... for now!
+    // for a menu item to be complete, the properties listed in the
+    // WP_ARGUMENT_ORDER constant must not be empty.  we'll iterate over the
+    // constant and return false (i.e. incomplete) the second we find an
+    // empty one.  if we make it through the list, we're complete.
 
-    return array_values($returnValue);
+    foreach (self::WP_ARGUMENT_ORDER as $property) {
+      if (empty($this->{$property})) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   /**
    * setPageTitle
    *
-   * Sets the page title property.
+   * Sets the page title property.  Also sets the menu title and slug
+   * properties so that we can use a shortened argument list within our
+   * Handlers than what is generally required by add_menu_page().
    *
    * @param string $pageTitle
    *
@@ -150,6 +139,16 @@ class MenuItem extends Container {
    */
   public function setPageTitle (string $pageTitle): void {
     $this->pageTitle = $pageTitle;
+    $this->setMenuTitle($pageTitle);
+
+    // for our menu slug, we replace all adjacent sets of whitespace
+    // non-word characters, and underscores to a dash and lowercase the
+    // entire string.  then, we just make sure to remove a dash at the
+    // end of the string more for aesthetics than anything else.
+
+    $menuSlug = preg_replace("/[\s|\W|_]+/", "-", strtolower($pageTitle));
+    $menuSlug = preg_replace("/-$/", "", $menuSlug);
+    $this->setMenuSlug($menuSlug);
   }
 
   /**
@@ -163,19 +162,6 @@ class MenuItem extends Container {
    */
   public function setMenuTitle (string $menuTitle): void {
     $this->menuTitle = $menuTitle;
-  }
-
-  /**
-   * setParentSlug
-   *
-   * Sets the parent slug property.
-   *
-   * @param string $parentSlug
-   *
-   * @return void
-   */
-  public function setParentSlug (string $parentSlug): void {
-    $this->parentSlug = $parentSlug;
   }
 
   /**

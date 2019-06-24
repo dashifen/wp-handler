@@ -1,0 +1,108 @@
+<?php
+
+/** @noinspection PhpUnusedPrivateFieldInspection */
+
+namespace Dashifen\WPHandler\Containers;
+
+use Dashifen\Container\Container;
+use Dashifen\WPHandler\Handlers\HandlerInterface;
+
+/**
+ * Class MenuItem
+ *
+ * @package Dashifen\WPHandler\Containers
+ * @property string   $pageTitle
+ * @property string   $menuTitle
+ * @property string   $parentSlug
+ * @property string   $menuSlug
+ * @property string   $capability
+ * @property string   $method
+ * @property callable $callable
+ */
+class SubmenuItem extends MenuItem {
+
+  // this changes/overrides the value of the WP_ARGUMENT_ORDER constant from
+  // our parent.  these are the argument names and order that submenu items
+  // need to return from the toArray() method so that we can, in turn, use
+  // that array to call add_submenu_page().
+
+  protected const WP_ARGUMENT_ORDER = ["parentSlug", "pageTitle", "menuTitle",
+    "capability", "menuSlug", "callable"];
+
+  /**
+   * @var string
+   */
+  protected $parentSlug = "";
+
+  /**
+   * iconUrl
+   *
+   * This property is protected in our parent's scope, but we privatize it
+   * here because it should not be used within the context of a SubmenuItem.
+   *
+   * @var string
+   */
+  private $iconUrl = "";
+
+  /**
+   * position
+   *
+   * This property is protected in our parent's scope, but we privatize it
+   * here because it should not be used within the context of a SubmenuItem.
+   *
+   * @var string
+   */
+  private $position = "";
+
+  /**
+   * setParentSlug
+   *
+   * Sets the parent slug property.
+   *
+   * @param string $parentSlug
+   */
+  public function setParentSlug (string $parentSlug): void {
+    $this->parentSlug = $parentSlug;
+  }
+
+  /**
+   * getParentSlug
+   *
+   * Returns the value of the parent slug property.
+   *
+   * @return string
+   */
+  public function getParentSlug (): string {
+    return $this->parentSlug;
+  }
+
+  /**
+   * setIconUrl
+   *
+   * Submenu items don't have icons, so this method simply throws an
+   * exception.
+   *
+   * @param string $iconUrl
+   *
+   * @throws MenuItemException
+   */
+  public function setIconUrl (string $iconUrl): void {
+    throw new MenuItemException("Submenu items don't have icons.",
+      MenuItemException::ATTEMPT_TO_SET_SUBMENU_ICON);
+  }
+
+  /**
+   * setPosition
+   *
+   * Submenu items don't have positions, so this method simply throws an
+   * exception.
+   *
+   * @param int $position
+   *
+   * @throws MenuItemException
+   */
+  public function setPosition (int $position): void {
+    throw new MenuItemException("Submenu items don't have positions.",
+      MenuItemException::ATTEMPT_TO_SET_SUBMENU_POSITION);
+  }
+}

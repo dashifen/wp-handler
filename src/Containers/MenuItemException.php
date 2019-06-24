@@ -5,5 +5,8 @@ namespace Dashifen\WPHandler\Containers;
 use Dashifen\Container\ContainerException;
 
 class MenuItemException extends ContainerException {
-  public const INVALID_CONSTRUCTOR_PARAM = 1;
+  public const ITEM_NOT_READY = 1;
+  public const INVALID_CONSTRUCTOR_PARAM = 2;
+  public const ATTEMPT_TO_SET_SUBMENU_ICON = 3;
+  public const ATTEMPT_TO_SET_SUBMENU_POSITION = 4;
 }

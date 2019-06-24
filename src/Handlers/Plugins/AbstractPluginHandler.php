@@ -2,12 +2,14 @@
 
 namespace Dashifen\WPHandler\Handlers\Plugins;
 
-use Dashifen\Container\ContainerException;
-use Dashifen\WPHandler\Containers\MenuItem;
-use Dashifen\WPHandler\Containers\MenuItemException;
 use ReflectionClass;
 use ReflectionException;
+use Dashifen\Container\ContainerException;
+use Dashifen\WPHandler\Containers\MenuItem;
+use Dashifen\WPHandler\Hooks\HookException;
+use Dashifen\WPHandler\Containers\SubmenuItem;
 use Dashifen\WPHandler\Handlers\AbstractHandler;
+use Dashifen\WPHandler\Containers\MenuItemException;
 
 abstract class AbstractPluginHandler extends AbstractHandler implements PluginHandlerInterface {
   /**
@@ -113,6 +115,64 @@ abstract class AbstractPluginHandler extends AbstractHandler implements PluginHa
    * A wrapper for the WordPress core function of similar name that registers
    * the callback function as a Hook.
    *
+   * @param MenuItem $menuItem
+   *
+   * @return string
+   * @throws MenuItemException
+   * @throws HookException
+   */
+  final public function addMenuPage (MenuItem $menuItem): string {
+
+    // the primary difference between our wrapper and the core WP function
+    // of similar name is that we simply receive the name of a $method to use
+    // as our callback instead of a callable of some kind.  here, we want to
+    // add that method as a Hook within this Handler object and also call the
+    // WP function which actually adds the menu item.
+
+    $this->hookMenuItem($menuItem);
+    return add_menu_page(...$menuItem->toArray());
+  }
+
+  /**
+   * hookMenuItem
+   *
+   * Given a menu item, hook it into the WordPress ecosystem so that when
+   * someone clicks it in the Dashboard, its content is loaded correctly
+   * by this Handler.
+   *
+   * @param MenuItem $menuItem
+   *
+   * @return string
+   * @throws MenuItemException
+   * @throws MenuItemException
+   * @throws HookException
+   */
+  final private function hookMenuItem (MenuItem $menuItem): string {
+    if (!$menuItem->isComplete()) {
+      throw new MenuItemException("Attempt to use incomplete menu item",
+        MenuItemException::ITEM_NOT_READY);
+    }
+
+    // WordPress uses the get_plugin_page_hookname() function to produce an
+    // unique action hook that is executed when a person clicks each menu item.
+    // it's created based on the menu and parent slugs for the item.  we'll
+    // call that same function here to produce the hook we need, then we can
+    // add it and the menu item's method to this Handler's list of Hooks.
+    // note that we get both MenuItem objects and their extension, SubmenuItem,
+    // here.  since the latter has a parent slug and the former does not, we
+    // use the getter for that property rather than reading it like a "normal"
+    // one.
+
+    $displayHook = get_plugin_page_hookname($menuItem->menuSlug, $menuItem->getParentSlug());
+    return $this->addAction($displayHook, $menuItem->method);
+  }
+
+  /**
+   * wpAddMenuPage
+   *
+   * Adds a menu item using arguments that match the WordPress core
+   * add_menu_page() function.
+   *
    * @param string   $pageTitle
    * @param string   $menuTitle
    * @param string   $capability
@@ -122,29 +182,19 @@ abstract class AbstractPluginHandler extends AbstractHandler implements PluginHa
    * @param int|null $position
    *
    * @return string
-   * @throws MenuItemException
+   * @throws ContainerException
+   * @throws HookException
    */
-  public function addMenuPage (string $pageTitle, string $menuTitle, string $capability, string $menuSlug, string $method = "", string $iconUrl = '', ?int $position = null): string {
-
-    // the primary difference between our wrapper and the core WP function
-    // of similar name is that we simply receive the name of a $method to use
-    // as our callback instead of a callable of some kind.  here, we want to
-    // add that method as a Hook within this Handler object and also call the
-    // WP function which actually adds the menu item.
-
-    try {
-      $menuItem = new MenuItem(func_get_args());
-      $menuItem->setCallable([$this, $method]);
-      $loadingHook = add_menu_page(...$menuItem->toArray());
-      return $loadingHook;
-    } catch (ContainerException $e) {
-
-      // rather than throwing a ContainerException, we'll "convert" it
-      // to the type of exception that's more specific to the situation
-      // in which we find ourselves.
-
-      throw new MenuItemException($e->getMessage(), $e->getCode(), $e);
-    }
+  final public function wpAddMenuPage (string $pageTitle, string $menuTitle, string $capability, string $menuSlug, string $method, string $iconUrl = "", ?int $position = null) {
+    return $this->addMenuPage(new MenuItem([
+      "pageTitle"  => $pageTitle,
+      "menuTitle"  => $menuTitle,
+      "capability" => $capability,
+      "menuSlug"   => $menuSlug,
+      "method"     => $method,
+      "iconUrl"    => $iconUrl,
+      "position"   => $position
+    ]));
   }
 
   /**
@@ -152,6 +202,27 @@ abstract class AbstractPluginHandler extends AbstractHandler implements PluginHa
    *
    * A wrapper for the WordPress core function of similar name that registers
    * the callback function as a Hook.
+   *
+   * @param SubmenuItem $submenuItem
+   *
+   * @return string
+   * @throws MenuItemException
+   * @throws HookException
+   */
+  final public function addSubmenuPage (SubmenuItem $submenuItem): string {
+
+    // see the prior method for details of this method; they're both extremely
+    // similar
+
+    $this->hookMenuItem($submenuItem);
+    return add_submenu_page(...$submenuItem->toArray());
+  }
+
+  /**
+   * wpAddSubmenuPage
+   *
+   * Adds a submenu page using a series of arguments like add_submenu_page()
+   * core function.
    *
    * @param string $parentSlug
    * @param string $pageTitle
@@ -161,34 +232,17 @@ abstract class AbstractPluginHandler extends AbstractHandler implements PluginHa
    * @param string $method
    *
    * @return string
-   * @throws MenuItemException
+   * @throws ContainerException
+   * @throws HookException
    */
-  public function addSubmenuPage (string $parentSlug, string $pageTitle, string $menuTitle, string $capability, string $menuSlug, string $method = ""): string {
-
-    // like the prior method, here we want to set up our submenu page and
-    // add a Hook for its callback to this Handler's list of hooked methods.
-
-    try {
-      $menuItem = new MenuItem(func_get_args());
-      $menuItem->setCallable([$this, $method]);
-
-      // here we create the submenu page in the Dashboard menu, but we
-      // have not yet created the Hook to it.  the name of the hook used
-      // by WordPress as the action for a submenu page is created by
-      // combining the menu and parent slugs.  we'll call the same WP
-      // internal function here as it does.
-
-      $pageDisplayHookname = get_plugin_page_hookname($menuItem->menuSlug, $menuItem->parentSlug);
-      $this->addAction($pageDisplayHookname, $menuItem->method);
-      return add_submenu_page(...$menuItem->toArray());
-    } catch (ContainerException $e) {
-
-      // rather than throwing a general container exception, we'll toss a
-      // MenuItemExcpetion instead in order to be as precise as possible.
-      // it'll make catching it elsewhere easier.
-
-      throw new MenuItemException($e->getMessage(), $e->getCode(), $e);
-    }
+  public function wpAddSubmenuPage (string $parentSlug, string $pageTitle, string $menuTitle, string $capability, string $menuSlug, string $method): string {
+    return $this->addSubmenuPage(new SubmenuItem([
+      "parentSlug" => $parentSlug,
+      "pageTitle"  => $pageTitle,
+      "menuTitle"  => $menuTitle,
+      "capability" => $capability,
+      "menuSlug"   => $menuSlug,
+    ]));
   }
 
   /**
@@ -197,26 +251,21 @@ abstract class AbstractPluginHandler extends AbstractHandler implements PluginHa
    * A wrapper for the WordPress core function of similar name that registers
    * the callback function as a Hook.
    *
-   * @param string $pageTitle
-   * @param string $menuTitle
-   * @param string $capability
-   * @param string $menuSlug
-   * @param string $method
+   * @param SubmenuItem $submenuItem
    *
    * @return string
    * @throws MenuItemException
+   * @throws HookException
    */
-  public function addDashboardPage (string $pageTitle, string $menuTitle, string $capability, string $menuSlug, string $method = ""): string {
+  final public function addDashboardPage (SubmenuItem $submenuItem): string {
 
-    // this, and the subsequent methods, use the spread operator and the
-    // func_get_args() function to pass the parameters to this method over
-    // to addSubmenuPage() without having to re-type them all.  the function
-    // returns an array of the parameters in the declared order.  the spread
-    // operator then takes that array and re-creates individual variables
-    // to pass them over to the other method.  for more information, see
-    // http://ow.ly/uXmU30oXtYo (php.net).
+    // the purpose of this and the following methods is to provide similar
+    // methods to the WordPress core functions of similar name mostly for
+    // completeness.  they all add the required parent slug to our $submenuItem
+    // parameter and then pass it over to the addSubmenuPage() method.
 
-    return $this->addSubmenuPage("index.php", ...func_get_args());
+    $submenuItem->setParentSlug("index.php");
+    return $this->addSubmenuPage($submenuItem);
   }
 
   /**
@@ -225,17 +274,15 @@ abstract class AbstractPluginHandler extends AbstractHandler implements PluginHa
    * A wrapper for the WordPress core function of similar name that registers
    * the callback function as a Hook.
    *
-   * @param string $pageTitle
-   * @param string $menuTitle
-   * @param string $capability
-   * @param string $menuSlug
-   * @param string $method
+   * @param SubmenuItem $submenuItem
    *
    * @return string
    * @throws MenuItemException
+   * @throws HookException
    */
-  public function addPostsPage (string $pageTitle, string $menuTitle, string $capability, string $menuSlug, string $method = ""): string {
-    return $this->addSubmenuPage("edit.php", ...func_get_args());
+  final public function addPostsPage (SubmenuItem $submenuItem): string {
+    $submenuItem->setParentSlug("edit.php");
+    return $this->addSubmenuPage($submenuItem);
   }
 
   /**
@@ -244,17 +291,15 @@ abstract class AbstractPluginHandler extends AbstractHandler implements PluginHa
    * A wrapper for the WordPress core function of similar name that registers
    * the callback function as a Hook.
    *
-   * @param string $pageTitle
-   * @param string $menuTitle
-   * @param string $capability
-   * @param string $menuSlug
-   * @param string $method
+   * @param SubmenuItem $submenuItem
    *
    * @return string
    * @throws MenuItemException
+   * @throws HookException
    */
-  public function addMediaPage (string $pageTitle, string $menuTitle, string $capability, string $menuSlug, string $method = ""): string {
-    return $this->addSubmenuPage("upload.php", ...func_get_args());
+  final public function addMediaPage (SubmenuItem $submenuItem): string {
+    $submenuItem->setParentSlug("upload.php");
+    return $this->addSubmenuPage($submenuItem);
   }
 
   /**
@@ -263,17 +308,15 @@ abstract class AbstractPluginHandler extends AbstractHandler implements PluginHa
    * A wrapper for the WordPress core function of similar name that registers
    * the callback function as a Hook.
    *
-   * @param string $pageTitle
-   * @param string $menuTitle
-   * @param string $capability
-   * @param string $menuSlug
-   * @param string $method
+   * @param SubmenuItem $submenuItem
    *
    * @return string
    * @throws MenuItemException
+   * @throws HookException
    */
-  public function addCommentsPage (string $pageTitle, string $menuTitle, string $capability, string $menuSlug, string $method = ""): string {
-    return $this->addSubmenuPage("edit-comments.php", ...func_get_args());
+  final public function addCommentsPage (SubmenuItem $submenuItem): string {
+    $submenuItem->setParentSlug("edit-comments.php");
+    return $this->addSubmenuPage($submenuItem);
   }
 
   /**
@@ -282,17 +325,32 @@ abstract class AbstractPluginHandler extends AbstractHandler implements PluginHa
    * A wrapper for the WordPress core function of similar name that registers
    * the callback function as a Hook.
    *
-   * @param string $pageTitle
-   * @param string $menuTitle
-   * @param string $capability
-   * @param string $menuSlug
-   * @param string $method
+   * @param SubmenuItem $submenuItem
    *
    * @return string
    * @throws MenuItemException
+   * @throws HookException
    */
-  public function addThemePage (string $pageTitle, string $menuTitle, string $capability, string $menuSlug, string $method = ""): string {
-    return $this->addSubmenuPage("themes.php", ...func_get_args());
+  final public function addThemePage (SubmenuItem $submenuItem): string {
+    $submenuItem->setParentSlug("themes.php");
+    return $this->addSubmenuPage($submenuItem);
+  }
+
+  /**
+   * addAppearancePage
+   *
+   * A wrapper for addThemePage because this is the name of the parent
+   * menu item in the WP Dashboard so people might want to try and use it
+   * as a method here.
+   *
+   * @param SubmenuItem $submenuItem
+   *
+   * @return string
+   * @throws MenuItemException
+   * @throws HookException
+   */
+  final public function addAppearancePage (SubmenuItem $submenuItem): string {
+    return $this->addThemePage($submenuItem);
   }
 
   /**
@@ -301,17 +359,15 @@ abstract class AbstractPluginHandler extends AbstractHandler implements PluginHa
    * A wrapper for the WordPress core function of similar name that registers
    * the callback function as a Hook.
    *
-   * @param string $pageTitle
-   * @param string $menuTitle
-   * @param string $capability
-   * @param string $menuSlug
-   * @param string $method
+   * @param SubmenuItem $submenuItem
    *
    * @return string
    * @throws MenuItemException
+   * @throws HookException
    */
-  public function addPluginsPage (string $pageTitle, string $menuTitle, string $capability, string $menuSlug, string $method = ""): string {
-    return $this->addSubmenuPage("plugins.php", ...func_get_args());
+  final public function addPluginsPage (SubmenuItem $submenuItem): string {
+    $submenuItem->setParentSlug("plugins.php");
+    return $this->addSubmenuPage($submenuItem);
   }
 
   /**
@@ -320,17 +376,15 @@ abstract class AbstractPluginHandler extends AbstractHandler implements PluginHa
    * A wrapper for the WordPress core function of similar name that registers
    * the callback function as a Hook.
    *
-   * @param string $pageTitle
-   * @param string $menuTitle
-   * @param string $capability
-   * @param string $menuSlug
-   * @param string $method
+   * @param SubmenuItem $submenuItem
    *
    * @return string
    * @throws MenuItemException
+   * @throws HookException
    */
-  public function addUsersPage (string $pageTitle, string $menuTitle, string $capability, string $menuSlug, string $method = ""): string {
-    return $this->addSubmenuPage("users.php", ...func_get_args());
+  final public function addUsersPage (SubmenuItem $submenuItem): string {
+    $submenuItem->setParentSlug("users.php");
+    return $this->addSubmenuPage($submenuItem);
   }
 
   /**
@@ -339,17 +393,31 @@ abstract class AbstractPluginHandler extends AbstractHandler implements PluginHa
    * A wrapper for the WordPress core function of similar name that registers
    * the callback function as a Hook.
    *
-   * @param string $pageTitle
-   * @param string $menuTitle
-   * @param string $capability
-   * @param string $menuSlug
-   * @param string $method
+   * @param SubmenuItem $submenuItem
    *
    * @return string
    * @throws MenuItemException
+   * @throws HookException
    */
-  public function addManagementPage (string $pageTitle, string $menuTitle, string $capability, string $menuSlug, string $method = ""): string {
-    return $this->addSubmenuPage("tools.php", ...func_get_args());
+  final public function addManagementPage (SubmenuItem $submenuItem): string {
+    $submenuItem->setParentSlug("tools.php");
+    return $this->addSubmenuPage($submenuItem);
+  }
+
+  /**
+   * addToolsPage
+   *
+   * A wrapper for the addManagementPage that uses the name of the Dashboard
+   * menu item to which this one will be added.
+   *
+   * @param SubmenuItem $submenuItem
+   *
+   * @return string
+   * @throws MenuItemException
+   * @throws HookException
+   */
+  final public function addToolsPage (SubmenuItem $submenuItem): string {
+    return $this->addManagementPage($submenuItem);
   }
 
   /**
@@ -358,17 +426,31 @@ abstract class AbstractPluginHandler extends AbstractHandler implements PluginHa
    * A wrapper for the WordPress core function of similar name that registers
    * the callback function as a Hook.
    *
-   * @param string $pageTitle
-   * @param string $menuTitle
-   * @param string $capability
-   * @param string $menuSlug
-   * @param string $method
+   * @param SubmenuItem $submenuItem
    *
    * @return string
    * @throws MenuItemException
+   * @throws HookException
    */
-  public function addOptionsPage (string $pageTitle, string $menuTitle, string $capability, string $menuSlug, string $method = ""): string {
-    return $this->addSubmenuPage("options-general.php", ...func_get_args());
+  final public function addOptionsPage (SubmenuItem $submenuItem): string {
+    $submenuItem->setParentSlug("options-general.php");
+    return $this->addSubmenuPage($submenuItem);
+  }
+
+  /**
+   * addSettingsPage
+   *
+   * A wrapper for the addManagementPage that uses the name of the Dashboard
+   * menu item to which this one will be added.
+   *
+   * @param SubmenuItem $submenuItem
+   *
+   * @return string
+   * @throws MenuItemException
+   * @throws HookException
+   */
+  final public function addSettingsPage (SubmenuItem $submenuItem): string {
+    return $this->addOptionsPage($submenuItem);
   }
 
   /**
@@ -377,26 +459,31 @@ abstract class AbstractPluginHandler extends AbstractHandler implements PluginHa
    * A convenience function that allows for easier registration of submenu
    * pages within the menu for a custom post type.
    *
-   * @param string $postType
-   * @param string $pageTitle
-   * @param string $menuTitle
-   * @param string $capability
-   * @param string $menuSlug
-   * @param string $method
+   * @param string      $postType
+   * @param SubmenuItem $submenuItem
    *
    * @return string
    * @throws MenuItemException
+   * @throws HookException
    */
-  public function addPostTypePage (string $postType, string $pageTitle, string $menuTitle, string $capability, string $menuSlug, string $method = ""): string {
+  final public function addPostTypePage (string $postType, SubmenuItem $submenuItem): string {
+    $submenuItem->setParentSlug("edit.php?post_type=" . $postType);
+    return $this->addSubmenuPage($submenuItem);
+  }
 
-    // unlike the other methods that refer to addSubmenuPage, we can't just
-    // use the spread operator and the func_get_args() because of the "extra"
-    // $postType parameter for this function.  instead, we'll grab our params,
-    // shift off the first one, and spread the rest.
-
-    $params = func_get_args();
-    array_shift($params);
-
-    return $this->addSubmenuPage("edit.php?post_type=" . $postType, ...$params);
+  /**
+   * addPagesPage
+   *
+   * A wrapper for the addPostTypePage which specifically adds this submenu
+   * item to the Pages submenu.
+   *
+   * @param SubmenuItem $submenuItem
+   *
+   * @return string
+   * @throws MenuItemException
+   * @throws HookException
+   */
+  final public function addPagesPage (SubmenuItem $submenuItem): string {
+    return $this->addPostTypePage("page", $submenuItem);
   }
 }
