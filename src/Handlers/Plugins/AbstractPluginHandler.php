@@ -182,19 +182,30 @@ abstract class AbstractPluginHandler extends AbstractHandler implements PluginHa
    * @param int|null $position
    *
    * @return string
-   * @throws ContainerException
    * @throws HookException
+   * @throws MenuItemException
    */
   final public function wpAddMenuPage (string $pageTitle, string $menuTitle, string $capability, string $menuSlug, string $method, string $iconUrl = "", ?int $position = null) {
-    return $this->addMenuPage(new MenuItem([
-      "pageTitle"  => $pageTitle,
-      "menuTitle"  => $menuTitle,
-      "capability" => $capability,
-      "menuSlug"   => $menuSlug,
-      "method"     => $method,
-      "iconUrl"    => $iconUrl,
-      "position"   => $position
-    ]));
+    try {
+      $menuItem = new MenuItem([
+        "pageTitle"  => $pageTitle,
+        "menuTitle"  => $menuTitle,
+        "capability" => $capability,
+        "menuSlug"   => $menuSlug,
+        "method"     => $method,
+        "iconUrl"    => $iconUrl,
+        "position"   => $position
+      ]);
+    } catch (ContainerException $e) {
+
+      // rather than throw our general ContainerException, we'll "convert"
+      // it into a MenuItemException which is a little most specific for our
+      // purposes here.
+
+      throw new MenuItemException($e->getMessage(), $e->getCode(), $e);
+    }
+
+    return $this->addMenuPage($menuItem);
   }
 
   /**
@@ -236,13 +247,24 @@ abstract class AbstractPluginHandler extends AbstractHandler implements PluginHa
    * @throws HookException
    */
   public function wpAddSubmenuPage (string $parentSlug, string $pageTitle, string $menuTitle, string $capability, string $menuSlug, string $method): string {
-    return $this->addSubmenuPage(new SubmenuItem([
-      "parentSlug" => $parentSlug,
-      "pageTitle"  => $pageTitle,
-      "menuTitle"  => $menuTitle,
-      "capability" => $capability,
-      "menuSlug"   => $menuSlug,
-    ]));
+    try {
+      $submenuItem = new SubmenuItem([
+        "parentSlug" => $parentSlug,
+        "pageTitle"  => $pageTitle,
+        "menuTitle"  => $menuTitle,
+        "capability" => $capability,
+        "menuSlug"   => $menuSlug,
+      ]);
+    } catch (ContainerException $e) {
+
+      // rather than throw our general ContainerException, we'll "convert"
+      // it into a MenuItemException which is a little most specific for our
+      // purposes here.
+
+      throw new MenuItemException($e->getMessage(), $e->getCode(), $e);
+    }
+
+    return $this->addSubmenuPage($submenuItem);
   }
 
   /**
