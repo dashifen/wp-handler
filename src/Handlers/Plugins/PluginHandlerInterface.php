@@ -7,6 +7,42 @@ use Dashifen\WPHandler\Containers\SubmenuItem;
 
 interface PluginHandlerInterface {
   /**
+   * registerActivationHook
+   *
+   * Hooks the method provided to the WordPress ecosystem so that the
+   * method is executed when this plugin is activated.
+   *
+   * @param string $method
+   *
+   * @return string
+   */
+  public function registerActivationHook (string $method): string;
+
+  /**
+   * registerDeactivationHook
+   *
+   * Hooks the method provided to the WordPress ecosystem so that the
+   * method is executed when this plugin is deactivated.
+   *
+   * @param string $method
+   *
+   * @return string
+   */
+  public function registerDeactivationHook (string $method): string;
+
+  /**
+   * registerUninstallHook
+   *
+   * Hooks the method provided to the WordPress ecosystem so that the
+   * method is executed when this plugin is uninstalled.
+   *
+   * @param string $method
+   *
+   * @return string
+   */
+  public function registerUninstallHook (string $method): string;
+
+  /**
    * addMenuPage
    *
    * A wrapper for the WordPress core function of similar name that registers

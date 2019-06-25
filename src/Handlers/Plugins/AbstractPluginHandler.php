@@ -110,6 +110,60 @@ abstract class AbstractPluginHandler extends AbstractHandler implements PluginHa
   }
 
   /**
+   * registerActivationHook
+   *
+   * Hooks the method provided to the WordPress ecosystem so that the
+   * method is executed when this plugin is activated.
+   *
+   * @param string $method
+   *
+   * @return string
+   * @throws HookException
+   */
+  public function registerActivationHook (string $method): string {
+
+    // WordPress's register_activation_hook() function simply attaches a
+    // "normal" callable to the activate_<plugin-filename> hook.  so, all
+    // we need to do here is perform that hook in the way that works for
+    // our Handler objects.
+
+    $hook = sprintf("activate_%s.php", $this->getPluginDirectory());
+    return $this->addAction($hook, $method);
+  }
+
+  /**
+   * registerDeactivationHook
+   *
+   * Hooks the method provided to the WordPress ecosystem so that the
+   * method is executed when this plugin is deactivated.
+   *
+   * @param string $method
+   *
+   * @return string
+   * @throws HookException
+   */
+  public function registerDeactivationHook (string $method): string {
+    $hook = sprintf("deactivate_%s.php", $this->getPluginDirectory());
+    return $this->addAction($hook, $method);
+  }
+
+  /**
+   * registerUninstallHook
+   *
+   * Hooks the method provided to the WordPress ecosystem so that the
+   * method is executed when this plugin is uninstalled.
+   *
+   * @param string $method
+   *
+   * @return string
+   * @throws HookException
+   */
+  public function registerUninstallHook (string $method): string {
+    $hook = sprintf("uninstall_%s.php", $this->getPluginDirectory());
+    return $this->addAction($hook, $method);
+  }
+
+  /**
    * addMenuPage
    *
    * A wrapper for the WordPress core function of similar name that registers
