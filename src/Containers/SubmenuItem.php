@@ -35,26 +35,6 @@ class SubmenuItem extends MenuItem {
   protected $parentSlug = "";
 
   /**
-   * iconUrl
-   *
-   * This property is protected in our parent's scope, but we privatize it
-   * here because it should not be used within the context of a SubmenuItem.
-   *
-   * @var string
-   */
-  private $iconUrl = "";
-
-  /**
-   * position
-   *
-   * This property is protected in our parent's scope, but we privatize it
-   * here because it should not be used within the context of a SubmenuItem.
-   *
-   * @var string
-   */
-  private $position = "";
-
-  /**
    * setParentSlug
    *
    * Sets the parent slug property.
