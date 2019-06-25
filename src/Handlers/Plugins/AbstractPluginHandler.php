@@ -10,6 +10,7 @@ use Dashifen\WPHandler\Hooks\HookException;
 use Dashifen\WPHandler\Containers\SubmenuItem;
 use Dashifen\WPHandler\Handlers\AbstractHandler;
 use Dashifen\WPHandler\Containers\MenuItemException;
+use WebServices\Dashboard;
 
 abstract class AbstractPluginHandler extends AbstractHandler implements PluginHandlerInterface {
   /**

@@ -4,6 +4,8 @@
 
 namespace Dashifen\WPHandler\Containers;
 
+use Dashifen\WPHandler\Handlers\HandlerInterface;
+
 /**
  * Class MenuItem
  *
@@ -30,6 +32,32 @@ class SubmenuItem extends MenuItem {
    * @var string
    */
   protected $parentSlug = "";
+
+  /**
+   * SubmenuItem constructor.
+   *
+   * @param HandlerInterface $handler
+   * @param array            $data
+   *
+   * @throws ContainerException
+   */
+  public function __construct (HandlerInterface $handler, array $data = []) {
+    parent::__construct($handler, $data);
+  }
+
+  /**
+   * getHiddenPropertyNames
+   *
+   * Ensures that, in addition to anything our parent hides, SubmenuItems
+   * also hide the iconUrl and position properties which we inherit but don't
+   * need.
+   *
+   * @return array
+   */
+  protected function getHiddenPropertyNames (): array {
+    return array_merge(parent::getHiddenPropertyNames(), ["iconUrl", "position"]);
+  }
+
 
   /**
    * setParentSlug

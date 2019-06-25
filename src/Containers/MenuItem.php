@@ -2,7 +2,8 @@
 
 namespace Dashifen\WPHandler\Containers;
 
-use Dashifen\Container\Container;
+use WebServices\Dashboard;
+use Dashifen\Container\AbstractContainer;
 use Dashifen\Container\ContainerException;
 use Dashifen\WPHandler\Handlers\HandlerInterface;
 
@@ -19,7 +20,7 @@ use Dashifen\WPHandler\Handlers\HandlerInterface;
  * @property string   $iconUrl
  * @property int      $position
  */
-class MenuItem extends Container implements MenuItemInterface {
+class MenuItem extends AbstractContainer implements MenuItemInterface {
 
   // this item and it's extension, SubmenuItem, need to be converted to an
   // array with a very particular order of indices.  that order is as follows
@@ -82,8 +83,27 @@ class MenuItem extends Container implements MenuItemInterface {
    * @throws ContainerException
    */
   public function __construct (HandlerInterface $handler, array $data = []) {
-    parent::__construct($data);
     $this->handler = $handler;
+
+    // our parent constructor will start to set properties of this object
+    // so we need to call it after we set our handler above.  this is
+    // because we use the handler in the setCallable() method below.  my
+    // usual style is to call the parent constructor first and then do
+    // my work for this object, but that won't work in this case.
+
+    parent::__construct($data);
+  }
+
+  /**
+   * getHiddenPropertyNames
+   *
+   * Ensures that the handler property is considered "hidden" within the
+   * parent::__get() method.
+   *
+   * @return array
+   */
+  protected function getHiddenPropertyNames (): array {
+    return ["handler"];
   }
 
   /**
@@ -93,20 +113,24 @@ class MenuItem extends Container implements MenuItemInterface {
    * in which they're declared above, we're going to override the default
    * toArray() method of our parent class and institute this one instead.
    *
+   * @param string $format
+   *
    * @return array
    */
-  public function toArray (): array {
+  public function toArray (string $format = ARRAY_N): array {
 
     // we want to use the WP_ARGUMENT_ORDER constant to be sure that we
     // return our properties in that order.  this is to ensure compatibility
     // with the WP core add_menu_item() and add_submenu_item() functions.
 
     $properties = [];
-    foreach (self::WP_ARGUMENT_ORDER as $property) {
+    foreach (static::WP_ARGUMENT_ORDER as $property) {
       $properties[$property] = $this->{$property};
     }
 
-    return $properties;
+    return $format !== ARRAY_A
+      ? array_values($properties)
+      : $properties;
   }
 
   /**
@@ -219,7 +243,7 @@ class MenuItem extends Container implements MenuItemInterface {
    * @return void
    */
   public function setMethod (string $method): void {
-    $this->setCallable([$this->handler, $method]);
+    $this->setCallable($this->handler, $method);
     $this->method = $method;
   }
 
@@ -232,8 +256,8 @@ class MenuItem extends Container implements MenuItemInterface {
    *
    * @return void
    */
-  public function setCallable (callable $callable): void {
-    $this->callable = $callable;
+  public function setCallable (HandlerInterface $object, string $method): void {
+    $this->callable = [$object, $method];
   }
 
   /**
