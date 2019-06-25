@@ -215,7 +215,32 @@ abstract class AbstractHandler implements HandlerInterface {
 	 */
 	abstract public function initialize(): void;
 
-	/**
+  /**
+   * getUrl
+   *
+   * Returns the URL that corresponds to the folder in which this Handler
+   * is located.
+   *
+   * @return string
+   */
+  public function getUrl (): string {
+    return $this->url;
+  }
+
+  /**
+   * getDir
+   *
+   * Returns the filesystem path to the folder in which this Handler
+   * is located.
+   *
+   * @return string
+   */
+  public function getDir (): string {
+    return $this->dir;
+  }
+
+
+  /**
 	 * addAction
 	 *
 	 * Passes its arguments to add_action() and adds $method to the

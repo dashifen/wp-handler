@@ -20,6 +20,26 @@ interface HandlerInterface {
 	 */
 	public function initialize(): void;
 
+  /**
+   * getUrl
+   *
+   * Returns the URL that corresponds to the folder in which this Handler
+   * is located.
+   *
+   * @return string
+   */
+	public function getUrl(): string;
+
+  /**
+   * getDir
+   *
+   * Returns the filesystem path to the folder in which this Handler
+   * is located.
+   *
+   * @return string
+   */
+	public function getDir(): string;
+
 	/**
 	 * debug
 	 *
