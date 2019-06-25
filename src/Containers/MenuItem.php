@@ -117,7 +117,7 @@ class MenuItem extends Container implements MenuItemInterface {
     // constant and return false (i.e. incomplete) the second we find an
     // empty one.  if we make it through the list, we're complete.
 
-    foreach (self::WP_ARGUMENT_ORDER as $property) {
+    foreach (static::WP_ARGUMENT_ORDER as $property) {
       if (empty($this->{$property})) {
         return false;
       }
