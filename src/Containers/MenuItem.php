@@ -3,6 +3,7 @@
 namespace Dashifen\WPHandler\Containers;
 
 use Dashifen\Container\Container;
+use Dashifen\Container\ContainerException;
 use Dashifen\WPHandler\Handlers\HandlerInterface;
 
 /**
@@ -25,7 +26,12 @@ class MenuItem extends Container implements MenuItemInterface {
   // based on the argument order to the WP core add_(sub)menu_item function.
 
   protected const WP_ARGUMENT_ORDER = ["pageTitle", "menuTitle", "capability",
-      "menuSlug", "callable", "iconUrl", "position"];
+    "menuSlug", "callable", "iconUrl", "position"];
+
+  /**
+   * @var HandlerInterface
+   */
+  protected $handler;
 
   /**
    * @var string
@@ -66,6 +72,19 @@ class MenuItem extends Container implements MenuItemInterface {
    * @var int
    */
   protected $position = 26;           // after comments
+
+  /**
+   * MenuItem constructor.
+   *
+   * @param HandlerInterface $handler
+   * @param array            $data
+   *
+   * @throws ContainerException
+   */
+  public function __construct (HandlerInterface $handler, array $data = []) {
+    parent::__construct($data);
+    $this->handler = $handler;
+  }
 
   /**
    * toArray
@@ -154,7 +173,7 @@ class MenuItem extends Container implements MenuItemInterface {
   /**
    * setMenuTitle
    *
-   * Sets the menu title property
+   * Sets the menu title property.
    *
    * @param string $menuTitle
    *
@@ -193,20 +212,21 @@ class MenuItem extends Container implements MenuItemInterface {
   /**
    * setMethod
    *
-   * Sets the method properties
+   * Sets the method and callable properties.
    *
    * @param string $method
    *
    * @return void
    */
   public function setMethod (string $method): void {
+    $this->setCallable([$this->handler, $method]);
     $this->method = $method;
   }
 
   /**
    * setCallable
    *
-   * Sets the callable property
+   * Sets the callable property.
    *
    * @param callable $callable
    *
@@ -214,21 +234,6 @@ class MenuItem extends Container implements MenuItemInterface {
    */
   public function setCallable (callable $callable): void {
     $this->callable = $callable;
-  }
-
-  /**
-   * setMethodAndCallable
-   *
-   * Sets the method and callable properties.
-   *
-   * @param HandlerInterface $object
-   * @param string           $method
-   *
-   * @return void
-   */
-  public function setMethodAndCallable (HandlerInterface $object, string $method): void {
-    $this->setCallable([$object, $method]);
-    $this->setMethod($method);
   }
 
   /**

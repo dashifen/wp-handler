@@ -4,9 +4,6 @@
 
 namespace Dashifen\WPHandler\Containers;
 
-use Dashifen\Container\Container;
-use Dashifen\WPHandler\Handlers\HandlerInterface;
-
 /**
  * Class MenuItem
  *
