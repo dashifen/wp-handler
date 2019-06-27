@@ -1,7 +1,7 @@
 <?php
 
 namespace Dashifen\WPHandler\Hooks;
-use Dashifen\WPHandler\Handlers\HandlerInterface;
+use Dashifen\WPHandler\Handlers\ThemeHandlerInterface;
 
 /**
  * Interface HookInterface
@@ -14,14 +14,14 @@ interface HookInterface {
 	 * Given its parameters, this function returns a unique index for
 	 * this hook.  it's needed when removing one of our hooks from WP.
 	 *
-	 * @param string           $hook
-	 * @param HandlerInterface $object
-	 * @param string           $method
-	 * @param int              $priority
+	 * @param string                $hook
+	 * @param ThemeHandlerInterface $object
+	 * @param string                $method
+	 * @param int                   $priority
 	 *
 	 * @return string
 	 */
-	public static function getHookIndex(string $hook, HandlerInterface $object, string $method, int $priority = 10): string;
+	public static function getHookIndex(string $hook, ThemeHandlerInterface $object, string $method, int $priority = 10): string;
 
 	/**
 	 * __toString
@@ -47,16 +47,16 @@ interface HookInterface {
 	public function setHook(string $hook);
 
 	/**
-	 * @return HandlerInterface
+	 * @return ThemeHandlerInterface
 	 */
-	public function getObject(): HandlerInterface;
+	public function getObject(): ThemeHandlerInterface;
 
 	/**
-	 * @param HandlerInterface $theme
+	 * @param ThemeHandlerInterface $theme
 	 *
 	 * @return void
 	 */
-	public function setObject(HandlerInterface $theme);
+	public function setObject(ThemeHandlerInterface $theme);
 
 
 

@@ -2,10 +2,11 @@
 
 namespace Dashifen\WPHandler\Containers;
 
+use Dashifen\WPHandler\Handlers\Plugins\PluginHandlerInterface;
 use WebServices\Dashboard;
 use Dashifen\Container\AbstractContainer;
 use Dashifen\Container\ContainerException;
-use Dashifen\WPHandler\Handlers\HandlerInterface;
+use Dashifen\WPHandler\Handlers\ThemeHandlerInterface;
 
 /**
  * Class MenuItem
@@ -30,7 +31,7 @@ class MenuItem extends AbstractContainer implements MenuItemInterface {
     "menuSlug", "callable", "iconUrl", "position"];
 
   /**
-   * @var HandlerInterface
+   * @var PluginHandlerInterface
    */
   protected $handler;
 
@@ -77,12 +78,12 @@ class MenuItem extends AbstractContainer implements MenuItemInterface {
   /**
    * MenuItem constructor.
    *
-   * @param HandlerInterface $handler
-   * @param array            $data
+   * @param PluginHandlerInterface $handler
+   * @param array                 $data
    *
    * @throws ContainerException
    */
-  public function __construct (HandlerInterface $handler, array $data = []) {
+  public function __construct (PluginHandlerInterface $handler, array $data = []) {
     $this->handler = $handler;
 
     // our parent constructor will start to set properties of this object
@@ -256,7 +257,7 @@ class MenuItem extends AbstractContainer implements MenuItemInterface {
    *
    * @return void
    */
-  public function setCallable (HandlerInterface $object, string $method): void {
+  public function setCallable (ThemeHandlerInterface $object, string $method): void {
     $this->callable = [$object, $method];
   }
 

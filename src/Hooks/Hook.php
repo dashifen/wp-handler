@@ -2,7 +2,7 @@
 
 namespace Dashifen\WPHandler\Hooks;
 
-use Dashifen\WPHandler\Handlers\HandlerInterface;
+use Dashifen\WPHandler\Handlers\ThemeHandlerInterface;
 use ReflectionException;
 use ReflectionMethod;
 use ReflectionClass;
@@ -18,7 +18,7 @@ class Hook implements HookInterface {
 	protected $hook;
 
 	/**
-	 * @var HandlerInterface
+	 * @var ThemeHandlerInterface
 	 */
 	protected $object;
 
@@ -40,20 +40,20 @@ class Hook implements HookInterface {
 	/**
 	 * Hook constructor.
 	 *
-	 * @param string           $hook
-	 * @param HandlerInterface $object
-	 * @param string           $method
-	 * @param int              $priority
-	 * @param int              $argumentCount
+	 * @param string                $hook
+	 * @param ThemeHandlerInterface $object
+	 * @param string                $method
+	 * @param int                   $priority
+	 * @param int                   $argumentCount
 	 *
 	 * @throws HookException
 	 */
 	public function __construct(
-		string $hook,
-		HandlerInterface $object,
-		string $method,
-		int $priority = 10,
-		int $argumentCount = 1
+    string $hook,
+    ThemeHandlerInterface $object,
+    string $method,
+    int $priority = 10,
+    int $argumentCount = 1
 	) {
 		$this->setHook($hook);
 		$this->setObject($object);
@@ -76,10 +76,10 @@ class Hook implements HookInterface {
 	}
 
 	public static function getHookIndex(
-		string $hook,
-		HandlerInterface $object,
-		string $method,
-		int $priority = 10
+    string $hook,
+    ThemeHandlerInterface $object,
+    string $method,
+    int $priority = 10
 	): string {
 
 		// to create an index for this hook, we just concatenate our
@@ -107,16 +107,16 @@ class Hook implements HookInterface {
 	}
 
 	/**
-	 * @return HandlerInterface
+	 * @return ThemeHandlerInterface
 	 */
-	public function getObject(): HandlerInterface {
+	public function getObject(): ThemeHandlerInterface {
 		return $this->object;
 	}
 
 	/**
-	 * @param HandlerInterface $object
+	 * @param ThemeHandlerInterface $object
 	 */
-	public function setObject(HandlerInterface $object) {
+	public function setObject(ThemeHandlerInterface $object) {
 		$this->object = $object;
 	}
 
@@ -133,7 +133,7 @@ class Hook implements HookInterface {
 	 * @throws HookException
 	 */
 	public function setMethod(string $method) {
-		if (!($this->object instanceof HandlerInterface)) {
+		if (!($this->object instanceof ThemeHandlerInterface)) {
 			throw new HookException("Please set a hook's object before method.", HookException::OBJECT_NOT_FOUND);
 		}
 

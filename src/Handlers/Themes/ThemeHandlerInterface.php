@@ -1,14 +1,14 @@
 <?php
 
-namespace Dashifen\WPHandler\Handlers;
+namespace Dashifen\WPHandler\Handlers\Themes;
 
 use Throwable;
 
 /**
  * Interface HandlerInterface
- * @package Dashifen\WPHandler\Handlers
+ * @package Dashifen\WPHandler\Handlers\Themes
  */
-interface HandlerInterface {
+interface ThemeHandlerInterface {
 	/**
 	 * /**
 	 * initialize
@@ -28,7 +28,7 @@ interface HandlerInterface {
    *
    * @return string
    */
-	public function getUrl(): string;
+	public function getStylesheetUrl(): string;
 
   /**
    * getDir
@@ -38,7 +38,7 @@ interface HandlerInterface {
    *
    * @return string
    */
-	public function getDir(): string;
+	public function getStylesheetDir(): string;
 
 	/**
 	 * debug

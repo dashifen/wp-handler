@@ -3,7 +3,7 @@
 /** @noinspection PhpUndefinedClassInspection */
 /** @noinspection PhpUndefinedFunctionInspection */
 
-namespace Dashifen\WPHandler\Handlers;
+namespace Dashifen\WPHandler\Handlers\Themes;
 
 use Dashifen\WPHandler\Hooks\Hook;
 use Dashifen\WPHandler\Hooks\HookException;
@@ -17,9 +17,9 @@ use Throwable;
  * WordPress hooks preventing accidental/malicious execution of a theme's
  * methods elsewhere.
  *
- * @package Dashifen\WPHandler\Handlers
+ * @package Dashifen\WPHandler\Handlers\Themes
  */
-abstract class AbstractHandler implements HandlerInterface {
+abstract class AbstractThemeThemeHandler implements ThemeHandlerInterface {
 	/**
 	 * @var array
 	 */
@@ -28,12 +28,12 @@ abstract class AbstractHandler implements HandlerInterface {
 	/**
 	 * @var string
 	 */
-	protected $dir;
+	protected $stylesheetDir;
 
 	/**
 	 * @var string
 	 */
-	protected $url;
+	protected $stylesheetUrl;
 
 	/**
 	 * AbstractHandler constructor.
@@ -46,8 +46,8 @@ abstract class AbstractHandler implements HandlerInterface {
 		// the 5% where they don't, we'd have fatal errors.
 
 		if (function_exists("get_stylesheet_directory_uri")) {
-			$this->url = get_stylesheet_directory_uri();
-			$this->dir = get_stylesheet_directory();
+			$this->stylesheetUrl = get_stylesheet_directory_uri();
+			$this->stylesheetDir = get_stylesheet_directory();
 		}
 	}
 
@@ -223,8 +223,8 @@ abstract class AbstractHandler implements HandlerInterface {
    *
    * @return string
    */
-  public function getUrl (): string {
-    return $this->url;
+  public function getStylesheetUrl (): string {
+    return $this->stylesheetUrl;
   }
 
   /**
@@ -235,8 +235,8 @@ abstract class AbstractHandler implements HandlerInterface {
    *
    * @return string
    */
-  public function getDir (): string {
-    return $this->dir;
+  public function getStylesheetDir (): string {
+    return $this->stylesheetDir;
   }
 
 
@@ -349,11 +349,11 @@ abstract class AbstractHandler implements HandlerInterface {
 		// slash.
 
 		if (empty($url)) {
-			$url = $this->url;
+			$url = $this->stylesheetUrl;
 		}
 
 		if (empty($dir)) {
-			$dir = $this->dir;
+			$dir = $this->stylesheetDir;
 		}
 
 		$url = trailingslashit($url);

@@ -4,7 +4,8 @@
 
 namespace Dashifen\WPHandler\Containers;
 
-use Dashifen\WPHandler\Handlers\HandlerInterface;
+use Dashifen\Container\ContainerException;
+use Dashifen\WPHandler\Handlers\Plugins\PluginHandlerInterface;
 
 /**
  * Class MenuItem
@@ -36,12 +37,12 @@ class SubmenuItem extends MenuItem {
   /**
    * SubmenuItem constructor.
    *
-   * @param HandlerInterface $handler
-   * @param array            $data
+   * @param PluginHandlerInterface $handler
+   * @param array                 $data
    *
    * @throws ContainerException
    */
-  public function __construct (HandlerInterface $handler, array $data = []) {
+  public function __construct (PluginHandlerInterface $handler, array $data = []) {
     parent::__construct($handler, $data);
   }
 

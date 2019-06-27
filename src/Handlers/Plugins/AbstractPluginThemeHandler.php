@@ -8,11 +8,10 @@ use Dashifen\Container\ContainerException;
 use Dashifen\WPHandler\Containers\MenuItem;
 use Dashifen\WPHandler\Hooks\HookException;
 use Dashifen\WPHandler\Containers\SubmenuItem;
-use Dashifen\WPHandler\Handlers\AbstractHandler;
+use Dashifen\WPHandler\Handlers\Themes\AbstractThemeThemeHandler;
 use Dashifen\WPHandler\Containers\MenuItemException;
-use WebServices\Dashboard;
 
-abstract class AbstractPluginHandler extends AbstractHandler implements PluginHandlerInterface {
+abstract class AbstractPluginThemeHandler extends AbstractThemeThemeHandler implements PluginHandlerInterface {
   /**
    * @var string
    */
@@ -242,7 +241,7 @@ abstract class AbstractPluginHandler extends AbstractHandler implements PluginHa
    */
   final public function wpAddMenuPage (string $pageTitle, string $menuTitle, string $capability, string $menuSlug, string $method, string $iconUrl = "", ?int $position = null) {
     try {
-      $menuItem = new MenuItem([
+      $menuItem = new MenuItem($this, [
         "pageTitle"  => $pageTitle,
         "menuTitle"  => $menuTitle,
         "capability" => $capability,
@@ -303,7 +302,7 @@ abstract class AbstractPluginHandler extends AbstractHandler implements PluginHa
    */
   public function wpAddSubmenuPage (string $parentSlug, string $pageTitle, string $menuTitle, string $capability, string $menuSlug, string $method): string {
     try {
-      $submenuItem = new SubmenuItem([
+      $submenuItem = new SubmenuItem($this, [
         "parentSlug" => $parentSlug,
         "pageTitle"  => $pageTitle,
         "menuTitle"  => $menuTitle,
