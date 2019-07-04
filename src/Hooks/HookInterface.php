@@ -1,7 +1,7 @@
 <?php
 
 namespace Dashifen\WPHandler\Hooks;
-use Dashifen\WPHandler\Handlers\ThemeHandlerInterface;
+use Dashifen\WPHandler\Handlers\Themes\ThemeHandlerInterface;
 
 /**
  * Interface HookInterface

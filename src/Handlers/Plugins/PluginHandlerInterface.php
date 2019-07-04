@@ -2,8 +2,8 @@
 
 namespace Dashifen\WPHandler\Handlers\Plugins;
 
-use Dashifen\WPHandler\Containers\MenuItem;
-use Dashifen\WPHandler\Containers\SubmenuItem;
+use Dashifen\WPHandler\Repositories\MenuItem;
+use Dashifen\WPHandler\Repositories\SubmenuItem;
 
 interface PluginHandlerInterface {
   /**

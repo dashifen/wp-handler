@@ -2,15 +2,15 @@
 
 /** @noinspection PhpUnusedPrivateFieldInspection */
 
-namespace Dashifen\WPHandler\Containers;
+namespace Dashifen\WPHandler\Repositories;
 
-use Dashifen\Container\ContainerException;
+use Dashifen\Repository\RepositoryException;
 use Dashifen\WPHandler\Handlers\Plugins\PluginHandlerInterface;
 
 /**
  * Class MenuItem
  *
- * @package Dashifen\WPHandler\Containers
+ * @package Dashifen\WPHandler\Repositories
  * @property string   $pageTitle
  * @property string   $menuTitle
  * @property string   $parentSlug
@@ -40,7 +40,7 @@ class SubmenuItem extends MenuItem {
    * @param PluginHandlerInterface $handler
    * @param array                 $data
    *
-   * @throws ContainerException
+   * @throws RepositoryException
    */
   public function __construct (PluginHandlerInterface $handler, array $data = []) {
     parent::__construct($handler, $data);

@@ -1,17 +1,16 @@
 <?php
 
-namespace Dashifen\WPHandler\Containers;
+namespace Dashifen\WPHandler\Repositories;
 
+use Dashifen\Repository\AbstractRepository;
+use Dashifen\Repository\RepositoryException;
+use Dashifen\WPHandler\Handlers\Themes\ThemeHandlerInterface;
 use Dashifen\WPHandler\Handlers\Plugins\PluginHandlerInterface;
-use WebServices\Dashboard;
-use Dashifen\Container\AbstractContainer;
-use Dashifen\Container\ContainerException;
-use Dashifen\WPHandler\Handlers\ThemeHandlerInterface;
 
 /**
  * Class MenuItem
  *
- * @package Dashifen\WPHandler\Containers
+ * @package Dashifen\WPHandler\Repositories
  * @property string   $pageTitle
  * @property string   $menuTitle
  * @property string   $menuSlug
@@ -21,7 +20,7 @@ use Dashifen\WPHandler\Handlers\ThemeHandlerInterface;
  * @property string   $iconUrl
  * @property int      $position
  */
-class MenuItem extends AbstractContainer implements MenuItemInterface {
+class MenuItem extends AbstractRepository implements MenuItemInterface {
 
   // this item and it's extension, SubmenuItem, need to be converted to an
   // array with a very particular order of indices.  that order is as follows
@@ -79,9 +78,9 @@ class MenuItem extends AbstractContainer implements MenuItemInterface {
    * MenuItem constructor.
    *
    * @param PluginHandlerInterface $handler
-   * @param array                 $data
+   * @param array                  $data
    *
-   * @throws ContainerException
+   * @throws RepositoryException
    */
   public function __construct (PluginHandlerInterface $handler, array $data = []) {
     $this->handler = $handler;

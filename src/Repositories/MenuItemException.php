@@ -1,10 +1,10 @@
 <?php
 
-namespace Dashifen\WPHandler\Containers;
+namespace Dashifen\WPHandler\Repositories;
 
-use Dashifen\Container\ContainerException;
+use Dashifen\Repository\RepositoryException;
 
-class MenuItemException extends ContainerException {
+class MenuItemException extends RepositoryException {
   public const ITEM_NOT_READY = 1;
   public const INVALID_CONSTRUCTOR_PARAM = 2;
   public const ATTEMPT_TO_SET_SUBMENU_ICON = 3;

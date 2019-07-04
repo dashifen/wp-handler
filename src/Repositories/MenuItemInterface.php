@@ -1,10 +1,10 @@
 <?php
 
-namespace Dashifen\WPHandler\Containers;
+namespace Dashifen\WPHandler\Repositories;
 
-use Dashifen\Container\ContainerInterface;
+use Dashifen\Repository\RepositoryInterface;
 
-interface MenuItemInterface extends ContainerInterface {
+interface MenuItemInterface extends RepositoryInterface {
   /*
    * getParentSlug
    *

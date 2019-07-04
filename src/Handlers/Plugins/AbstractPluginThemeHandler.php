@@ -4,12 +4,12 @@ namespace Dashifen\WPHandler\Handlers\Plugins;
 
 use ReflectionClass;
 use ReflectionException;
-use Dashifen\Container\ContainerException;
-use Dashifen\WPHandler\Containers\MenuItem;
+use Dashifen\Repository\RepositoryException;
+use Dashifen\WPHandler\Repositories\MenuItem;
 use Dashifen\WPHandler\Hooks\HookException;
-use Dashifen\WPHandler\Containers\SubmenuItem;
+use Dashifen\WPHandler\Repositories\SubmenuItem;
 use Dashifen\WPHandler\Handlers\Themes\AbstractThemeThemeHandler;
-use Dashifen\WPHandler\Containers\MenuItemException;
+use Dashifen\WPHandler\Repositories\MenuItemException;
 
 abstract class AbstractPluginThemeHandler extends AbstractThemeThemeHandler implements PluginHandlerInterface {
   /**
@@ -250,9 +250,9 @@ abstract class AbstractPluginThemeHandler extends AbstractThemeThemeHandler impl
         "iconUrl"    => $iconUrl,
         "position"   => $position
       ]);
-    } catch (ContainerException $e) {
+    } catch (RepositoryException $e) {
 
-      // rather than throw our general ContainerException, we'll "convert"
+      // rather than throw our general RepositoryException, we'll "convert"
       // it into a MenuItemException which is a little most specific for our
       // purposes here.
 
@@ -297,7 +297,7 @@ abstract class AbstractPluginThemeHandler extends AbstractThemeThemeHandler impl
    * @param string $method
    *
    * @return string
-   * @throws ContainerException
+   * @throws RepositoryException
    * @throws HookException
    */
   public function wpAddSubmenuPage (string $parentSlug, string $pageTitle, string $menuTitle, string $capability, string $menuSlug, string $method): string {
@@ -309,9 +309,9 @@ abstract class AbstractPluginThemeHandler extends AbstractThemeThemeHandler impl
         "capability" => $capability,
         "menuSlug"   => $menuSlug,
       ]);
-    } catch (ContainerException $e) {
+    } catch (RepositoryException $e) {
 
-      // rather than throw our general ContainerException, we'll "convert"
+      // rather than throw our general RepositoryException, we'll "convert"
       // it into a MenuItemException which is a little most specific for our
       // purposes here.
 
