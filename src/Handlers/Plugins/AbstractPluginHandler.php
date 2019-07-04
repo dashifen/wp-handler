@@ -8,10 +8,21 @@ use Dashifen\Repository\RepositoryException;
 use Dashifen\WPHandler\Repositories\MenuItem;
 use Dashifen\WPHandler\Hooks\HookException;
 use Dashifen\WPHandler\Repositories\SubmenuItem;
-use Dashifen\WPHandler\Handlers\Themes\AbstractThemeThemeHandler;
+use Dashifen\WPHandler\Handlers\Themes\AbstractThemeHandler;
 use Dashifen\WPHandler\Repositories\MenuItemException;
 
-abstract class AbstractPluginThemeHandler extends AbstractThemeThemeHandler implements PluginHandlerInterface {
+/**
+ * Class AbstractPluginHandler
+ *
+ * Note that this object extends the AbstractThemeHandler and not the more
+ * general AbstractHandler.  This is because plugins may still need to know
+ * about the theme's directory and URL and because we can extend the theme's
+ * enqueue() method to work with our plugin assets with this extension as
+ * well.
+ *
+ * @package Dashifen\WPHandler\Handlers\Plugins
+ */
+abstract class AbstractPluginHandler extends AbstractThemeHandler implements PluginHandlerInterface {
   /**
    * @var string
    */
@@ -25,20 +36,45 @@ abstract class AbstractPluginThemeHandler extends AbstractThemeThemeHandler impl
   public function __construct () {
     parent::__construct();
 
-    $pluginUrl = WP_PLUGIN_URL . "/" . $this->getPluginDirectory();
+    $pluginUrl = WP_PLUGIN_URL . "/" . $this->findPluginDirectory();
     $this->pluginUrl = preg_replace("/^https?:/", "", $pluginUrl);
-    $this->pluginDir = WP_PLUGIN_DIR . "/" . $this->getPluginDirectory();
+    $this->pluginDir = WP_PLUGIN_DIR . "/" . $this->findPluginDirectory();
   }
 
   /**
-   * getPluginDirectory
+   * getPluginDir
    *
-   * Returns the name of the directory in which our concrete extension
-   * of this class resides.
+   * Returns the path to the directory containing this plugin.
    *
    * @return string
    */
-  final protected function getPluginDirectory (): string {
+  public function getPluginDir (): string {
+    return $this->pluginDir;
+  }
+
+  /**
+   * getPluginUrl
+   *
+   * Returns the path to the URL for the directory containing this plugin.
+   *
+   * @return string
+   */
+  public function getPluginUrl (): string {
+    return $this->pluginUrl;
+  }
+
+  /**
+   * findPluginDirectory
+   *
+   * Returns the name of the directory in which our concrete extension
+   * of this class resides.  Note:  this is different from the other method
+   * with a similar name, getPluginDir().  this one is protected and for
+   * use internal to this object; that one is to extract the protected value
+   * of the pluginDir property.
+   *
+   * @return string
+   */
+  final protected function findPluginDirectory (): string {
     try {
 
       // to get the directory name of this object's children we need to
@@ -127,7 +163,7 @@ abstract class AbstractPluginThemeHandler extends AbstractThemeThemeHandler impl
     // we need to do here is perform that hook in the way that works for
     // our Handler objects.
 
-    $hook = sprintf("activate_%s.php", $this->getPluginDirectory());
+    $hook = sprintf("activate_%s.php", $this->findPluginDirectory());
     return $this->addAction($hook, $method);
   }
 
@@ -143,7 +179,7 @@ abstract class AbstractPluginThemeHandler extends AbstractThemeThemeHandler impl
    * @throws HookException
    */
   public function registerDeactivationHook (string $method): string {
-    $hook = sprintf("deactivate_%s.php", $this->getPluginDirectory());
+    $hook = sprintf("deactivate_%s.php", $this->findPluginDirectory());
     return $this->addAction($hook, $method);
   }
 
@@ -159,7 +195,7 @@ abstract class AbstractPluginThemeHandler extends AbstractThemeThemeHandler impl
    * @throws HookException
    */
   public function registerUninstallHook (string $method): string {
-    $hook = sprintf("uninstall_%s.php", $this->getPluginDirectory());
+    $hook = sprintf("uninstall_%s.php", $this->findPluginDirectory());
     return $this->addAction($hook, $method);
   }
 

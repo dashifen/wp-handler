@@ -4,7 +4,6 @@ namespace Dashifen\WPHandler\Repositories;
 
 use Dashifen\Repository\AbstractRepository;
 use Dashifen\Repository\RepositoryException;
-use Dashifen\WPHandler\Handlers\Themes\ThemeHandlerInterface;
 use Dashifen\WPHandler\Handlers\Plugins\PluginHandlerInterface;
 
 /**
@@ -252,11 +251,12 @@ class MenuItem extends AbstractRepository implements MenuItemInterface {
    *
    * Sets the callable property.
    *
-   * @param callable $callable
+   * @param PluginHandlerInterface $object
+   * @param string                 $method
    *
    * @return void
    */
-  public function setCallable (ThemeHandlerInterface $object, string $method): void {
+  public function setCallable (PluginHandlerInterface $object, string $method): void {
     $this->callable = [$object, $method];
   }
 

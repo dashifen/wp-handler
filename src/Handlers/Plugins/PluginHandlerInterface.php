@@ -4,8 +4,37 @@ namespace Dashifen\WPHandler\Handlers\Plugins;
 
 use Dashifen\WPHandler\Repositories\MenuItem;
 use Dashifen\WPHandler\Repositories\SubmenuItem;
+use Dashifen\WPHandler\Handlers\Themes\ThemeHandlerInterface;
 
-interface PluginHandlerInterface {
+/**
+ * Interface PluginHandlerInterface
+ *
+ * Notice that this interface extends the ThemeHandlerInterface, not the
+ * more general HandlerInterface.  That's because plugins might still need
+ * to know about the location of the Theme's stylesheet and we extend the
+ * AbstractThemeHandler's enqueue() method as well.
+ *
+ * @package Dashifen\WPHandler\Handlers\Plugins
+ */
+interface PluginHandlerInterface extends ThemeHandlerInterface {
+  /**
+   * getPluginDir
+   *
+   * Returns the path to the directory containing this plugin.
+   *
+   * @return string
+   */
+  public function getPluginDir(): string;
+
+  /**
+   * getPluginUrl
+   *
+   * Returns the path to the URL for the directory containing this plugin.
+   *
+   * @return string
+   */
+  public function getPluginUrl(): string;
+
   /**
    * registerActivationHook
    *
