@@ -74,7 +74,7 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
    *
    * @return string
    */
-  final protected function findPluginDirectory (): string {
+  protected function findPluginDirectory (): string {
     try {
 
       // to get the directory name of this object's children we need to
