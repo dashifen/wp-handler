@@ -31,4 +31,30 @@ abstract class AbstractThemeService extends AbstractThemeHandler {
     $this->handler = $handler;
     parent::__construct();
   }
+
+  /**
+   * getUrl
+   *
+   * Returns the URL that corresponds to the folder in which this Service's
+   * handler is located.
+   *
+   * @return string
+   */
+  public function getStylesheetUrl (): string {
+    return $this->handler->getStylesheetUrl();
+  }
+
+  /**
+   * getDir
+   *
+   * Returns the filesystem path to the folder in which this Service's
+   * handler is located.
+   *
+   * @return string
+   */
+  public function getStylesheetDir (): string {
+    return $this->handler->getStylesheetDir();
+  }
+
+
 }

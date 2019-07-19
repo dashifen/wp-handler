@@ -31,4 +31,27 @@ abstract class AbstractPluginService extends AbstractPluginHandler {
     $this->handler = $handler;
     parent::__construct();
   }
+
+  /**
+   * getPluginDir
+   *
+   * Returns the path to the directory containing this Service's handler.
+   *
+   * @return string
+   */
+  public function getPluginDir (): string {
+    return $this->handler->getPluginDir();
+  }
+
+  /**
+   * getPluginUrl
+   *
+   * Returns the path to the URL for the directory containing this
+   * Service's handler.
+   *
+   * @return string
+   */
+  public function getPluginUrl (): string {
+    return $this->handler->getPluginUrl();
+  }
 }
