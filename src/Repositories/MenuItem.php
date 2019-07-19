@@ -28,6 +28,8 @@ class MenuItem extends AbstractRepository implements MenuItemInterface {
   protected const WP_ARGUMENT_ORDER = ["pageTitle", "menuTitle", "capability",
     "menuSlug", "callable", "iconUrl", "position"];
 
+  protected const OPTIONAL_ARGUMENTS = ["callable", "iconUrl", "position"];
+
   /**
    * @var PluginHandlerInterface
    */
@@ -66,12 +68,12 @@ class MenuItem extends AbstractRepository implements MenuItemInterface {
   /**
    * @var string
    */
-  protected $iconUrl = "";
+  protected $iconUrl = "dashicons-admin-post";
 
   /**
    * @var int
    */
-  protected $position = 26;           // after comments
+  protected $position = 26;                // after comments
 
   /**
    * MenuItem constructor.
@@ -155,11 +157,14 @@ class MenuItem extends AbstractRepository implements MenuItemInterface {
   public function isComplete (): bool {
 
     // for a menu item to be complete, the properties listed in the
-    // WP_ARGUMENT_ORDER constant must not be empty.  we'll iterate over the
-    // constant and return false (i.e. incomplete) the second we find an
-    // empty one.  if we make it through the list, we're complete.
+    // WP_ARGUMENT_ORDER constant must not be empty unless they're also listed
+    // listed in the OPTIONAL_ARGUMENTS constant.  we'll get the items in the
+    // former that aren't in the latter, loop over them, and return false if
+    // we find an empty one.
 
-    foreach (static::WP_ARGUMENT_ORDER as $property) {
+    $properties = array_diff(static::WP_ARGUMENT_ORDER, static::OPTIONAL_ARGUMENTS);
+
+    foreach ($properties as $property) {
       if (empty($this->{$property})) {
         return false;
       }
