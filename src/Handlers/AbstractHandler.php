@@ -3,14 +3,28 @@
 namespace Dashifen\WPHandler\Handlers;
 
 use Throwable;
-use Dashifen\WPHandler\Hooks\Hook;
 use Dashifen\WPHandler\Hooks\HookException;
+use Dashifen\WPHandler\Hooks\Factory\HookFactoryInterface;
 
 abstract class AbstractHandler implements HandlerInterface {
   /**
    * @var array
    */
   protected $hooked = [];
+
+  /**
+   * @var HookFactoryInterface
+   */
+  protected $hookFactory;
+
+  /**
+   * AbstractHandler constructor.
+   *
+   * @param HookFactoryInterface $hookFactory
+   */
+  public function __construct (HookFactoryInterface $hookFactory) {
+    $this->hookFactory = $hookFactory;
+  }
 
   /**
    * initialize
@@ -21,6 +35,17 @@ abstract class AbstractHandler implements HandlerInterface {
    * @return void
    */
   abstract public function initialize (): void;
+
+  /**
+   * getHookFactory
+   *
+   * Returns the hook factory property.
+   *
+   * @return HookFactoryInterface
+   */
+  public function getHookFactory (): HookFactoryInterface {
+    return $this->hookFactory;
+  }
 
   /**
    * addAction
@@ -37,8 +62,8 @@ abstract class AbstractHandler implements HandlerInterface {
    * @throws HookException
    */
   protected function addAction (string $hook, string $method, int $priority = 10, int $arguments = 1): string {
-    $hookIndex = Hook::getHookIndex($hook, $this, $method, $priority);
-    $this->hooked[$hookIndex] = new Hook($hook, $this, $method, $priority, $arguments);
+    $hookIndex = $this->hookFactory->produceHookIndex($hook, $this, $method, $priority);
+    $this->hooked[$hookIndex] = $this->hookFactory->produceHook($hook, $this, $method, $priority, $arguments);
     return add_action($hook, [$this, $method], $priority, $arguments);
   }
 
@@ -55,7 +80,7 @@ abstract class AbstractHandler implements HandlerInterface {
    * @return bool
    */
   protected function removeAction (string $hook, string $method, int $priority = 10): bool {
-    unset($this->hooked[Hook::getHookIndex($hook, $this, $method, $priority)]);
+    unset($this->hooked[$this->hookFactory->produceHookIndex($hook, $this, $method, $priority)]);
     return remove_action($hook, [$this, $method], $priority);
   }
 
@@ -74,8 +99,8 @@ abstract class AbstractHandler implements HandlerInterface {
    * @throws HookException
    */
   protected function addFilter (string $hook, string $method, int $priority = 10, int $arguments = 1): string {
-    $hookIndex = Hook::getHookIndex($hook, $this, $method, $priority);
-    $this->hooked[$hookIndex] = new Hook($hook, $this, $method, $priority, $arguments);
+    $hookIndex = $this->hookFactory->produceHookIndex($hook, $this, $method, $priority);
+    $this->hooked[$hookIndex] = $this->hookFactory->produceHook($hook, $this, $method, $priority, $arguments);
     return add_filter($hook, [$this, $method], $priority, $arguments);
   }
 
@@ -92,7 +117,7 @@ abstract class AbstractHandler implements HandlerInterface {
    * @return bool
    */
   protected function removeFilter (string $hook, string $method, int $priority = 10): bool {
-    unset($this->hooked[Hook::getHookIndex($hook, $this, $method, $priority)]);
+    unset($this->hooked[$this->hookFactory->produceHookIndex($hook, $this, $method, $priority)]);
     return remove_filter($hook, [$this, $method], $priority);
   }
 
@@ -240,7 +265,7 @@ abstract class AbstractHandler implements HandlerInterface {
     // this method at the current action.
 
     $priority = has_filter($action, [$this, $method]);
-    return Hook::getHookIndex($action, $this, $method, $priority);
+    return $this->hookFactory->produceHookIndex($action, $this, $method, $priority);
   }
 
   /**

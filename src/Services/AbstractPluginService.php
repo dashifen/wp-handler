@@ -28,8 +28,8 @@ abstract class AbstractPluginService extends AbstractPluginHandler {
    * @param PluginHandlerInterface $handler
    */
   public function __construct (PluginHandlerInterface $handler) {
+    parent::__construct($handler->getHookFactory());
     $this->handler = $handler;
-    parent::__construct();
   }
 
   /**

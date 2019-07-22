@@ -28,8 +28,8 @@ abstract class AbstractThemeService extends AbstractThemeHandler {
    * @param ThemeHandlerInterface $handler
    */
   public function __construct (ThemeHandlerInterface $handler) {
+    parent::__construct($handler->getHookFactory());
     $this->handler = $handler;
-    parent::__construct();
   }
 
   /**
@@ -55,6 +55,4 @@ abstract class AbstractThemeService extends AbstractThemeHandler {
   public function getStylesheetDir (): string {
     return $this->handler->getStylesheetDir();
   }
-
-
 }

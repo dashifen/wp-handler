@@ -2,6 +2,7 @@
 
 namespace Dashifen\WPHandler\Handlers\Plugins;
 
+use Dashifen\WPHandler\Hooks\Factory\HookFactoryInterface;
 use ReflectionClass;
 use ReflectionException;
 use Dashifen\Repository\RepositoryException;
@@ -33,8 +34,13 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
    */
   protected $pluginUrl = "";
 
-  public function __construct () {
-    parent::__construct();
+  /**
+   * AbstractPluginHandler constructor.
+   *
+   * @param HookFactoryInterface $hookFactory
+   */
+  public function __construct (HookFactoryInterface $hookFactory) {
+    parent::__construct($hookFactory);
 
     $pluginUrl = WP_PLUGIN_URL . "/" . $this->findPluginDirectory();
     $this->pluginUrl = preg_replace("/^https?:/", "", $pluginUrl);

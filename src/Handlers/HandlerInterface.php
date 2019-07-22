@@ -2,6 +2,7 @@
 
 namespace Dashifen\WPHandler\Handlers;
 
+use Dashifen\WPHandler\Hooks\Factory\HookFactoryInterface;
 use Throwable;
 
 interface HandlerInterface {
@@ -14,6 +15,15 @@ interface HandlerInterface {
    * @return void
    */
   public function initialize(): void;
+
+  /**
+   * getHookFactory
+   *
+   * Returns the hook factory property.
+   *
+   * @return HookFactoryInterface
+   */
+  public function getHookFactory(): HookFactoryInterface;
 
   /**
    * debug
