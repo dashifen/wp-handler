@@ -1,5 +1,7 @@
 <?php
 
+/** @noinspection PhpUnused */
+
 namespace Dashifen\WPHandler\Handlers;
 
 use Throwable;
@@ -16,6 +18,11 @@ abstract class AbstractHandler implements HandlerInterface {
    * @var HookFactoryInterface
    */
   protected $hookFactory;
+
+  /**
+   * @var bool
+   */
+  protected $initialized = false;
 
   /**
    * AbstractHandler constructor.
@@ -45,6 +52,21 @@ abstract class AbstractHandler implements HandlerInterface {
    */
   public function getHookFactory (): HookFactoryInterface {
     return $this->hookFactory;
+  }
+
+  /**
+   * isInitialized
+   *
+   * Returns the value of the initialized property at the start of the method
+   * but also sets that value to true.  This function should be called when
+   * initializing handlers if you need to avoid re-initialization problems.
+   *
+   * @return bool
+   */
+  final protected function isInitialized(): bool {
+    $returnValue = $this->initialized;
+    $this->initialized = true;
+    return $returnValue;
   }
 
   /**
