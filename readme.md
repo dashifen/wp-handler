@@ -151,7 +151,7 @@ class AwesomeTheme extends AbstractThemeHandler {
     }
 ```
 
-Like a breath of fresh air, isn't it?  The `enqueu` method is smart enough to
+Like a breath of fresh air, isn't it?  The `enqueue` method is smart enough to
 know that the Google fonts are located elsewhere online due to the `//` which
 precedes their address.  The other two, though, will be included from within 
 the assets folder of this theme's directory for us without us having to do the
