@@ -60,7 +60,7 @@ plugin's scope.  But, it also has methods to activate, deactivate, and
 uninstall your plugin as well as a number of Dashboard menu manipulation 
 functions for your convenience.
 
-###Services
+### Services
 
 There are three abstract objects that can be extended to represent services,
 or helpful additional objects, for your plugins or themes.  I have recently 
@@ -92,7 +92,7 @@ Hook that your plugin or theme is using.  Simply implement it to create your
 factory which produces your type of Hook and when constructing your handlers,
 simply provide them your factory as the argument to their constructors. 
 
-##MenuItemInterface
+## MenuItemInterface
 
 For the plugin handler's menu manipulation methods, a series of objects 
 representing menu items have been included herein.  They utilize my 
@@ -102,7 +102,7 @@ limited access to protected methods.  This is a newer feature of these objects
 and I'm not sure I'm fully happy with how they turned out.  Suggestions 
 welcome!
 
-#Examples
+# Examples
 
 ```php
 class AwesomePlugin extends AbstractPluginHandler {
