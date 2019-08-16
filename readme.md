@@ -127,13 +127,14 @@ the possibility that any handler re-initializes its callbacks by accident.
 It's recommended that you follow this pattern when using these objects.
 
 Then, we add a single action callback:  when WordPress initializes, we want
-to start a PHP session.  Why?  Who knows!  It's only an example 😅.  By using
-the handler's `addAction` method, we construct a `Hook` object that "remembers"
-the callback for us and keeps track of the key that WordPress will need to 
-unlock our door.  So, when WordPress comes knocking during the `init` action 
-at priority 10 (the default), handlers `__call` magic method inspects its "key,"
-determines that it fits our lock, and then lets it in to execute the 
-`startSession` method.  
+to start a PHP session.  Why?  Who knows!  It's only an example 😅.  
+
+By using the handler's `addAction` method, we construct a `Hook` object that 
+"remembers" the callback for us and keeps track of the key that WordPress will 
+need to  unlock our door.  So, when WordPress comes knocking during the `init`
+action at priority 10 (the default), handlers `__call` magic method inspects 
+its "key," determines that it fits our lock, and then lets it in to execute 
+the `startSession` method.  
 
 ```php
 class AwesomeTheme extends AbstractThemeHandler {
