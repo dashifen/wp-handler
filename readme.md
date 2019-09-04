@@ -1,7 +1,7 @@
 # WP Handler
 
 This object is a way to hide the gritty details of attaching handlers to 
-WordPress action and filter hooks to `protected` methods within an object.  
+WordPress action and filter hooks to `protected` methods within an object.
 Without it, only `public` ones of an object are accessible to the WordPress 
 core ecosystem, but with it we can use `protected` methods as well.  
 
