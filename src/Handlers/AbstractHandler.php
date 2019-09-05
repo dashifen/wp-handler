@@ -7,17 +7,19 @@ namespace Dashifen\WPHandler\Handlers;
 use Throwable;
 use Dashifen\WPHandler\Hooks\HookException;
 use Dashifen\WPHandler\Hooks\Factory\HookFactoryInterface;
+use Dashifen\WPHandler\Hooks\Collection\HookCollectionInterface;
+use Dashifen\WPHandler\Hooks\Collection\HookCollectionException;
 
 abstract class AbstractHandler implements HandlerInterface {
-  /**
-   * @var array
-   */
-  protected $hooked = [];
-
   /**
    * @var HookFactoryInterface
    */
   protected $hookFactory;
+
+  /**
+   * @var HookCollectionInterface
+   */
+  protected $hookCollection;
 
   /**
    * @var bool
@@ -27,10 +29,94 @@ abstract class AbstractHandler implements HandlerInterface {
   /**
    * AbstractHandler constructor.
    *
-   * @param HookFactoryInterface $hookFactory
+   * @param HookFactoryInterface    $hookFactory
+   * @param HookCollectionInterface $hookCollection
    */
-  public function __construct (HookFactoryInterface $hookFactory) {
+  public function __construct (
+    HookFactoryInterface $hookFactory,
+    HookCollectionInterface $hookCollection
+  ) {
     $this->hookFactory = $hookFactory;
+    $this->hookCollection = $hookCollection;
+  }
+
+  /**
+   * __call
+   *
+   * Checks to see if the method being called is in the $hooked
+   * property, and if so, calls it passing the $arguments to it.
+   *
+   * @param string $method
+   * @param array  $arguments
+   *
+   * @return mixed
+   * @throws HandlerException
+   */
+  public function __call (string $method, array $arguments) {
+
+    // getting here should only happen via WordPress callbacks.  sure,
+    // there's a bunch of other ways to do so, but callbacks are the ones
+    // we care about.  so, we'll start trying to make sure that the
+    // method WordPress is trying to execute is one to which it's been
+    // given access; i.e., it's in our hook collection.  first step,
+    // recreate the hook index for the method as if it were being
+    // executed at the current action and priority.
+
+    $action = current_action();
+    $priority = has_filter($action, [$this, $method]);
+    $hookIndex = $this->hookFactory->produceHookIndex($action, $this, $method, $priority);
+    if ($this->hookCollection->has($hookIndex)) {
+
+      // if we're in here, then we don't have a Hook that exactly matches
+      // this method, action, and priority combination.  since we're about
+      // to crash out of things anyway, we'll see if we can help the
+      // programmer identify the problem.
+
+      foreach ($this->hookCollection->getAll() as $hook) {
+        if ($hook->getMethod() === $method) {
+
+          // well, we just found a hook using this method, so the problem
+          // must be that we're at the wrong action or priority.  let's see
+          // if which it is.
+
+          if ($hook->getHook() !== $action) {
+            throw new HandlerException("$method is hooked but not via $action",
+              HandlerException::INAPPROPRIATE_CALL);
+          }
+
+          if ($hook->getPriority() !== $priority) {
+            throw new HandlerException("$method is hooked but not at $priority",
+              HandlerException::INAPPROPRIATE_CALL);
+          }
+        }
+
+        // if we looped over all of our hooked methods and never threw any of
+        // the above exceptions, then the only remaining option is that the
+        // method was never hooked the first place.  we have an exception for
+        // that, too.
+
+        throw new HandlerException("Unhooked method: $method.",
+          HandlerException::UNHOOKED_METHOD);
+      }
+    }
+
+    // if we made it through all that, we're good to go.  we return the
+    // results of our method call because some of them might be filters and
+    // not returning their results would be a problem.
+
+    return $this->{$method}(...$arguments);
+  }
+
+  /**
+   * toString
+   *
+   * Returns the name of this object using the late-static binding so it'll
+   * return the name of the concrete handler, not simply "AbstractHandler."
+   *
+   * @return string
+   */
+  public function __toString (): string {
+    return static::class;
   }
 
   /**
@@ -55,6 +141,17 @@ abstract class AbstractHandler implements HandlerInterface {
   }
 
   /**
+   * getHookCollection
+   *
+   * Returns the hook collection property.
+   *
+   * @return HookCollectionInterface
+   */
+  public function getHookCollection (): HookCollectionInterface {
+    return $this->hookCollection;
+  }
+
+  /**
    * isInitialized
    *
    * Returns the value of the initialized property at the start of the method
@@ -63,7 +160,7 @@ abstract class AbstractHandler implements HandlerInterface {
    *
    * @return bool
    */
-  final protected function isInitialized(): bool {
+  final protected function isInitialized (): bool {
     $returnValue = $this->initialized;
     $this->initialized = true;
     return $returnValue;
@@ -82,10 +179,11 @@ abstract class AbstractHandler implements HandlerInterface {
    *
    * @return string
    * @throws HookException
+   * @throws HookCollectionException
    */
   protected function addAction (string $hook, string $method, int $priority = 10, int $arguments = 1): string {
     $hookIndex = $this->hookFactory->produceHookIndex($hook, $this, $method, $priority);
-    $this->hooked[$hookIndex] = $this->hookFactory->produceHook($hook, $this, $method, $priority, $arguments);
+    $this->hookCollection->set($hookIndex, $this->hookFactory->produceHook($hook, $this, $method, $priority, $arguments));
     return add_action($hook, [$this, $method], $priority, $arguments);
   }
 
@@ -102,7 +200,7 @@ abstract class AbstractHandler implements HandlerInterface {
    * @return bool
    */
   protected function removeAction (string $hook, string $method, int $priority = 10): bool {
-    unset($this->hooked[$this->hookFactory->produceHookIndex($hook, $this, $method, $priority)]);
+    $this->hookCollection->reset($this->hookFactory->produceHookIndex($hook, $this, $method, $priority));
     return remove_action($hook, [$this, $method], $priority);
   }
 
@@ -119,10 +217,11 @@ abstract class AbstractHandler implements HandlerInterface {
    *
    * @return string
    * @throws HookException
+   * @throws HookCollectionException
    */
   protected function addFilter (string $hook, string $method, int $priority = 10, int $arguments = 1): string {
     $hookIndex = $this->hookFactory->produceHookIndex($hook, $this, $method, $priority);
-    $this->hooked[$hookIndex] = $this->hookFactory->produceHook($hook, $this, $method, $priority, $arguments);
+    $this->hookCollection->set($hookIndex, $this->hookFactory->produceHook($hook, $this, $method, $priority, $arguments));
     return add_filter($hook, [$this, $method], $priority, $arguments);
   }
 
@@ -139,7 +238,7 @@ abstract class AbstractHandler implements HandlerInterface {
    * @return bool
    */
   protected function removeFilter (string $hook, string $method, int $priority = 10): bool {
-    unset($this->hooked[$this->hookFactory->produceHookIndex($hook, $this, $method, $priority)]);
+    $this->hookCollection->reset($this->hookFactory->produceHookIndex($hook, $this, $method, $priority));
     return remove_filter($hook, [$this, $method], $priority);
   }
 
@@ -224,76 +323,5 @@ abstract class AbstractHandler implements HandlerInterface {
    */
   public static function catcher (Throwable $thrown): void {
     self::isDebug() ? self::debug($thrown, true) : self::writeLog($thrown);
-  }
-
-  /**
-   * __call
-   *
-   * Checks to see if the method being called is in the $hooked
-   * property, and if so, calls it passing the $arguments to it.
-   *
-   * @param string $method
-   * @param array  $arguments
-   *
-   * @return mixed
-   * @throws HandlerException
-   */
-  public function __call (string $method, array $arguments) {
-    if (!in_array($method, $this->hooked)) {
-      throw new HandlerException("Unhooked method: $method.",
-        HandlerException::UNHOOKED_METHOD);
-    }
-
-    $key = $this->getHookIndex($method);
-    if (!array_key_exists($key, $this->hooked)) {
-
-      // yes, we did these function calls in getHookIndex() below,
-      // but if they failed, doing them again before we die isn't going
-      // to waste that much additional time.  and, it's easier than
-      // returning a bunch of data from getHookIndex() when, hopefully
-      // this never happens.
-
-      $action = current_action();
-      $priority = has_filter($action, [$this, $method]);
-      throw new HandlerException("$method is hooked, but not at $action:$priority.",
-        HandlerException::INAPPROPRIATE_CALL);
-    }
-
-    // we return the results of our method call because some of them
-    // might be filters.  for more information on the spread operator
-    // used below: https://bit.ly/2zqHQCK.
-
-    return $this->{$method}(...$arguments);
-  }
-
-
-  /**
-   * getHookIndex
-   *
-   * Given the name of a method, returns the index at which it's
-   * hook is expected to be.
-   *
-   * @param string $method
-   *
-   * @return string
-   */
-  protected function getHookIndex (string $method): string {
-    $action = current_action();
-
-    // the has_filter() WordPress function returns a boolean when it
-    // receives only the name of an action/filter.  but, when it also
-    // gets a callback, it returns the priority at which that callback
-    // will execute.  with that, we can re-build the hook index for
-    // this method at the current action.
-
-    $priority = has_filter($action, [$this, $method]);
-    return $this->hookFactory->produceHookIndex($action, $this, $method, $priority);
-  }
-
-  /**
-   * @return string
-   */
-  public function __toString (): string {
-    return static::class;
   }
 }

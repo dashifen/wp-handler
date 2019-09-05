@@ -1,6 +1,6 @@
 <?php
 
-namespace Dashifen\WPHandler\Services;
+namespace Dashifen\WPHandler\Agents;
 
 use Dashifen\WPHandler\Handlers\Plugins\AbstractPluginHandler;
 use Dashifen\WPHandler\Handlers\Plugins\PluginHandlerInterface;
@@ -16,7 +16,7 @@ use Dashifen\WPHandler\Handlers\Plugins\PluginHandlerInterface;
  *
  * @package Dashifen\WPHandler\Handlers\Services
  */
-abstract class AbstractPluginService extends AbstractPluginHandler {
+abstract class AbstractPluginAgent extends AbstractPluginHandler {
   /**
    * @var PluginHandlerInterface
    */

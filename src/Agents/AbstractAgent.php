@@ -1,6 +1,6 @@
 <?php
 
-namespace Dashifen\WPHandler\Services;
+namespace Dashifen\WPHandler\Agents;
 
 use Dashifen\WPHandler\Handlers\AbstractHandler;
 use Dashifen\WPHandler\Handlers\HandlerInterface;
@@ -16,7 +16,7 @@ use Dashifen\WPHandler\Handlers\HandlerInterface;
  *
  * @package Dashifen\WPHandler\Handlers\Services
  */
-abstract class AbstractService extends AbstractHandler {
+abstract class AbstractAgent extends AbstractHandler {
   /**
    * @var HandlerInterface
    */
@@ -28,6 +28,13 @@ abstract class AbstractService extends AbstractHandler {
    * @param HandlerInterface $handler
    */
   public function __construct (HandlerInterface $handler) {
+
+    // agents are meant to help their handler.  thus, we assume that any
+    // agent that's in use by a handler uses the same type of hook object
+    // as the handler.  in other words, we can get the handler's hook
+    // factory and just use that here, too.
+
+    parent::__construct($handler->getHookFactory());
     $this->handler = $handler;
   }
 }

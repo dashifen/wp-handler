@@ -9,90 +9,59 @@ use Dashifen\WPHandler\Handlers\HandlerInterface;
  */
 interface HookInterface {
 	/**
-	 * getHookIndex
-	 *
-	 * Given its parameters, this function returns a unique index for
-	 * this hook.  it's needed when removing one of our hooks from WP.
-	 *
-	 * @param string                $hook
-	 * @param HandlerInterface $object
-	 * @param string                $method
-	 * @param int                   $priority
-	 *
-	 * @return string
-	 */
-	public static function getHookIndex(string $hook, HandlerInterface $object, string $method, int $priority = 10): string;
-
-	/**
-	 * __toString
-	 *
-	 * While magic methods are always a part of an object's interface, Hooks
-	 * need to implement this one so that we can quickly find them in the
-	 * AbstractTheme's __call() method.
-	 *
-	 * @return string
-	 */
-	public function __toString(): string;
-
-	/**
-	 * @return string
-	 */
-	public function getHook(): string;
-
-	/**
+   * setHook
+   *
+   * Sets the hook property representing the WordPress action or filter at
+   * which our callback shall be executed.
+   *
 	 * @param string $hook
 	 *
 	 * @return void
 	 */
-	public function setHook(string $hook);
+	public function setHook(string $hook): void;
 
 	/**
-	 * @return HandlerInterface
-	 */
-	public function getObject(): HandlerInterface;
-
-	/**
+   * setObject
+   *
+   * Sets the object property which is the HandlerInterface object
+   * which contains our callback method.
+   *
 	 * @param HandlerInterface $theme
 	 *
 	 * @return void
 	 */
-	public function setObject(HandlerInterface $theme);
-
-
+	public function setObject(HandlerInterface $theme): void;
 
 	/**
-	 * @return string
-	 */
-	public function getMethod(): string;
-
-	/**
+   * setMethod
+   *
+   * Sets the method property.
+   *
 	 * @param string $method
 	 *
 	 * @return void
 	 */
-	public function setMethod(string $method);
+	public function setMethod(string $method): void;
 
 	/**
-	 * @return int
-	 */
-	public function getPriority(): int;
-
-	/**
+   * setPriority
+   *
+   * Sets the priority property
+   *
 	 * @param int $priority
 	 *
 	 * @return void
 	 */
-	public function setPriority(int $priority);
+	public function setPriority(int $priority = 10): void;
 
 	/**
-	 * @return int
-	 */
-	public function getArgumentCount(): int;
-
-	/**
+   * setArgumentCount
+   *
+   * Sets the number of arguments that will be passed to our callback method.
+   *
 	 * @param int $argumentCount
 	 *
 	 * @return void
 	 */
-	public function setArgumentCount(int $argumentCount);
+	public function setArgumentCount(int $argumentCount = 1): void;
 }

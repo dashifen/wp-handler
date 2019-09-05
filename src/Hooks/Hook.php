@@ -2,17 +2,23 @@
 
 namespace Dashifen\WPHandler\Hooks;
 
-use Dashifen\WPHandler\Handlers\HandlerInterface;
 use ReflectionClass;
-use ReflectionMethod;
 use ReflectionException;
+use Dashifen\Repository\Repository;
+use Dashifen\Repository\RepositoryException;
+use Dashifen\WPHandler\Handlers\HandlerInterface;
 
 /**
  * Class Hook
  *
+ * @property-read string           $hook
+ * @property-read HandlerInterface $object
+ * @property-read string           $method
+ * @property-read int              $priority
+ * @property-read int              $argumentCount
  * @package Dashifen\WPHandler\Hooks
  */
-class Hook implements HookInterface {
+class Hook extends Repository implements HookInterface {
   /**
    * @var string
    */
@@ -38,16 +44,19 @@ class Hook implements HookInterface {
    */
   protected $argumentCount = 1;
 
+  /** @noinspection PhpDocRedundantThrowsInspection */
+
   /**
    * Hook constructor.
    *
-   * @param string                $hook
+   * @param string           $hook
    * @param HandlerInterface $object
-   * @param string                $method
-   * @param int                   $priority
-   * @param int                   $argumentCount
+   * @param string           $method
+   * @param int              $priority
+   * @param int              $argumentCount
    *
    * @throws HookException
+   * @throws RepositoryException
    */
   public function __construct (
     string $hook,
@@ -56,76 +65,27 @@ class Hook implements HookInterface {
     int $priority = 10,
     int $argumentCount = 1
   ) {
-    $this->setHook($hook);
-    $this->setObject($object);
-    $this->setMethod($method);
-    $this->setPriority($priority);
-    $this->setArgumentCount($argumentCount);
-  }
-
-  /**
-   * __toString
-   *
-   * Returns the name of the method that this hook executes.  This is
-   * used in the AbstractTheme's __cal() method to search through a list
-   * of hooked methods.
-   *
-   * @return string
-   */
-  public function __toString (): string {
-    return $this->getMethod();
-  }
-
-  public static function getHookIndex (
-    string $hook,
-    HandlerInterface $object,
-    string $method,
-    int $priority = 10
-  ): string {
-
-    // to create an index for this hook, we just concatenate our
-    // parameters together using vsprintf() and func_get_args() to
-    // make it look all pretty.  note:  ThemeInterface objects
-    // implements __toString() so we can use the object itself as
-    // a string here.
-
-    return vsprintf("%s:%s:%s:%s", func_get_args());
-  }
-
-
-  /**
-   * @return string
-   */
-  public function getHook (): string {
-    return $this->hook;
+    parent::__construct([
+      "hook"          => $hook,
+      "object"        => $object,
+      "method"        => $method,
+      "priority"      => $priority,
+      "argumentCount" => $argumentCount
+    ]);
   }
 
   /**
    * @param string $hook
    */
-  public function setHook (string $hook) {
+  public function setHook (string $hook): void {
     $this->hook = $hook;
-  }
-
-  /**
-   * @return HandlerInterface
-   */
-  public function getObject (): HandlerInterface {
-    return $this->object;
   }
 
   /**
    * @param HandlerInterface $object
    */
-  public function setObject (HandlerInterface $object) {
+  public function setObject (HandlerInterface $object): void {
     $this->object = $object;
-  }
-
-  /**
-   * @return string
-   */
-  public function getMethod (): string {
-    return $this->method;
   }
 
   /**
@@ -133,7 +93,7 @@ class Hook implements HookInterface {
    *
    * @throws HookException
    */
-  public function setMethod (string $method) {
+  public function setMethod (string $method): void {
     if (!($this->object instanceof HandlerInterface)) {
       throw new HookException("Please set a hook's object before method.", HookException::OBJECT_NOT_FOUND);
     }
@@ -162,37 +122,10 @@ class Hook implements HookInterface {
   }
 
   /**
-   * getMethodName
-   *
-   * Given a ReflectionMethod, returns its name.
-   *
-   * @param ReflectionMethod $method
-   *
-   * @return string
-   */
-  protected function getMethodName (ReflectionMethod $method): string {
-    return $method->name;
-  }
-
-  /**
-   * @return int
-   */
-  public function getPriority (): int {
-    return $this->priority;
-  }
-
-  /**
    * @param int $priority
    */
-  public function setPriority (int $priority) {
+  public function setPriority (int $priority = 10): void {
     $this->priority = $priority;
-  }
-
-  /**
-   * @return int
-   */
-  public function getArgumentCount (): int {
-    return $this->argumentCount;
   }
 
   /**
@@ -200,7 +133,7 @@ class Hook implements HookInterface {
    *
    * @throws HookException
    */
-  public function setArgumentCount (int $argumentCount) {
+  public function setArgumentCount (int $argumentCount = 1): void {
     if ($argumentCount < 0) {
       throw new HookException("Invalid argument count: $argumentCount.", HookException::INVALID_ARGUMENT_COUNT);
     }

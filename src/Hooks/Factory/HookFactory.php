@@ -5,6 +5,7 @@ namespace Dashifen\WPHandler\Hooks\Factory;
 use Dashifen\WPHandler\Hooks\Hook;
 use Dashifen\WPHandler\Hooks\HookException;
 use Dashifen\WPHandler\Hooks\HookInterface;
+use Dashifen\Repository\RepositoryException;
 use Dashifen\WPHandler\Handlers\HandlerInterface;
 
 class HookFactory implements HookFactoryInterface {
@@ -21,6 +22,7 @@ class HookFactory implements HookFactoryInterface {
    *
    * @return HookInterface
    * @throws HookException
+   * @throws RepositoryException
    */
   public function produceHook (string $hook, HandlerInterface $object, string $method, int $priority = 10, int $argumentCount = 1): HookInterface {
 
@@ -52,8 +54,10 @@ class HookFactory implements HookFactoryInterface {
     // indexing structure of a handler's hooks.  it is very likely that we
     // might change the prior method without this one; only if a HookInterface
     // object constructs its indices differently that the default Hook object
-    // do we need to change this.
+    // do we need to change this.  by default, we simply join our parameters
+    // like strings and return the resulting string to the calling scope.
 
-    return Hook::getHookIndex($hook, $object, $method, $priority);
+    $format = join(":", array_fill(0, func_num_args(), "%s"));
+    return vsprintf($format, func_get_args());
   }
 }

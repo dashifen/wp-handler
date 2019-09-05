@@ -1,6 +1,6 @@
 <?php
 
-namespace Dashifen\WPHandler\Services;
+namespace Dashifen\WPHandler\Agents;
 
 use Dashifen\WPHandler\Handlers\Themes\AbstractThemeHandler;
 use Dashifen\WPHandler\Handlers\Themes\ThemeHandlerInterface;
@@ -16,7 +16,7 @@ use Dashifen\WPHandler\Handlers\Themes\ThemeHandlerInterface;
  *
  * @package Dashifen\WPHandler\Handlers\Services
  */
-abstract class AbstractThemeService extends AbstractThemeHandler {
+abstract class AbstractThemeAgent extends AbstractThemeHandler {
   /**
    * @var ThemeHandlerInterface
    */

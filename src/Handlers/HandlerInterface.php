@@ -4,6 +4,7 @@ namespace Dashifen\WPHandler\Handlers;
 
 use Dashifen\WPHandler\Hooks\Factory\HookFactoryInterface;
 use Throwable;
+use Dashifen\WPHandler\Hooks\Collection\HookCollectionInterface;
 
 interface HandlerInterface {
   /**
@@ -24,6 +25,15 @@ interface HandlerInterface {
    * @return HookFactoryInterface
    */
   public function getHookFactory(): HookFactoryInterface;
+
+  /**
+   * getHookCollection
+   *
+   * Returns the hook collection property.
+   *
+   * @return HookCollectionInterface
+   */
+  public function getHookCollection(): HookCollectionInterface;
 
   /**
    * debug
