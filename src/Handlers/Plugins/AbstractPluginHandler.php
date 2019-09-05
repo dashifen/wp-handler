@@ -2,15 +2,17 @@
 
 namespace Dashifen\WPHandler\Handlers\Plugins;
 
-use Dashifen\WPHandler\Hooks\Factory\HookFactoryInterface;
 use ReflectionClass;
 use ReflectionException;
+use Dashifen\WPHandler\Hooks\HookException;
 use Dashifen\Repository\RepositoryException;
 use Dashifen\WPHandler\Repositories\MenuItem;
-use Dashifen\WPHandler\Hooks\HookException;
 use Dashifen\WPHandler\Repositories\SubmenuItem;
-use Dashifen\WPHandler\Handlers\Themes\AbstractThemeHandler;
 use Dashifen\WPHandler\Repositories\MenuItemException;
+use Dashifen\WPHandler\Hooks\Factory\HookFactoryInterface;
+use Dashifen\WPHandler\Handlers\Themes\AbstractThemeHandler;
+use Dashifen\WPHandler\Hooks\Collection\HookCollectionException;
+use Dashifen\WPHandler\Hooks\Collection\Factory\HookCollectionFactoryInterface;
 
 /**
  * Class AbstractPluginHandler
@@ -37,10 +39,14 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
   /**
    * AbstractPluginHandler constructor.
    *
-   * @param HookFactoryInterface $hookFactory
+   * @param HookFactoryInterface           $hookFactory
+   * @param HookCollectionFactoryInterface $hookCollectionFactory
    */
-  public function __construct (HookFactoryInterface $hookFactory) {
-    parent::__construct($hookFactory);
+  public function __construct (
+    HookFactoryInterface $hookFactory,
+    HookCollectionFactoryInterface $hookCollectionFactory
+  ) {
+    parent::__construct($hookFactory, $hookCollectionFactory);
 
     $pluginUrl = WP_PLUGIN_URL . "/" . $this->findPluginDirectory();
     $this->pluginUrl = preg_replace("/^https?:/", "", $pluginUrl);
@@ -160,6 +166,7 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
    * @param string $method
    *
    * @return string
+   * @throws HookCollectionException
    * @throws HookException
    */
   public function registerActivationHook (string $method): string {
@@ -182,6 +189,7 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
    * @param string $method
    *
    * @return string
+   * @throws HookCollectionException
    * @throws HookException
    */
   public function registerDeactivationHook (string $method): string {
@@ -198,6 +206,7 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
    * @param string $method
    *
    * @return string
+   * @throws HookCollectionException
    * @throws HookException
    */
   public function registerUninstallHook (string $method): string {
@@ -215,6 +224,7 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
    *
    * @return string
    * @throws MenuItemException
+   * @throws HookCollectionException
    * @throws HookException
    */
   final public function addMenuPage (MenuItem $menuItem): string {
@@ -241,6 +251,7 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
    * @return string
    * @throws MenuItemException
    * @throws MenuItemException
+   * @throws HookCollectionException
    * @throws HookException
    */
   final private function hookMenuItem (MenuItem $menuItem): string {
@@ -279,6 +290,7 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
    *
    * @return string
    * @throws HookException
+   * @throws HookCollectionException
    * @throws MenuItemException
    */
   final public function wpAddMenuPage (string $pageTitle, string $menuTitle, string $capability, string $menuSlug, string $method, string $iconUrl = "", ?int $position = null) {
@@ -314,6 +326,7 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
    *
    * @return string
    * @throws MenuItemException
+   * @throws HookCollectionException
    * @throws HookException
    */
   final public function addSubmenuPage (SubmenuItem $submenuItem): string {
@@ -340,6 +353,7 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
    *
    * @return string
    * @throws RepositoryException
+   * @throws HookCollectionException
    * @throws HookException
    */
   public function wpAddSubmenuPage (string $parentSlug, string $pageTitle, string $menuTitle, string $capability, string $menuSlug, string $method): string {
@@ -373,6 +387,7 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
    *
    * @return string
    * @throws MenuItemException
+   * @throws HookCollectionException
    * @throws HookException
    */
   final public function addDashboardPage (SubmenuItem $submenuItem): string {
@@ -396,6 +411,7 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
    *
    * @return string
    * @throws MenuItemException
+   * @throws HookCollectionException
    * @throws HookException
    */
   final public function addPostsPage (SubmenuItem $submenuItem): string {
@@ -413,6 +429,7 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
    *
    * @return string
    * @throws MenuItemException
+   * @throws HookCollectionException
    * @throws HookException
    */
   final public function addMediaPage (SubmenuItem $submenuItem): string {
@@ -430,6 +447,7 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
    *
    * @return string
    * @throws MenuItemException
+   * @throws HookCollectionException
    * @throws HookException
    */
   final public function addCommentsPage (SubmenuItem $submenuItem): string {
@@ -447,6 +465,7 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
    *
    * @return string
    * @throws MenuItemException
+   * @throws HookCollectionException
    * @throws HookException
    */
   final public function addThemePage (SubmenuItem $submenuItem): string {
@@ -465,6 +484,7 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
    *
    * @return string
    * @throws MenuItemException
+   * @throws HookCollectionException
    * @throws HookException
    */
   final public function addAppearancePage (SubmenuItem $submenuItem): string {
@@ -481,6 +501,7 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
    *
    * @return string
    * @throws MenuItemException
+   * @throws HookCollectionException
    * @throws HookException
    */
   final public function addPluginsPage (SubmenuItem $submenuItem): string {
@@ -498,6 +519,7 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
    *
    * @return string
    * @throws MenuItemException
+   * @throws HookCollectionException
    * @throws HookException
    */
   final public function addUsersPage (SubmenuItem $submenuItem): string {
@@ -515,6 +537,7 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
    *
    * @return string
    * @throws MenuItemException
+   * @throws HookCollectionException
    * @throws HookException
    */
   final public function addManagementPage (SubmenuItem $submenuItem): string {
@@ -532,6 +555,7 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
    *
    * @return string
    * @throws MenuItemException
+   * @throws HookCollectionException
    * @throws HookException
    */
   final public function addToolsPage (SubmenuItem $submenuItem): string {
@@ -548,6 +572,7 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
    *
    * @return string
    * @throws MenuItemException
+   * @throws HookCollectionException
    * @throws HookException
    */
   final public function addOptionsPage (SubmenuItem $submenuItem): string {
@@ -565,6 +590,7 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
    *
    * @return string
    * @throws MenuItemException
+   * @throws HookCollectionException
    * @throws HookException
    */
   final public function addSettingsPage (SubmenuItem $submenuItem): string {
@@ -582,6 +608,7 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
    *
    * @return string
    * @throws MenuItemException
+   * @throws HookCollectionException
    * @throws HookException
    */
   final public function addPostTypePage (string $postType, SubmenuItem $submenuItem): string {
@@ -599,6 +626,7 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
    *
    * @return string
    * @throws MenuItemException
+   * @throws HookCollectionException
    * @throws HookException
    */
   final public function addPagesPage (SubmenuItem $submenuItem): string {

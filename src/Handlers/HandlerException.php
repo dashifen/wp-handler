@@ -9,6 +9,6 @@ use Dashifen\Exception\Exception;
  * @package Dashifen\WPHandler\Handlers
  */
 class HandlerException extends Exception {
-	const UNHOOKED_METHOD = 1;
+	const UNHOOKED_METHOD    = 1;
 	const INAPPROPRIATE_CALL = 2;
 }

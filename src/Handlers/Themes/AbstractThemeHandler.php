@@ -4,6 +4,7 @@ namespace Dashifen\WPHandler\Handlers\Themes;
 
 use Dashifen\WPHandler\Handlers\AbstractHandler;
 use Dashifen\WPHandler\Hooks\Factory\HookFactoryInterface;
+use Dashifen\WPHandler\Hooks\Collection\Factory\HookCollectionFactoryInterface;
 
 /**
  * Class AbstractHandler
@@ -29,10 +30,14 @@ abstract class AbstractThemeHandler extends AbstractHandler implements ThemeHand
   /**
    * AbstractHandler constructor.
    *
-   * @param HookFactoryInterface $hookFactory
+   * @param HookFactoryInterface           $hookFactory
+   * @param HookCollectionFactoryInterface $hookCollectionFactory
    */
-  public function __construct (HookFactoryInterface $hookFactory) {
-    parent::__construct($hookFactory);
+  public function __construct (
+    HookFactoryInterface $hookFactory,
+    HookCollectionFactoryInterface $hookCollectionFactory
+  ) {
+    parent::__construct($hookFactory, $hookCollectionFactory);
 
     // in case we're loading a minimalist WP environment for testing
     // purposes, we only want to set these properties if the functions
