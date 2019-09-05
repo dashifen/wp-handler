@@ -9,6 +9,7 @@ use Dashifen\WPHandler\Hooks\HookException;
 use Dashifen\WPHandler\Hooks\Factory\HookFactoryInterface;
 use Dashifen\WPHandler\Hooks\Collection\HookCollectionInterface;
 use Dashifen\WPHandler\Hooks\Collection\HookCollectionException;
+use Dashifen\WPHandler\Hooks\Collection\Factory\HookCollectionFactoryInterface;
 
 abstract class AbstractHandler implements HandlerInterface {
   /**
@@ -29,15 +30,22 @@ abstract class AbstractHandler implements HandlerInterface {
   /**
    * AbstractHandler constructor.
    *
-   * @param HookFactoryInterface    $hookFactory
-   * @param HookCollectionInterface $hookCollection
+   * @param HookFactoryInterface           $hookFactory
+   * @param HookCollectionFactoryInterface $hookCollectionFactory
    */
   public function __construct (
     HookFactoryInterface $hookFactory,
-    HookCollectionInterface $hookCollection
+    HookCollectionFactoryInterface $hookCollectionFactory
   ) {
     $this->hookFactory = $hookFactory;
-    $this->hookCollection = $hookCollection;
+
+    // since from this abstract class descends all of our Handlers and
+    // Agents, each of which should have their own hook collection, we don't
+    // pass around the collection itself, we pass the factory which makes
+    // them.  that way, every Handler and all of its Agents gets their own
+    // collection rather than trying to share a single one.
+
+    $this->hookCollection = $hookCollectionFactory->produceHookCollection();
   }
 
   /**
@@ -169,8 +177,7 @@ abstract class AbstractHandler implements HandlerInterface {
   /**
    * addAction
    *
-   * Passes its arguments to add_action() and adds $method to the
-   * $hooked property.
+   * Passes its arguments to add_action() and adds a Hook to our collection.
    *
    * @param string $hook
    * @param string $method
@@ -190,8 +197,8 @@ abstract class AbstractHandler implements HandlerInterface {
   /**
    * removeAction
    *
-   * Removes a hooked method from WP core and the record of the hook
-   * from our $hooked properties.
+   * Removes a hooked method from WP core and the record of the hook from our
+   * collection.
    *
    * @param string $hook
    * @param string $method
@@ -207,8 +214,7 @@ abstract class AbstractHandler implements HandlerInterface {
   /**
    * addFilter
    *
-   * Passes its arguments to add_filter() and adds $method to  the
-   * $hooked property.
+   * Passes its arguments to add_filter() and adds a Hook to our collection.
    *
    * @param string $hook
    * @param string $method
@@ -228,8 +234,7 @@ abstract class AbstractHandler implements HandlerInterface {
   /**
    * removeFilter
    *
-   * Removes a filter from WP and the record of the hooked method
-   * from the $hooked property.
+   * Removes a filter from WP and the record of the Hook from our collection.
    *
    * @param string $hook
    * @param string $method
@@ -245,8 +250,8 @@ abstract class AbstractHandler implements HandlerInterface {
   /**
    * debug
    *
-   * Given stuff, print information about it and then die() if
-   * the $die flag is set.
+   * Given stuff, print information about it and then die() if the $die flag
+   * is set.
    *
    * @param mixed $stuff
    * @param bool  $die
