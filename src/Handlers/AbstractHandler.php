@@ -23,6 +23,11 @@ abstract class AbstractHandler implements HandlerInterface {
   protected $hookCollection;
 
   /**
+   * @var HookCollectionFactoryInterface
+   */
+  protected $hookCollectionFactory;
+
+  /**
    * @var bool
    */
   protected $initialized = false;
@@ -43,9 +48,12 @@ abstract class AbstractHandler implements HandlerInterface {
     // Agents, each of which should have their own hook collection, we don't
     // pass around the collection itself, we pass the factory which makes
     // them.  that way, every Handler and all of its Agents gets their own
-    // collection rather than trying to share a single one.
+    // collection rather than trying to share a single one.  then, we store
+    // the factory locally, too, because any Agents this Handler employs
+    // will need it, too.
 
     $this->hookCollection = $hookCollectionFactory->produceHookCollection();
+    $this->hookCollectionFactory = $hookCollectionFactory;
   }
 
   /**
@@ -158,6 +166,18 @@ abstract class AbstractHandler implements HandlerInterface {
   public function getHookCollection (): HookCollectionInterface {
     return $this->hookCollection;
   }
+
+  /**
+   * getHookCollection
+   *
+   * Returns the hook collection factory property.
+   *
+   * @return HookCollectionFactoryInterface
+   */
+  public function getHookCollectionFactory (): HookCollectionFactoryInterface {
+    return $this->hookCollectionFactory;
+  }
+
 
   /**
    * isInitialized

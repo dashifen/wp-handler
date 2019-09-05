@@ -5,8 +5,34 @@ namespace Dashifen\WPHandler\Handlers;
 use Dashifen\WPHandler\Hooks\Factory\HookFactoryInterface;
 use Throwable;
 use Dashifen\WPHandler\Hooks\Collection\HookCollectionInterface;
+use Dashifen\WPHandler\Hooks\Collection\Factory\HookCollectionFactoryInterface;
 
 interface HandlerInterface {
+  /**
+   * __call
+   *
+   * Magic methods are always a part of the interface, but this time we
+   * need this one, so by declaring it here, PHP will throw a tantrum if
+   * it's not defined.
+   *
+   * @param string $method
+   * @param array  $arguments
+   *
+   * @return mixed
+   */
+  public function __call(string $method, array $arguments);
+
+  /**
+   * __toString
+   *
+   * Magic methods are always a part of the interface, but this time we
+   * need this one, so by declaring it here, PHP will throw a tantrum if
+   * it's not defined.
+   *
+   * @return string
+   */
+  public function __toString(): string;
+
   /**
    * initialize
    *
@@ -34,6 +60,15 @@ interface HandlerInterface {
    * @return HookCollectionInterface
    */
   public function getHookCollection(): HookCollectionInterface;
+
+  /**
+   * getHookCollection
+   *
+   * Returns the hook collection factory property.
+   *
+   * @return HookCollectionFactoryInterface
+   */
+  public function getHookCollectionFactory(): HookCollectionFactoryInterface;
 
   /**
    * debug
@@ -80,29 +115,4 @@ interface HandlerInterface {
    * @return void
    */
   public static function catcher(Throwable $thrown): void;
-
-  /**
-   * __call
-   *
-   * Magic methods are always a part of the interface, but this time we
-   * need this one, so by declaring it here, PHP will throw a tantrum if
-   * it's not defined.
-   *
-   * @param string $method
-   * @param array  $arguments
-   *
-   * @return mixed
-   */
-  public function __call(string $method, array $arguments);
-
-  /**
-   * __toString
-   *
-   * Magic methods are always a part of the interface, but this time we
-   * need this one, so by declaring it here, PHP will throw a tantrum if
-   * it's not defined.
-   *
-   * @return string
-   */
-  public function __toString(): string;
 }
