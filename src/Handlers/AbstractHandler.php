@@ -205,12 +205,26 @@ abstract class AbstractHandler implements HandlerInterface {
    * @param int    $arguments
    *
    * @return string
-   * @throws HookException
-   * @throws HookCollectionException
+   * @throws HandlerException
    */
   protected function addAction (string $hook, string $method, int $priority = 10, int $arguments = 1): string {
     $hookIndex = $this->hookFactory->produceHookIndex($hook, $this, $method, $priority);
-    $this->hookCollection->set($hookIndex, $this->hookFactory->produceHook($hook, $this, $method, $priority, $arguments));
+
+    try {
+      $this->hookCollection->set($hookIndex, $this->hookFactory->produceHook($hook, $this, $method, $priority, $arguments));
+    } catch (HookCollectionException | HookException $exception) {
+
+      // to make it easier for the scope using this method to handle exceptions
+      // we're going to "merge" both hook collection and "regular" hook
+      // exception into a HandlerException here.
+
+      throw new HandlerException(
+        $exception->getMessage(),
+        HandlerException::FAILURE_TO_HOOK,
+        $exception
+      );
+    }
+
     return add_action($hook, [$this, $method], $priority, $arguments);
   }
 
@@ -242,12 +256,26 @@ abstract class AbstractHandler implements HandlerInterface {
    * @param int    $arguments
    *
    * @return string
-   * @throws HookException
-   * @throws HookCollectionException
+   * @throws HandlerException
    */
   protected function addFilter (string $hook, string $method, int $priority = 10, int $arguments = 1): string {
     $hookIndex = $this->hookFactory->produceHookIndex($hook, $this, $method, $priority);
-    $this->hookCollection->set($hookIndex, $this->hookFactory->produceHook($hook, $this, $method, $priority, $arguments));
+
+    try {
+      $this->hookCollection->set($hookIndex, $this->hookFactory->produceHook($hook, $this, $method, $priority, $arguments));
+    } catch (HookCollectionException | HookException $exception) {
+
+      // to make it easier for the scope using this method to handle exceptions
+      // we're going to "merge" both hook collection and "regular" hook
+      // exception into a HandlerException here.
+
+      throw new HandlerException(
+        $exception->getMessage(),
+        HandlerException::FAILURE_TO_HOOK,
+        $exception
+      );
+    }
+
     return add_filter($hook, [$this, $method], $priority, $arguments);
   }
 

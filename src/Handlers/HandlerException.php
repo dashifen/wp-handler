@@ -11,4 +11,5 @@ use Dashifen\Exception\Exception;
 class HandlerException extends Exception {
 	const UNHOOKED_METHOD    = 1;
 	const INAPPROPRIATE_CALL = 2;
+	const FAILURE_TO_HOOK    = 3;
 }
