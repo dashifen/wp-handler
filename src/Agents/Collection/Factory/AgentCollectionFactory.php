@@ -60,4 +60,25 @@ class AgentCollectionFactory implements AgentCollectionFactoryInterface {
 
     $this->agentRegistry[] = $agent;
   }
+
+  /**
+   * registerAgents
+   *
+   * Given an array of fully namespaced objects, stores them all for later
+   * production as a collection.
+   *
+   * @param array $agents
+   * @throws AgentCollectionFactoryException
+   */
+  public function registerAgents (array $agents): void {
+
+    // this one's easy:  we loop over our list of agents and pass them each
+    // to the prior one and let it do all the work!
+
+    foreach ($agents as $agent) {
+      $this->registerAgent($agent);
+    }
+  }
+
+
 }

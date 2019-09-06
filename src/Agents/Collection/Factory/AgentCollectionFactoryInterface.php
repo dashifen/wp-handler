@@ -28,4 +28,14 @@ interface AgentCollectionFactoryInterface {
    * @return void
    */
   public function registerAgent(string $agent): void;
+
+  /**
+   * registerAgents
+   *
+   * Given an array of fully namespaced objects, stores them all for later
+   * production as a collection.
+   *
+   * @param array $agents
+   */
+  public function registerAgents(array $agents): void;
 }
