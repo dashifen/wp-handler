@@ -1,21 +1,19 @@
 <?php
 
-namespace Dashifen\WPHandler\Hooks\Collection;
+namespace Dashifen\WPHandler\Agents\Collection;
 
 use Iterator;
 use ArrayAccess;
-use Dashifen\WPHandler\Hooks\HookInterface;
 use Dashifen\WPHandler\Agents\AbstractAgent;
-use Dashifen\WPHandler\Agents\Collection\AgentCollectionException;
 
 /**
- * Class HookCollection
+ * Class AgentCollection
  *
- * @package Dashifen\WPHandler\Hooks\Collection
+ * @package Dashifen\WPHandler\Agents\Collection
  */
-class HookCollection implements HookCollectionInterface, ArrayAccess, Iterator {
+class AgentCollection implements AgentCollectionInterface, ArrayAccess, Iterator {
   /**
-   * @var array
+   * @var AbstractAgent[]
    */
   protected $collection = [];
 
@@ -32,23 +30,23 @@ class HookCollection implements HookCollectionInterface, ArrayAccess, Iterator {
   /**
    * get
    *
-   * Given a key, returns the HookInterface located at that key.  If the
-   * key is not found within the collection, returns null.
+   * Given a key, returns the Agent located at that key.  If the key is not
+   * found within the collection, returns null.
    *
    * @param string $key
    *
-   * @return HookInterface|null
+   * @return AbstractAgent|null
    */
-  public function get (string $key): ?HookInterface {
+  public function get (string $key): ?AbstractAgent {
     return $this->collection[$key] ?? null;
   }
 
   /**
    * getAll
    *
-   * Returns the entire collection of Hooks.
+   * Returns the entire collection of agents.
    *
-   * @return HookInterface[]
+   * @return AbstractAgent[]
    */
   public function getAll (): array {
     return $this->collection;
@@ -57,7 +55,7 @@ class HookCollection implements HookCollectionInterface, ArrayAccess, Iterator {
   /**
    * has
    *
-   * Returns true if a Hook has been added at the specified key; false
+   * Returns true if an Agent has been added at the specified key; false
    * otherwise.
    *
    * @param string $key
@@ -65,44 +63,42 @@ class HookCollection implements HookCollectionInterface, ArrayAccess, Iterator {
    * @return bool
    */
   public function has (string $key): bool {
-    return array_key_exists($key, $this->collection);
+    return isset($this->collection[$key]);
   }
 
   /**
    * set
    *
-   * Adds the Hook to the collection using the given key.  Will overwrite
-   * prior Hooks at the same key if flag is set.
-   *
+   * Adds the Agent to the collection using the given key.  Will overwrite
+   * prior Agents at the same key if flag is set.
    *
    * @param string        $key
-   * @param HookInterface $hook
+   * @param AbstractAgent $agent
    * @param bool          $overwrite
    *
    * @return void
-   * @throws HookCollectionException
+   * @throws AgentCollectionException
    */
-  public function set (string $key, HookInterface $hook, bool $overwrite = false): void {
+  public function set (string $key, AbstractAgent $agent, bool $overwrite = false): void {
     if (!$overwrite && $this->has($key)) {
 
       // if we're not overwriting previously set hooks and this collection
       // has the specified key, then we'll throw an exception.  hopefully,
       // the calling scope will know what to do.
 
-      throw new HookCollectionException("Key exists: $key",
-        HookCollectionException::KEY_EXISTS);
+      throw new AgentCollectionException("Key exists: $key",
+        AgentCollectionException::KEY_EXISTS);
     }
 
-    $this->collection[$key] = $hook;
+    $this->collection[$key] = $agent;
     $this->updateKeys();
   }
 
   /**
    * updateKeys
    *
-   * Updates the internal record of the keys that are in use within our
-   * collection for use within the Iterable interface methods below.  Updated
-   * whenever we set or reset a key.
+   * Updates our internal record of the current keys in use within our
+   * collection.  Called anytime we set or reset a key.
    *
    * @return void
    */
@@ -113,7 +109,7 @@ class HookCollection implements HookCollectionInterface, ArrayAccess, Iterator {
   /**
    * reset
    *
-   * Resets (removes) the Hook at the specified key.
+   * Resets (removes) the Agent at the specified key.
    *
    * @param string $key
    *
@@ -127,7 +123,7 @@ class HookCollection implements HookCollectionInterface, ArrayAccess, Iterator {
   /**
    * resetAll
    *
-   * Removes all Hooks from the collection.
+   * Removes all Agents from the collection.
    *
    * @return void
    */
@@ -166,6 +162,13 @@ class HookCollection implements HookCollectionInterface, ArrayAccess, Iterator {
    * @since 5.0.0
    */
   public function key () {
+
+    // because we can't assume that all our collection will be indexed
+    // numerically, we store a reference to the keys that are in use that's
+    // updated when we set or reset keys in the collection.  that way, we
+    // can store the iterable position within that array and use this
+    // method as follows.
+
     return $this->keys[$this->keyPosition];
   }
 
@@ -213,10 +216,10 @@ class HookCollection implements HookCollectionInterface, ArrayAccess, Iterator {
    *
    * @param mixed $offset
    *
-   * @return HookInterface
+   * @return AbstractAgent
    * @since 5.0.0
    */
-  public function offsetGet ($offset): HookInterface {
+  public function offsetGet ($offset): AbstractAgent {
     return $this->get($offset);
   }
 
@@ -229,7 +232,7 @@ class HookCollection implements HookCollectionInterface, ArrayAccess, Iterator {
    * @param mixed $value
    *
    * @return void
-   * @throws HookCollectionException
+   * @throws AgentCollectionException
    * @since 5.0.0
    */
   public function offsetSet ($offset, $value) {

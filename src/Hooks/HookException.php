@@ -9,8 +9,8 @@ use Dashifen\Exception\Exception;
  * @package Dashifen\WPHandler\Hooks
  */
 class HookException extends Exception {
-	const INVALID_PRIORITY = 1;
-	const INVALID_ARGUMENT_COUNT = 2;
-	const METHOD_NOT_FOUND = 3;
-	const OBJECT_NOT_FOUND = 4;
+  public const INVALID_PRIORITY       = 1;
+  public const INVALID_ARGUMENT_COUNT = 2;
+  public const METHOD_NOT_FOUND       = 3;
+  public const OBJECT_NOT_FOUND       = 4;
 }
