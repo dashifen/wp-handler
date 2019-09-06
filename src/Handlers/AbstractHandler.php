@@ -44,14 +44,14 @@ abstract class AbstractHandler implements HandlerInterface {
   /**
    * AbstractHandler constructor.
    *
-   * @param HookFactoryInterface            $hookFactory
-   * @param HookCollectionFactoryInterface  $hookCollectionFactory
-   * @param AgentCollectionFactoryInterface $agentCollectionFactory
+   * @param HookFactoryInterface                 $hookFactory
+   * @param HookCollectionFactoryInterface       $hookCollectionFactory
+   * @param AgentCollectionFactoryInterface|null $agentCollectionFactory
    */
   public function __construct (
     HookFactoryInterface $hookFactory,
     HookCollectionFactoryInterface $hookCollectionFactory,
-    AgentCollectionFactoryInterface $agentCollectionFactory
+    AgentCollectionFactoryInterface $agentCollectionFactory = null
   ) {
     $this->hookFactory = $hookFactory;
 
@@ -72,7 +72,9 @@ abstract class AbstractHandler implements HandlerInterface {
     // produces have a link to this object, we send $this to the production
     // function as its argument.
 
-    $this->agentCollection = $agentCollectionFactory->produceAgentCollection($this);
+    if (!is_null($agentCollectionFactory)) {
+      $this->agentCollection = $agentCollectionFactory->produceAgentCollection($this);
+    }
   }
 
   /**
@@ -250,10 +252,12 @@ abstract class AbstractHandler implements HandlerInterface {
     // it's internal array.  then, we just call their initialize methods
     // in sequence.
 
-    foreach ($this->agentCollection as $agent) {
-      /** @var AbstractAgent $agent */
+    if ($this->agentCollection instanceof AgentCollectionInterface) {
+      foreach ($this->agentCollection as $agent) {
+        /** @var AbstractAgent $agent */
 
-      $agent->initialize();
+        $agent->initialize();
+      }
     }
   }
 

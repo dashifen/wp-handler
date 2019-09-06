@@ -5,8 +5,6 @@ namespace Dashifen\WPHandler\Hooks\Collection;
 use Iterator;
 use ArrayAccess;
 use Dashifen\WPHandler\Hooks\HookInterface;
-use Dashifen\WPHandler\Agents\AbstractAgent;
-use Dashifen\WPHandler\Agents\Collection\AgentCollectionException;
 
 /**
  * Class HookCollection

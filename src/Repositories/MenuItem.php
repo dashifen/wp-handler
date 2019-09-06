@@ -193,7 +193,7 @@ class MenuItem extends AbstractRepository implements MenuItemInterface {
     // entire string.  then, we just make sure to remove a dash at the
     // end of the string more for aesthetics than anything else.
 
-    $menuSlug = preg_replace("/[\s|\W|_]+/", "-", strtolower($pageTitle));
+    $menuSlug = preg_replace("/[\s\W_]+/", "-", strtolower($pageTitle));
     $menuSlug = preg_replace("/-$/", "", $menuSlug);
     $this->setMenuSlug($menuSlug);
   }
