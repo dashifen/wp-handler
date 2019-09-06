@@ -33,11 +33,11 @@ This is intended as the object that theme objects should extend.  It adds three 
 
 Like the theme handler, it's from here that plugins can be extended.  It's more robust that the theme handler offering directory and URL identification assistance and extending the `enqueue` method to add JS and CSS from the plugin's scope.  But, it also has methods to activate, deactivate, and uninstall your plugin as well as a number of Dashboard menu manipulation functions for your convenience.
 
-### Services
+### Agents
 
-There are three abstract objects that can be extended to represent services—helpful, focused objects—for your plugins or themes.  I have recently learned that I've been using the term `Service` somewhat incorrectly, but I haven't changed my code yet.  Regardless, these each receive one of our handlers (above) as a parameter to their constructors and are intended to operate within the scope of a single, tightly defined responsibility that you might want to separate from the primary theme or plugin file.  
+Handlers have their agents to perform specific tasks for them that they would otherwise have to do themselves.  Thus, Agents are small, focused classes that handle a specific and single responsibility for the Handler thant employs them.  For example, post type registration, especially the arrays of labels for the WordPress `register_post_type` function are rather verbose.  Moving them to a service object keeps things tidier in your plugin or theme object which makes your life better and may help with maintenance.  Got a problem with a type's registration?  You're gonna know right where to look!
 
-For example, post type registration, especially the arrays of labels for the WordPress `register_post_type` function are rather verbose.  Moving them to a service object keeps things tidier in your plugin or theme object which makes your life better and may help with maintenance.  Got a problem with a type's registration?  You're gonna know right where to look!
+There are three abstract Agent objects already defined:  a general `AbstractAgent` and then an `AbstractPluginAgent` and an `AbstractThemeAgent` for your convenience.
 
 ## Hooks
 
