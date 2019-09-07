@@ -46,12 +46,10 @@ abstract class AbstractHandler implements HandlerInterface {
    *
    * @param HookFactoryInterface                 $hookFactory
    * @param HookCollectionFactoryInterface       $hookCollectionFactory
-   * @param AgentCollectionFactoryInterface|null $agentCollectionFactory
    */
   public function __construct (
     HookFactoryInterface $hookFactory,
-    HookCollectionFactoryInterface $hookCollectionFactory,
-    AgentCollectionFactoryInterface $agentCollectionFactory = null
+    HookCollectionFactoryInterface $hookCollectionFactory
   ) {
     $this->hookFactory = $hookFactory;
 
@@ -64,17 +62,6 @@ abstract class AbstractHandler implements HandlerInterface {
 
     $this->hookCollection = $hookCollectionFactory->produceHookCollection();
     $this->hookCollectionFactory = $hookCollectionFactory;
-
-    // unlike our hook collection factory, we don't need to use our agent
-    // factory again, we just need to know about the agents that it's
-    // registered for us.  so, we can use it here to produce our agent
-    // collection and then it's work is complete.  so that the agents it
-    // produces have a link to this object, we send $this to the production
-    // function as its argument.
-
-    if (!is_null($agentCollectionFactory)) {
-      $this->agentCollection = $agentCollectionFactory->produceAgentCollection($this);
-    }
   }
 
   /**
@@ -220,6 +207,29 @@ abstract class AbstractHandler implements HandlerInterface {
     return $this->hookCollectionFactory;
   }
 
+  /**
+   * getAgentCollection
+   *
+   * In the unlikely event that an external scope needs a reference to this
+   * Handler's agent collection, this returns that property.
+   *
+   * @return AgentCollectionInterface
+   */
+  public function getAgentCollection (): AgentCollectionInterface {
+    return $this->agentCollection;
+  }
+
+  /**
+   * setAgentCollection
+   *
+   * Given an agent collection factory, produces an agent collection and
+   * saves it in our properties.
+   *
+   * @param AgentCollectionFactoryInterface $agentCollectionFactory
+   */
+  public function setAgentCollection (AgentCollectionFactoryInterface $agentCollectionFactory): void {
+    $this->agentCollection = $agentCollectionFactory->produceAgentCollection($this);
+  }
 
   /**
    * isInitialized

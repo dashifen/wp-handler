@@ -5,7 +5,9 @@ namespace Dashifen\WPHandler\Handlers;
 use Dashifen\WPHandler\Hooks\Factory\HookFactoryInterface;
 use Throwable;
 use Dashifen\WPHandler\Hooks\Collection\HookCollectionInterface;
+use Dashifen\WPHandler\Agents\Collection\AgentCollectionInterface;
 use Dashifen\WPHandler\Hooks\Collection\Factory\HookCollectionFactoryInterface;
+use Dashifen\WPHandler\Agents\Collection\Factory\AgentCollectionFactoryInterface;
 
 interface HandlerInterface {
   /**
@@ -69,6 +71,26 @@ interface HandlerInterface {
    * @return HookCollectionFactoryInterface
    */
   public function getHookCollectionFactory(): HookCollectionFactoryInterface;
+
+  /**
+   * getAgentCollection
+   *
+   * In the unlikely event that an external scope needs a reference to this
+   * Handler's agent collection, this returns that property.
+   *
+   * @return AgentCollectionInterface
+   */
+  public function getAgentCollection(): AgentCollectionInterface;
+
+  /**
+   * setAgentCollection
+   *
+   * Given an agent collection factory, produces an agent collection and
+   * saves it in our properties.
+   *
+   * @param AgentCollectionFactoryInterface $agentCollectionFactory
+   */
+  public function setAgentCollection(AgentCollectionFactoryInterface $agentCollectionFactory): void;
 
   /**
    * debug
