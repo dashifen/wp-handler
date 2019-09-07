@@ -42,8 +42,7 @@ interface HookCollectionInterface {
    * set
    *
    * Adds the Hook to the collection using the given key.  Will overwrite
-   * prior Hooks at the same key if flag is set.  Returns true if a Hook is
-   * added; false otherwise.
+   * prior Hooks at the same key if flag is set.
    *
    * @param string        $key
    * @param HookInterface $hook
