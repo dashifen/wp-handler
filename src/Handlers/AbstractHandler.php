@@ -103,9 +103,7 @@ abstract class AbstractHandler implements HandlerInterface {
       // to crash out of things anyway, we'll see if we can help the
       // programmer identify the problem.
 
-      foreach ($this->hookCollection as $hook) {
-        /** @var HookInterface $hook */
-
+      foreach ($this->hookCollection->getAll() as $hook) {
         if ($hook->method === $method) {
 
           // well, we just found a hook using this method, so the problem
@@ -271,9 +269,7 @@ abstract class AbstractHandler implements HandlerInterface {
     // in sequence.
 
     if ($this->agentCollection instanceof AgentCollectionInterface) {
-      foreach ($this->agentCollection as $agent) {
-        /** @var AbstractAgent $agent */
-
+      foreach ($this->agentCollection->getAll() as $agent) {
         $agent->initialize();
       }
     }
