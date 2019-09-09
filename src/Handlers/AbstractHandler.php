@@ -46,12 +46,10 @@ abstract class AbstractHandler implements HandlerInterface {
    *
    * @param HookFactoryInterface                 $hookFactory
    * @param HookCollectionFactoryInterface       $hookCollectionFactory
-   * @param AgentCollectionFactoryInterface|null $agentCollectionFactory
    */
   public function __construct (
     HookFactoryInterface $hookFactory,
-    HookCollectionFactoryInterface $hookCollectionFactory,
-    AgentCollectionFactoryInterface $agentCollectionFactory = null
+    HookCollectionFactoryInterface $hookCollectionFactory
   ) {
     $this->hookFactory = $hookFactory;
 
@@ -64,17 +62,6 @@ abstract class AbstractHandler implements HandlerInterface {
 
     $this->hookCollection = $hookCollectionFactory->produceHookCollection();
     $this->hookCollectionFactory = $hookCollectionFactory;
-
-    // unlike our hook collection factory, we don't need to use our agent
-    // factory again, we just need to know about the agents that it's
-    // registered for us.  so, we can use it here to produce our agent
-    // collection and then it's work is complete.  so that the agents it
-    // produces have a link to this object, we send $this to the production
-    // function as its argument.
-
-    if (!is_null($agentCollectionFactory)) {
-      $this->agentCollection = $agentCollectionFactory->produceAgentCollection($this);
-    }
   }
 
   /**
@@ -220,6 +207,37 @@ abstract class AbstractHandler implements HandlerInterface {
     return $this->hookCollectionFactory;
   }
 
+  /**
+   * getAgentCollection
+   *
+   * In the unlikely event that we need to extract the agent collection from
+   * this handler, this method returns the agent collection property.
+   *
+   * @return AgentCollectionInterface
+   */
+  public function getAgentCollection (): AgentCollectionInterface {
+    return $this->agentCollection;
+  }
+
+  /**
+   * setAgentCollection
+   *
+   * Given an agent collection factory, produces the an agent collection,
+   * stores it in the property of the same name, and then, in a gross
+   * violation of union contracts, discards the factory.
+   *
+   * @param AgentCollectionFactoryInterface $agentCollectionFactory
+   *
+   * @return void
+   */
+  public function setAgentCollection (AgentCollectionFactoryInterface $agentCollectionFactory): void {
+
+    // and this is why we have a setter for our agent collection and don't
+    // define an agent collection factory as a dependency of our constructor:
+    // the factory needs to know who the handler will be for its agents.
+
+    $this->agentCollection = $agentCollectionFactory->produceAgentCollection($this);
+  }
 
   /**
    * isInitialized

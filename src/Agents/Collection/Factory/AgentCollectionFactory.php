@@ -100,6 +100,4 @@ class AgentCollectionFactory implements AgentCollectionFactoryInterface {
       $this->registerAgent($agent);
     }
   }
-
-
 }

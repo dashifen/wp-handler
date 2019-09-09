@@ -12,7 +12,6 @@ use Dashifen\WPHandler\Repositories\MenuItemException;
 use Dashifen\WPHandler\Hooks\Factory\HookFactoryInterface;
 use Dashifen\WPHandler\Handlers\Themes\AbstractThemeHandler;
 use Dashifen\WPHandler\Hooks\Collection\Factory\HookCollectionFactoryInterface;
-use Dashifen\WPHandler\Agents\Collection\Factory\AgentCollectionFactoryInterface;
 
 /**
  * Class AbstractPluginHandler
@@ -41,14 +40,12 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
    *
    * @param HookFactoryInterface                 $hookFactory
    * @param HookCollectionFactoryInterface       $hookCollectionFactory
-   * @param AgentCollectionFactoryInterface|null $agentCollectionFactory
    */
   public function __construct (
     HookFactoryInterface $hookFactory,
-    HookCollectionFactoryInterface $hookCollectionFactory,
-    AgentCollectionFactoryInterface $agentCollectionFactory = null
+    HookCollectionFactoryInterface $hookCollectionFactory
   ) {
-    parent::__construct($hookFactory, $hookCollectionFactory, $agentCollectionFactory);
+    parent::__construct($hookFactory, $hookCollectionFactory);
 
     $pluginUrl = WP_PLUGIN_URL . "/" . $this->findPluginDirectory();
     $this->pluginUrl = preg_replace("/^https?:/", "", $pluginUrl);
