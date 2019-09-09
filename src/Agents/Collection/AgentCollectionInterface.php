@@ -2,7 +2,7 @@
 
 namespace Dashifen\WPHandler\Agents\Collection;
 
-use Dashifen\WPHandler\Agents\AbstractAgent;
+use Dashifen\WPHandler\Agents\AgentInterface;
 
 /**
  * Interface AgentCollectionInterface
@@ -22,16 +22,16 @@ interface AgentCollectionInterface {
    *
    * @param string $key
    *
-   * @return AbstractAgent|null
+   * @return AgentInterface|null
    */
-  public function get(string $key): ?AbstractAgent;
+  public function get(string $key): ?AgentInterface;
 
   /**
    * getAll
    *
    * Returns the entire collection of agents.
    *
-   * @return AbstractAgent[]
+   * @return AgentInterface[]
    */
   public function getAll(): array;
 
@@ -54,13 +54,13 @@ interface AgentCollectionInterface {
    * prior Agents at the same key if flag is set.
    *
    * @param string        $key
-   * @param AbstractAgent $agent
+   * @param AgentInterface $agent
    * @param bool          $overwrite
    *
    * @return void
    * @throws AgentCollectionException
    */
-  public function set(string $key, AbstractAgent $agent, bool $overwrite = false): void;
+  public function set(string $key, AgentInterface $agent, bool $overwrite = false): void;
 
   /**
    * reset

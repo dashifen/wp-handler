@@ -16,7 +16,7 @@ use Dashifen\WPHandler\Handlers\Plugins\PluginHandlerInterface;
  *
  * @package Dashifen\WPHandler\Handlers\Services
  */
-abstract class AbstractPluginAgent extends AbstractPluginHandler {
+abstract class AbstractPluginAgent extends AbstractPluginHandler implements AgentInterface {
   /**
    * @var PluginHandlerInterface
    */
