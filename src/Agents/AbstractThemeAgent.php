@@ -16,7 +16,7 @@ use Dashifen\WPHandler\Handlers\Themes\ThemeHandlerInterface;
  *
  * @package Dashifen\WPHandler\Handlers\Services
  */
-abstract class AbstractThemeAgent extends AbstractThemeHandler {
+abstract class AbstractThemeAgent extends AbstractThemeHandler implements AgentInterface {
   /**
    * @var ThemeHandlerInterface
    */

@@ -4,7 +4,7 @@ namespace Dashifen\WPHandler\Agents\Collection;
 
 use Iterator;
 use ArrayAccess;
-use Dashifen\WPHandler\Agents\AbstractAgent;
+use Dashifen\WPHandler\Agents\AgentInterface;
 
 /**
  * Class AgentCollection
@@ -13,7 +13,7 @@ use Dashifen\WPHandler\Agents\AbstractAgent;
  */
 class AgentCollection implements AgentCollectionInterface, ArrayAccess, Iterator {
   /**
-   * @var AbstractAgent[]
+   * @var AgentInterface[]
    */
   protected $collection = [];
 
@@ -35,9 +35,9 @@ class AgentCollection implements AgentCollectionInterface, ArrayAccess, Iterator
    *
    * @param string $key
    *
-   * @return AbstractAgent|null
+   * @return AgentInterface|null
    */
-  public function get (string $key): ?AbstractAgent {
+  public function get (string $key): ?AgentInterface {
     return $this->collection[$key] ?? null;
   }
 
@@ -46,7 +46,7 @@ class AgentCollection implements AgentCollectionInterface, ArrayAccess, Iterator
    *
    * Returns the entire collection of agents.
    *
-   * @return AbstractAgent[]
+   * @return AgentInterface[]
    */
   public function getAll (): array {
     return $this->collection;
@@ -72,14 +72,14 @@ class AgentCollection implements AgentCollectionInterface, ArrayAccess, Iterator
    * Adds the Agent to the collection using the given key.  Will overwrite
    * prior Agents at the same key if flag is set.
    *
-   * @param string        $key
-   * @param AbstractAgent $agent
-   * @param bool          $overwrite
+   * @param string         $key
+   * @param AgentInterface $agent
+   * @param bool           $overwrite
    *
    * @return void
    * @throws AgentCollectionException
    */
-  public function set (string $key, AbstractAgent $agent, bool $overwrite = false): void {
+  public function set (string $key, AgentInterface $agent, bool $overwrite = false): void {
     if (!$overwrite && $this->has($key)) {
 
       // if we're not overwriting previously set hooks and this collection
@@ -216,10 +216,10 @@ class AgentCollection implements AgentCollectionInterface, ArrayAccess, Iterator
    *
    * @param mixed $offset
    *
-   * @return AbstractAgent
+   * @return AgentInterface
    * @since 5.0.0
    */
-  public function offsetGet ($offset): AbstractAgent {
+  public function offsetGet ($offset): AgentInterface {
     return $this->get($offset);
   }
 

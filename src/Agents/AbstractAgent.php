@@ -16,7 +16,7 @@ use Dashifen\WPHandler\Handlers\HandlerInterface;
  *
  * @package Dashifen\WPHandler\Handlers\Services
  */
-abstract class AbstractAgent extends AbstractHandler {
+abstract class AbstractAgent extends AbstractHandler implements AgentInterface {
   /**
    * @var HandlerInterface
    */
