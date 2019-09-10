@@ -38,8 +38,8 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
   /**
    * AbstractPluginHandler constructor.
    *
-   * @param HookFactoryInterface                 $hookFactory
-   * @param HookCollectionFactoryInterface       $hookCollectionFactory
+   * @param HookFactoryInterface           $hookFactory
+   * @param HookCollectionFactoryInterface $hookCollectionFactory
    */
   public function __construct (
     HookFactoryInterface $hookFactory,
@@ -224,14 +224,14 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
    */
   final public function addMenuPage (MenuItem $menuItem): string {
 
-    // the primary difference between our wrapper and the core WP function
-    // of similar name is that we simply receive the name of a $method to use
-    // as our callback instead of a callable of some kind.  here, we want to
-    // add that method as a Hook within this Handler object and also call the
-    // WP function which actually adds the menu item.
+    // given a MenuItem we want to add it to WordPress.  we have to call
+    // the WP Core add_menu_page() method first because whether or not the
+    // page is registered within WordPress changes the name of the action
+    // hook used when executing the menu item's callback.
 
+    $success = add_menu_page(...$menuItem->toArray());
     $this->hookMenuItem($menuItem);
-    return add_menu_page(...$menuItem->toArray());
+    return $success;
   }
 
   /**
@@ -323,11 +323,14 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
    */
   final public function addSubmenuPage (SubmenuItem $submenuItem): string {
 
-    // see the prior method for details of this method; they're both extremely
-    // similar
+    // like addMenuPage, but this one gets a SubmenuItem.  as before, the
+    // action hook used to execute the submenu item's callback will be
+    // different once WP Core knows about it, so we'll call its function
+    // first and then hook it up here.
 
+    $success = add_submenu_page(...$submenuItem->toArray());
     $this->hookMenuItem($submenuItem);
-    return add_submenu_page(...$submenuItem->toArray());
+    return $success;
   }
 
   /**
