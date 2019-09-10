@@ -5,7 +5,7 @@ namespace Dashifen\WPHandler\Repositories;
 use Dashifen\Repository\RepositoryInterface;
 
 interface MenuItemInterface extends RepositoryInterface {
-  /*
+  /**
    * getParentSlug
    *
    * While we don't usually list getters in interfaces, this one is a little
