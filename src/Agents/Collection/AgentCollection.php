@@ -2,8 +2,6 @@
 
 namespace Dashifen\WPHandler\Agents\Collection;
 
-use Iterator;
-use ArrayAccess;
 use Dashifen\WPHandler\Agents\AgentInterface;
 
 /**
@@ -11,7 +9,7 @@ use Dashifen\WPHandler\Agents\AgentInterface;
  *
  * @package Dashifen\WPHandler\Agents\Collection
  */
-class AgentCollection implements AgentCollectionInterface, ArrayAccess, Iterator {
+class AgentCollection implements AgentCollectionInterface {
   /**
    * @var AgentInterface[]
    */

@@ -6,8 +6,6 @@ namespace Dashifen\WPHandler\Handlers;
 
 use Throwable;
 use Dashifen\WPHandler\Hooks\HookException;
-use Dashifen\WPHandler\Hooks\HookInterface;
-use Dashifen\WPHandler\Agents\AbstractAgent;
 use Dashifen\WPHandler\Hooks\Factory\HookFactoryInterface;
 use Dashifen\WPHandler\Hooks\Collection\HookCollectionInterface;
 use Dashifen\WPHandler\Hooks\Collection\HookCollectionException;
@@ -44,8 +42,8 @@ abstract class AbstractHandler implements HandlerInterface {
   /**
    * AbstractHandler constructor.
    *
-   * @param HookFactoryInterface                 $hookFactory
-   * @param HookCollectionFactoryInterface       $hookCollectionFactory
+   * @param HookFactoryInterface           $hookFactory
+   * @param HookCollectionFactoryInterface $hookCollectionFactory
    */
   public function __construct (
     HookFactoryInterface $hookFactory,
@@ -103,9 +101,7 @@ abstract class AbstractHandler implements HandlerInterface {
       // to crash out of things anyway, we'll see if we can help the
       // programmer identify the problem.
 
-      foreach ($this->hookCollection as $hook) {
-        /** @var HookInterface $hook */
-
+      foreach ($this->hookCollection->getAll() as $hook) {
         if ($hook->method === $method) {
 
           // well, we just found a hook using this method, so the problem
@@ -228,6 +224,11 @@ abstract class AbstractHandler implements HandlerInterface {
    * @param AgentCollectionFactoryInterface $agentCollectionFactory
    */
   public function setAgentCollection (AgentCollectionFactoryInterface $agentCollectionFactory): void {
+
+    // and this is why we have a setter for our agent collection and don't
+    // define an agent collection factory as a dependency of our constructor:
+    // the factory needs to know who the handler will be for its agents.
+
     $this->agentCollection = $agentCollectionFactory->produceAgentCollection($this);
   }
 
@@ -263,9 +264,7 @@ abstract class AbstractHandler implements HandlerInterface {
     // in sequence.
 
     if ($this->agentCollection instanceof AgentCollectionInterface) {
-      foreach ($this->agentCollection as $agent) {
-        /** @var AbstractAgent $agent */
-
+      foreach ($this->agentCollection->getAll() as $agent) {
         $agent->initialize();
       }
     }

@@ -2,8 +2,8 @@
 
 namespace Dashifen\WPHandler\Handlers;
 
-use Dashifen\WPHandler\Hooks\Factory\HookFactoryInterface;
 use Throwable;
+use Dashifen\WPHandler\Hooks\Factory\HookFactoryInterface;
 use Dashifen\WPHandler\Hooks\Collection\HookCollectionInterface;
 use Dashifen\WPHandler\Agents\Collection\AgentCollectionInterface;
 use Dashifen\WPHandler\Hooks\Collection\Factory\HookCollectionFactoryInterface;
@@ -22,7 +22,7 @@ interface HandlerInterface {
    *
    * @return mixed
    */
-  public function __call(string $method, array $arguments);
+  public function __call (string $method, array $arguments);
 
   /**
    * __toString
@@ -33,7 +33,7 @@ interface HandlerInterface {
    *
    * @return string
    */
-  public function __toString(): string;
+  public function __toString (): string;
 
   /**
    * initialize
@@ -43,7 +43,7 @@ interface HandlerInterface {
    *
    * @return void
    */
-  public function initialize(): void;
+  public function initialize (): void;
 
   /**
    * getHookFactory
@@ -52,7 +52,7 @@ interface HandlerInterface {
    *
    * @return HookFactoryInterface
    */
-  public function getHookFactory(): HookFactoryInterface;
+  public function getHookFactory (): HookFactoryInterface;
 
   /**
    * getHookCollection
@@ -61,7 +61,7 @@ interface HandlerInterface {
    *
    * @return HookCollectionInterface
    */
-  public function getHookCollection(): HookCollectionInterface;
+  public function getHookCollection (): HookCollectionInterface;
 
   /**
    * getHookCollection
@@ -70,17 +70,17 @@ interface HandlerInterface {
    *
    * @return HookCollectionFactoryInterface
    */
-  public function getHookCollectionFactory(): HookCollectionFactoryInterface;
+  public function getHookCollectionFactory (): HookCollectionFactoryInterface;
 
   /**
    * getAgentCollection
    *
-   * In the unlikely event that an external scope needs a reference to this
-   * Handler's agent collection, this returns that property.
+   * In the unlikely event that we need to extract the agent collection from
+   * this handler, this method returns the agent collection property.
    *
    * @return AgentCollectionInterface
    */
-  public function getAgentCollection(): AgentCollectionInterface;
+  public function getAgentCollection (): AgentCollectionInterface;
 
   /**
    * setAgentCollection
@@ -89,8 +89,10 @@ interface HandlerInterface {
    * saves it in our properties.
    *
    * @param AgentCollectionFactoryInterface $agentCollectionFactory
+   *
+   * @return void
    */
-  public function setAgentCollection(AgentCollectionFactoryInterface $agentCollectionFactory): void;
+  public function setAgentCollection (AgentCollectionFactoryInterface $agentCollectionFactory): void;
 
   /**
    * debug
@@ -99,11 +101,11 @@ interface HandlerInterface {
    * the $die flag is set.
    *
    * @param mixed $stuff
-   * @param bool $die
+   * @param bool  $die
    *
    * @return void
    */
-  public static function debug($stuff, $die = false): void;
+  public static function debug ($stuff, $die = false): void;
 
   /**
    * writeLog
@@ -114,7 +116,7 @@ interface HandlerInterface {
    *
    * @return void
    */
-  public static function writeLog($data): void;
+  public static function writeLog ($data): void;
 
   /**
    * isDebug
@@ -123,7 +125,7 @@ interface HandlerInterface {
    *
    * @return bool
    */
-  public static function isDebug(): bool;
+  public static function isDebug (): bool;
 
   /**
    * catcher
@@ -136,5 +138,5 @@ interface HandlerInterface {
    *
    * @return void
    */
-  public static function catcher(Throwable $thrown): void;
+  public static function catcher (Throwable $thrown): void;
 }

@@ -2,7 +2,10 @@
 
 namespace Dashifen\WPHandler\Agents\Collection\Factory;
 
+<<<<<<< HEAD
 use Dashifen\WPHandler\Agents\AbstractAgent;
+=======
+>>>>>>> bd085af7a0e01c7b61612fcc2f27e8406bcc467b
 use Dashifen\WPHandler\Agents\AgentInterface;
 use Dashifen\WPHandler\Handlers\HandlerInterface;
 use Dashifen\WPHandler\Agents\Collection\AgentCollection;
@@ -27,7 +30,7 @@ class AgentCollectionFactory implements AgentCollectionFactoryInterface {
     foreach ($this->agentRegistry as $i => $agent) {
 
       // we know that each $agent in our registry is a class name descended
-      // from the AbstractAgent class because of our test in registerAgent
+      // from the AgentInterface class because of our test in registerAgent
       // below.  each Agent needs a reference to its handler, so as we
       // construct them here to return them as a collection, we pass along
       // our HandlerInterface reference as well.
@@ -51,9 +54,23 @@ class AgentCollectionFactory implements AgentCollectionFactoryInterface {
    */
   public function registerAgent (string $agent): void {
     if (!class_exists($agent)) {
+<<<<<<< HEAD
       throw new AgentCollectionFactoryException(
         sprintf("Unknown agent: %s", $this->getAgentShortName($agent)),
         AgentCollectionFactoryException::UNKNOWN_AGENT
+=======
+      throw new AgentCollectionFactoryException(
+        sprintf("Unknown agent: %s", $this->getAgentShortName($agent)),
+        AgentCollectionFactoryException::NOT_AN_AGENT
+      );
+    }
+
+    $interfaces = class_implements($agent);
+    if (!in_array(AgentInterface::class, $interfaces)) {
+      throw new AgentCollectionFactoryException(
+        sprintf("%s is not an agent", $this->getAgentShortName($agent)),
+        AgentCollectionFactoryException::NOT_AN_AGENT
+>>>>>>> bd085af7a0e01c7b61612fcc2f27e8406bcc467b
       );
     }
 
@@ -87,6 +104,21 @@ class AgentCollectionFactory implements AgentCollectionFactoryInterface {
    *
    * Given the fully namespaced name of an Agent, return it's short name,
    * i.e. it's class name without all the namespacing.
+   *
+   * @param string $agentFullName
+   *
+   * @return string
+   */
+  private function getAgentShortName (string $agentFullName): string {
+    $agentNameParts = explode("\\", $agentFullName);
+    return array_pop($agentNameParts);
+  }
+
+  /**
+   * getAgentShortName
+   *
+   * Given the fully namespaced version of a class name, returns only the
+   * actual object's name, i.e. the class's short name.
    *
    * @param string $agentFullName
    *

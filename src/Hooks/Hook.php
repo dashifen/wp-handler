@@ -99,26 +99,48 @@ class Hook extends Repository implements HookInterface {
     }
 
     try {
+
+      // to make sure that the object we're working with actually has the
+      // method we're trying to hook, we'll make a reflection of it.  in the
+      // pasts, reflections were very expensive, but recent versions of PHP
+      // make them very fast, especially if the object is already loaded
+      // which our handler should be.  once we have the reflection, we can
+      // get it's list of methods and see if this one is in it.
+
       $reflection = new ReflectionClass($this->object);
-      $methods = array_map([$this, "getMethodName"], $reflection->getMethods());
-      if (!in_array($method, $methods)) {
+      foreach ($reflection->getMethods() as $reflectionMethod) {
+        $methodShortName = $reflectionMethod->getShortName();
+        if ($methodShortName === $method) {
 
-        // technically, this has nothing to do with our Reflection, but
-        // throwing a ReflectionException here makes our catch-block
-        // much easier.
+          // if we find the method we're looking for, we'll set our property
+          // and return.  we hope that this should save some time for objects
+          // with a lot of methods  because we should only have to compare
+          // short names to $method for the ones prior to our match skipping
+          // the rest.
 
-        throw new ReflectionException();
+          $this->method = $method;
+          return;
+        }
       }
+
+      // if we made it down here, we're going to throw a ReflectionException.
+      // not finding a match isn't technically a problem within the reflection,
+      // but it makes it easier to throw only HookExceptions by simply
+      // triggering the catch block for both them and the more simply not-found
+      // problem.
+
+      throw new HookException("Method not found: $method",
+        HookException::METHOD_NOT_FOUND);
+
     } catch (ReflectionException $e) {
 
       // to ensure that we only throw HookExceptions out of this method,
       // we catch our ReflectionException and then just throw a
       // HookException instead.
 
-      throw new HookException("Method not found: $method.", HookException::METHOD_NOT_FOUND);
+      throw new HookException("Unable to accurately reflect " . $this->object,
+        HookException::OBJECT_NOT_FOUND);
     }
-
-    $this->method = $method;
   }
 
   /**
