@@ -6,8 +6,6 @@ namespace Dashifen\WPHandler\Handlers;
 
 use Throwable;
 use Dashifen\WPHandler\Hooks\HookException;
-use Dashifen\WPHandler\Hooks\HookInterface;
-use Dashifen\WPHandler\Agents\AbstractAgent;
 use Dashifen\WPHandler\Hooks\Factory\HookFactoryInterface;
 use Dashifen\WPHandler\Hooks\Collection\HookCollectionInterface;
 use Dashifen\WPHandler\Hooks\Collection\HookCollectionException;
@@ -44,8 +42,8 @@ abstract class AbstractHandler implements HandlerInterface {
   /**
    * AbstractHandler constructor.
    *
-   * @param HookFactoryInterface                 $hookFactory
-   * @param HookCollectionFactoryInterface       $hookCollectionFactory
+   * @param HookFactoryInterface           $hookFactory
+   * @param HookCollectionFactoryInterface $hookCollectionFactory
    */
   public function __construct (
     HookFactoryInterface $hookFactory,
@@ -208,8 +206,8 @@ abstract class AbstractHandler implements HandlerInterface {
   /**
    * getAgentCollection
    *
-   * In the unlikely event that we need to extract the agent collection from
-   * this handler, this method returns the agent collection property.
+   * In the unlikely event that an external scope needs a reference to this
+   * Handler's agent collection, this returns that property.
    *
    * @return AgentCollectionInterface
    */
@@ -220,13 +218,10 @@ abstract class AbstractHandler implements HandlerInterface {
   /**
    * setAgentCollection
    *
-   * Given an agent collection factory, produces the an agent collection,
-   * stores it in the property of the same name, and then, in a gross
-   * violation of union contracts, discards the factory.
+   * Given an agent collection factory, produces an agent collection and
+   * saves it in our properties.
    *
    * @param AgentCollectionFactoryInterface $agentCollectionFactory
-   *
-   * @return void
    */
   public function setAgentCollection (AgentCollectionFactoryInterface $agentCollectionFactory): void {
 

@@ -2,6 +2,10 @@
 
 namespace Dashifen\WPHandler\Agents\Collection\Factory;
 
+<<<<<<< HEAD
+use Dashifen\WPHandler\Agents\AbstractAgent;
+=======
+>>>>>>> bd085af7a0e01c7b61612fcc2f27e8406bcc467b
 use Dashifen\WPHandler\Agents\AgentInterface;
 use Dashifen\WPHandler\Handlers\HandlerInterface;
 use Dashifen\WPHandler\Agents\Collection\AgentCollection;
@@ -50,6 +54,11 @@ class AgentCollectionFactory implements AgentCollectionFactoryInterface {
    */
   public function registerAgent (string $agent): void {
     if (!class_exists($agent)) {
+<<<<<<< HEAD
+      throw new AgentCollectionFactoryException(
+        sprintf("Unknown agent: %s", $this->getAgentShortName($agent)),
+        AgentCollectionFactoryException::UNKNOWN_AGENT
+=======
       throw new AgentCollectionFactoryException(
         sprintf("Unknown agent: %s", $this->getAgentShortName($agent)),
         AgentCollectionFactoryException::NOT_AN_AGENT
@@ -61,10 +70,48 @@ class AgentCollectionFactory implements AgentCollectionFactoryInterface {
       throw new AgentCollectionFactoryException(
         sprintf("%s is not an agent", $this->getAgentShortName($agent)),
         AgentCollectionFactoryException::NOT_AN_AGENT
+>>>>>>> bd085af7a0e01c7b61612fcc2f27e8406bcc467b
       );
     }
 
-    $this->agentRegistry[] = $agent;
+    // there are three abstract agent classes:  the AbstractAgent, the
+    // AbstractPluginAgent, and the AbstractThemeAgent.  each extend the
+    // Handler of a similar name, not each other.  this is because we need
+    // the Handler's behaviors within each of them, i.e. plugin agents need
+    // to know how plugin Handlers behave.  so, we'll get the parents of
+    // our $agent and see if one of these three is within them.
+
+    $temp = $agent;
+    while ($temp = get_parent_class($temp)) {
+      if (preg_match("/Abstract(?:Theme|Plugin)?Agent/", $temp)) {
+        $this->agentRegistry[] = $agent;
+        return;
+      }
+    }
+
+    // if we didn't return within our loop, that means none of our abstract
+    // agent classes were parents of this one.  therefore, this one's not an
+    // agent.  we've an exception for that...
+
+    throw new AgentCollectionFactoryException(
+      sprintf("%s is not an agent", $this->getAgentShortName($agent)),
+      AgentCollectionFactoryException::NOT_AN_AGENT
+    );
+  }
+
+  /**
+   * getAgentShortName
+   *
+   * Given the fully namespaced name of an Agent, return it's short name,
+   * i.e. it's class name without all the namespacing.
+   *
+   * @param string $agentFullName
+   *
+   * @return string
+   */
+  private function getAgentShortName (string $agentFullName): string {
+    $agentNameParts = explode("\\", $agentFullName);
+    return array_pop($agentNameParts);
   }
 
   /**
@@ -89,6 +136,7 @@ class AgentCollectionFactory implements AgentCollectionFactoryInterface {
    * production as a collection.
    *
    * @param array $agents
+   *
    * @throws AgentCollectionFactoryException
    */
   public function registerAgents (array $agents): void {

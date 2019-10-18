@@ -24,7 +24,7 @@ interface AgentCollectionInterface {
    *
    * @return AgentInterface|null
    */
-  public function get(string $key): ?AgentInterface;
+  public function get (string $key): ?AgentInterface;
 
   /**
    * getAll
@@ -33,7 +33,7 @@ interface AgentCollectionInterface {
    *
    * @return AgentInterface[]
    */
-  public function getAll(): array;
+  public function getAll (): array;
 
   /**
    * has
@@ -45,7 +45,7 @@ interface AgentCollectionInterface {
    *
    * @return bool
    */
-  public function has(string $key): bool;
+  public function has (string $key): bool;
 
   /**
    * set
@@ -53,14 +53,14 @@ interface AgentCollectionInterface {
    * Adds the Agent to the collection using the given key.  Will overwrite
    * prior Agents at the same key if flag is set.
    *
-   * @param string        $key
+   * @param string         $key
    * @param AgentInterface $agent
-   * @param bool          $overwrite
+   * @param bool           $overwrite
    *
    * @return void
    * @throws AgentCollectionException
    */
-  public function set(string $key, AgentInterface $agent, bool $overwrite = false): void;
+  public function set (string $key, AgentInterface $agent, bool $overwrite = false): void;
 
   /**
    * reset
@@ -71,7 +71,7 @@ interface AgentCollectionInterface {
    *
    * @return void
    */
-  public function reset(string $key): void;
+  public function reset (string $key): void;
 
   /**
    * resetAll
