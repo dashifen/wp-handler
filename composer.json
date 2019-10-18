@@ -18,7 +18,7 @@
     "minimum-stability": "stable",
     "require": {
         "php": "^7.2",
-        "dashifen/exception": "1.1.*",
-        "dashifen/repository": "1.0.*"
+        "dashifen/exception": "^1",
+        "dashifen/repository": "^1"
     }
 }
