@@ -30,13 +30,8 @@ abstract class AbstractThemeHandler extends AbstractHandler implements ThemeHand
   /**
    * AbstractHandler constructor.
    *
-<<<<<<< HEAD
    * @param HookFactoryInterface           $hookFactory
    * @param HookCollectionFactoryInterface $hookCollectionFactory
-=======
-   * @param HookFactoryInterface                 $hookFactory
-   * @param HookCollectionFactoryInterface       $hookCollectionFactory
->>>>>>> bd085af7a0e01c7b61612fcc2f27e8406bcc467b
    */
   public function __construct (
     HookFactoryInterface $hookFactory,
