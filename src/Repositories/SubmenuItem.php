@@ -68,7 +68,7 @@ class SubmenuItem extends MenuItem {
    * @return array
    */
   protected function getRequiredProperties (): array {
-    return array_merge(parent::getRequiredProperties(), 'parentSlug');
+    return array_merge(parent::getRequiredProperties(), ['parentSlug']);
   }
 
 
