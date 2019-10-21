@@ -59,6 +59,18 @@ class SubmenuItem extends MenuItem {
     return array_merge(parent::getHiddenPropertyNames(), ["iconUrl", "position"]);
   }
 
+  /**
+   * getRequiredProperties
+   *
+   * Returns an array of property names that must be non-empty after
+   * construction.
+   *
+   * @return array
+   */
+  protected function getRequiredProperties (): array {
+    return array_merge(parent::getRequiredProperties(), 'parentSlug');
+  }
+
 
   /**
    * setParentSlug

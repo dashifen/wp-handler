@@ -108,6 +108,32 @@ class MenuItem extends AbstractRepository implements MenuItemInterface {
   }
 
   /**
+   * getCustomPropertyDefaults
+   *
+   * Intended as a way to provide for functional defaults (e.g. the current
+   * date), extensions can override this function to return an array of default
+   * values for properties.  that array should be indexed by property names.
+   *
+   * @return array
+   */
+  protected function getCustomPropertyDefaults (): array {
+    return [];
+  }
+
+  /**
+   * getRequiredProperties
+   *
+   * Returns an array of property names that must be non-empty after
+   * construction.
+   *
+   * @return array
+   */
+  protected function getRequiredProperties (): array {
+    return ['pageTitle', 'menuTitle', 'menuSlug', 'capability', 'method'];
+  }
+
+
+  /**
    * toArray
    *
    * To absolutely guarantee that we return our properties in the order
