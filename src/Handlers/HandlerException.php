@@ -10,7 +10,8 @@ use Dashifen\Exception\Exception;
  * @package Dashifen\WPHandler\Handlers
  */
 class HandlerException extends Exception {
-  public const UNHOOKED_METHOD = 1;
+  public const UNHOOKED_METHOD    = 1;
   public const INAPPROPRIATE_CALL = 2;
-  public const FAILURE_TO_HOOK = 3;
+  public const FAILURE_TO_HOOK    = 3;
+  public const UNKNOWN_OPTION     = 4;
 }
