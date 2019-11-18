@@ -93,7 +93,7 @@ trait OptionsManagementTrait {
    *
    * @return string
    */
-  protected function getOptionNamePrefix (): string {
+  public function getOptionNamePrefix (): string {
     return '';
   }
 
@@ -113,8 +113,8 @@ trait OptionsManagementTrait {
   /**
    * getAllOptions
    *
-   * Returns an array of all options for this handler transforming them as
-   * necessary.
+   * Loops over the array of option names and returns their values as an array
+   * transforming them as necessary.
    *
    * @param bool $transform
    *
@@ -132,6 +132,70 @@ trait OptionsManagementTrait {
     // not defined in the above loop.
 
     return $options ?? [];
+  }
+
+  /**
+   * getAllOptionsInOne
+   *
+   * Sometimes is important to be sure we use the minimum number of database
+   * queries.  This will pull an array from the database in a single query and
+   * then transform it and return that array.  It'll only have data to provide
+   * if updateAllOptionsInOne has been used to store these options in the
+   * database in this capacity.
+   *
+   * @param bool $transform
+   *
+   * @return array
+   * @throws HandlerException
+   */
+  public function getAllOptionsInOne (bool $transform = true): array {
+    $optionsInOneName = $this->getOptionsInOneName();
+    $optionsInOne = get_option($optionsInOneName, []);
+
+    if ($transform && $this->hasTransformer()) {
+
+      // as long as we want to transform and have a transformer, we'll go for
+      // it.  notice that the $value variable within our loop is a reference.
+      // thus, when we're done, we will have actually transformed the array
+      // we return below.
+
+      foreach ($optionsInOne as $option => &$value) {
+        $value = $this->transformer->transformFromStorage($option, $value);
+      }
+    }
+
+    return $optionsInOne;
+  }
+
+  /**
+   * getOptionsInOneName
+   *
+   * Returns a unique name for this handler's settings for use when saving or
+   * retrieving them in a single database call.
+   *
+   * @return string
+   * @throws HandlerException
+   */
+  protected function getOptionsInOneName (): string {
+
+    // to try and make a automatic and repeatably generated option name, we'll
+    // create the sha1 hash of our option names and add our prefix so that a
+    // human will be able to see and recognize the hash as being linked to the
+    // rest of this handler's data.  a programmer can always override this as
+    // necessary.  note:  we check the length of the option name because the
+    // codex entry indicates that option names should not exceed 64 characters
+    // in length.
+
+    $optionNames = $this->getOptionNames();
+    $hashedNames = sha1(join('', $optionNames));
+    $optionsInOneName = $this->getOptionNamePrefix() . $hashedNames;
+
+    if (strlen($optionsInOneName) > 64) {
+      throw new HandlerException("Option name too long:  $optionsInOneName",
+        HandlerException::OPTION_TOO_LONG);
+    }
+
+    return $optionsInOneName;
   }
 
   /**
@@ -190,6 +254,33 @@ trait OptionsManagementTrait {
     }
 
     return $success;
+  }
+
+  /**
+   * updateAllOptionsInOne
+   *
+   * To reduce the number of database calls, this method saves all of this
+   * handlers options in a single database entry.
+   *
+   * @param array $values
+   * @param bool  $transform
+   *
+   * @return bool
+   * @throws HandlerException
+   */
+  public function updateAllOptionsInOne(array $values, bool $transform = true): bool {
+    if ($transform && $this->hasTransformer()) {
+
+      // if we want to transform and have a transformer, we'll go for it.  note
+      // that $value is a reference, so the changes we make within the loop
+      // will remain when it completes.
+
+      foreach ($values as $option => &$value) {
+        $value = $this->transformer->transformForStorage($option, $value);
+      }
+    }
+
+    return update_option($this->getOptionsInOneName(), $values);
   }
 
   /**

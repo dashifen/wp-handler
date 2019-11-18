@@ -14,4 +14,5 @@ class HandlerException extends Exception {
   public const INAPPROPRIATE_CALL = 2;
   public const FAILURE_TO_HOOK    = 3;
   public const UNKNOWN_OPTION     = 4;
+  public const OPTION_TOO_LONG    = 5;
 }
