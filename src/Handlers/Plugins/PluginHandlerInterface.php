@@ -36,6 +36,16 @@ interface PluginHandlerInterface extends ThemeHandlerInterface {
   public function getPluginUrl(): string;
 
   /**
+   * getPluginFilename
+   *
+   * Returns the WP-style plugin filename which is <dir>/<file> for the file
+   * in which the WP plugin header is located.
+   *
+   * @return string
+   */
+  public function getPluginFilename(): string;
+
+  /**
    * registerActivationHook
    *
    * Hooks the method provided to the WordPress ecosystem so that the
@@ -58,18 +68,6 @@ interface PluginHandlerInterface extends ThemeHandlerInterface {
    * @return string
    */
   public function registerDeactivationHook (string $method): string;
-
-  /**
-   * registerUninstallHook
-   *
-   * Hooks the method provided to the WordPress ecosystem so that the
-   * method is executed when this plugin is uninstalled.
-   *
-   * @param string $method
-   *
-   * @return string
-   */
-  public function registerUninstallHook (string $method): string;
 
   /**
    * addMenuPage

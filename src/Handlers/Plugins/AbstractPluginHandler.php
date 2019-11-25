@@ -36,6 +36,11 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
   protected $pluginUrl = "";
 
   /**
+   * @var string
+   */
+  protected $pluginFilename = "";
+
+  /**
    * AbstractPluginHandler constructor.
    *
    * @param HookFactoryInterface           $hookFactory
@@ -50,28 +55,7 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
     $pluginUrl = WP_PLUGIN_URL . "/" . $this->findPluginDirectory();
     $this->pluginUrl = preg_replace("/^https?:/", "", $pluginUrl);
     $this->pluginDir = WP_PLUGIN_DIR . "/" . $this->findPluginDirectory();
-  }
-
-  /**
-   * getPluginDir
-   *
-   * Returns the path to the directory containing this plugin.
-   *
-   * @return string
-   */
-  public function getPluginDir (): string {
-    return $this->pluginDir;
-  }
-
-  /**
-   * getPluginUrl
-   *
-   * Returns the path to the URL for the directory containing this plugin.
-   *
-   * @return string
-   */
-  public function getPluginUrl (): string {
-    return $this->pluginUrl;
+    $this->setPluginFilename(debug_backtrace());
   }
 
   /**
@@ -125,6 +109,78 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
   }
 
   /**
+   * setPluginFilename
+   *
+   * Given the backtrace of this PluginHandler's __constructor() call, this
+   * method returns
+   *
+   * @param array $backtrace
+   *
+   * @return void
+   */
+  protected function setPluginFilename (array $backtrace = []): void {
+
+    // given the debug_backtrace() results called from our __constructor, we'll
+    // identify the plugin filename for WordPress based on that data.  we allow
+    // an empty array so that this method can be more easily overridden by
+    // extensions of this object.
+
+    if (!empty($backtrace)) {
+
+      // we want to set our property to <dir>/<file> for the file in which this
+      // plugin's WP block comment is located.  it should be listed in the file index
+      // of the first value in the $backtrace array.
+
+      $file = array_shift($backtrace)['file'] ?? '';
+      if (!empty($file)) {
+
+        // if we've identified our file, we want to break its path into its
+        // component parts.  then, we slice off everything but the final two
+        // and re-join those with a forward slash to produce the <dir>/<file>
+        // that we need.
+
+        $fileParts = explode(DIRECTORY_SEPARATOR, $file);
+        $dirAndFile = array_slice($fileParts, -2);
+        $this->pluginFilename = join('/', $dirAndFile);
+      }
+    }
+  }
+
+  /**
+   * getPluginDir
+   *
+   * Returns the path to the directory containing this plugin.
+   *
+   * @return string
+   */
+  public function getPluginDir (): string {
+    return $this->pluginDir;
+  }
+
+  /**
+   * getPluginUrl
+   *
+   * Returns the path to the URL for the directory containing this plugin.
+   *
+   * @return string
+   */
+  public function getPluginUrl (): string {
+    return $this->pluginUrl;
+  }
+
+  /**
+   * getPluginFilename
+   *
+   * Returns the WP-style plugin filename which is <dir>/<file> for the file
+   * in which the WP plugin header is located.
+   *
+   * @return string
+   */
+  public function getPluginFilename (): string {
+    return $this->pluginFilename;
+  }
+
+  /**
    * enqueue
    *
    * Adds a script or style to the DOM and returns the name by which
@@ -174,8 +230,7 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
     // we need to do here is perform that hook in the way that works for
     // our Handler objects.
 
-    $hook = sprintf("activate_%s.php", $this->findPluginDirectory());
-    return $this->addAction($hook, $method);
+    return $this->addAction('activate_' . $this->getPluginFilename(), $method);
   }
 
   /**
@@ -190,24 +245,7 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
    * @throws HandlerException
    */
   public function registerDeactivationHook (string $method): string {
-    $hook = sprintf("deactivate_%s.php", $this->findPluginDirectory());
-    return $this->addAction($hook, $method);
-  }
-
-  /**
-   * registerUninstallHook
-   *
-   * Hooks the method provided to the WordPress ecosystem so that the
-   * method is executed when this plugin is uninstalled.
-   *
-   * @param string $method
-   *
-   * @return string
-   * @throws HandlerException
-   */
-  public function registerUninstallHook (string $method): string {
-    $hook = sprintf("uninstall_%s.php", $this->findPluginDirectory());
-    return $this->addAction($hook, $method);
+    return $this->addAction('deactivate_' . $this->getPluginFilename(), $method);
   }
 
   /**
