@@ -23,15 +23,17 @@ class AgentCollectionFactory implements AgentCollectionFactoryInterface {
   public function produceAgentCollection (HandlerInterface $handler): AgentCollection {
     $collection = new AgentCollection();
 
-    foreach ($this->agentRegistry as $i => $agent) {
+    foreach ($this->agentRegistry as $agent) {
 
       // we know that each $agent in our registry is a class name descended
       // from the AgentInterface class because of our test in registerAgent
       // below.  each Agent needs a reference to its handler, so as we
       // construct them here to return them as a collection, we pass along
-      // our HandlerInterface reference as well.
+      // our HandlerInterface reference as well.  notice that we use the name
+      // of the agent as its index within the collection.  this allows for an
+      // easy look-up later if we need one.
 
-      $collection->set($i, new $agent($handler));
+      $collection->set($agent, new $agent($handler));
     }
 
     return $collection;
