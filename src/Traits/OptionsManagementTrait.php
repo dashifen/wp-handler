@@ -143,13 +143,17 @@ trait OptionsManagementTrait {
    * if updateAllOptionsInOne has been used to store these options in the
    * database in this capacity.
    *
-   * @param bool $transform
+   * @param string $optionsInOneName
+   * @param bool   $transform
    *
    * @return array
    * @throws HandlerException
    */
-  public function getAllOptionsInOne (bool $transform = true): array {
-    $optionsInOneName = $this->getOptionsInOneName();
+  public function getAllOptionsInOne (string $optionsInOneName = '', bool $transform = true): array {
+    if (empty($optionsInOneName)) {
+      $optionsInOneName = $this->getOptionsInOneName();
+    }
+
     $optionsInOne = get_option($optionsInOneName, []);
 
     if ($transform && $this->hasTransformer()) {
@@ -244,11 +248,11 @@ trait OptionsManagementTrait {
 
     foreach ($values as $option => $value) {
 
-      // the updateOption method returns true when it updates our option.
-      // we Boolean AND that value with the current value of $success which
-      // starts as true.  so, as long as updateOption return true, $success
-      // will remain set.  but, the first time we hit a problem, it'll be
-      // reset and will remain so because false AND anything is false.
+      // the updateOption method returns true when it updates our option.  we
+      // Boolean AND that value with the current value of $success which starts
+      // as true.  so, as long as updateOption return true, $success will
+      // remain set.  but, the first time we hit a problem, it'll be reset and
+      // will remain so because false AND anything is false.
 
       $success = $success && $this->updateOption($option, $value, $transform);
     }
@@ -262,13 +266,14 @@ trait OptionsManagementTrait {
    * To reduce the number of database calls, this method saves all of this
    * handlers options in a single database entry.
    *
-   * @param array $values
-   * @param bool  $transform
+   * @param array  $values
+   * @param string $optionsInOneName
+   * @param bool   $transform
    *
    * @return bool
    * @throws HandlerException
    */
-  public function updateAllOptionsInOne(array $values, bool $transform = true): bool {
+  public function updateAllOptionsInOne(array $values, string $optionsInOneName = '', bool $transform = true): bool {
     if ($transform && $this->hasTransformer()) {
 
       // if we want to transform and have a transformer, we'll go for it.  note
@@ -280,7 +285,11 @@ trait OptionsManagementTrait {
       }
     }
 
-    return update_option($this->getOptionsInOneName(), $values);
+    if (empty ($optionsInOneName)) {
+      $optionsInOneName = $this->getOptionsInOneName();
+    }
+
+    return update_option($optionsInOneName, $values);
   }
 
   /**
