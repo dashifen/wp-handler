@@ -8,13 +8,25 @@ use Dashifen\Transformer\StorageTransformer\StorageTransformerInterface;
 /**
  * Trait OptionsManagementTrait
  *
- * Provides methods for the getting and updating of Handler options.
+ * Provides methods for the getting and updating of Handler's options as well
+ * as a mechanism for storing option values in memory rather than frequently
+ * selecting them from the database.
  *
  * @property StorageTransformerInterface $transformer
  *
  * @package Dashifen\WPHandler\Traits
  */
 trait OptionsManagementTrait {
+  /**
+   * @var array
+   */
+  protected $optionsCache = [];
+
+  /**
+   * @var bool
+   */
+  protected $useOptionsCache = false;
+
   /**
    * getOption
    *
@@ -30,6 +42,11 @@ trait OptionsManagementTrait {
    * @throws HandlerException
    */
   public function getOption (string $option, $default = '', bool $transform = true) {
+    if ($this->isOptionCached($option)) {
+      return $this->getCachedOption($option);
+    }
+
+    $value = $default;
 
     // it's hard to make a trait know about the methods that are available in
     // the classes in which it might be used.  so, we won't use the isDebug()
@@ -39,15 +56,46 @@ trait OptionsManagementTrait {
       $fullOptionName = $this->getOptionNamePrefix() . $option;
       $value = get_option($fullOptionName, $default);
 
-      return $transform && $this->hasTransformer()
+      $value = $transform && $this->hasTransformer()
         ? $this->transformer->transformFromStorage($option, $value)
         : $value;
     }
 
-    // finally, if the option was not valid, we just return the default
-    // value and hope for the best.
+    // here, we either selected a value from the database or it was set to the
+    // default before the if-block above.  regardless, if we're using the cache
+    // we want to remember it for next time.
 
-    return $default;
+    $this->maybeCacheOption($option, $value);
+    return $value;
+  }
+
+  /**
+   * isOptionCached
+   *
+   * Given the name of an option, determines if a value for it exists in
+   * the cache.
+   *
+   * @param string $option
+   *
+   * @return bool
+   */
+  protected function isOptionCached (string $option) {
+    return $this->useOptionsCache && isset($this->optionsCache[$option]);
+  }
+
+  /**
+   * getCachedOption
+   *
+   * Given the name of the option, returns the value for it in the cache.
+   * Assumes that isOptionCached() has been previously called but uses the null
+   * coalescing operator to return null if a mistake was made.
+   *
+   * @param string $option
+   *
+   * @return mixed
+   */
+  protected function getCachedOption (string $option) {
+    return $this->optionsCache[$option] ?? null;
   }
 
   /**
@@ -111,6 +159,22 @@ trait OptionsManagementTrait {
   }
 
   /**
+   * maybeCacheOption
+   *
+   * If we're using the cache, we add this option/value pair to it.
+   *
+   * @param string $option
+   * @param mixed  $value
+   *
+   * @return void
+   */
+  protected function maybeCacheOption (string $option, $value): void {
+    if ($this->useOptionsCache) {
+      $this->optionsCache[$option] = $value;
+    }
+  }
+
+  /**
    * getAllOptions
    *
    * Loops over the array of option names and returns their values as an array
@@ -123,6 +187,10 @@ trait OptionsManagementTrait {
    */
   public function getAllOptions (bool $transform = true): array {
     foreach ($this->getOptionNames() as $optionName) {
+
+      // we don't have to worry about accessing the cache here because, if
+      // we're using it, the getOption method will use it internally.
+
       $options[$optionName] = $this->getOption($optionName, '', $transform);
     }
 
@@ -154,8 +222,19 @@ trait OptionsManagementTrait {
       $optionsInOneName = $this->getOptionsInOneName();
     }
 
-    $optionsInOne = get_option($optionsInOneName, []);
+    // just like singular options that we might select above, we might have an
+    // in-memory cache of our complete option set.  if so, we'll want to use
+    // it to cut down on database queries.
 
+    if ($this->isOptionCached($optionsInOneName)) {
+      return $this->getCachedOption($optionsInOneName);
+    }
+
+    // if we didn't have a cached version of our options, we'll select them
+    // from the database.  then, we loop ovr them and transform each value if
+    // necessary.
+
+    $optionsInOne = get_option($optionsInOneName, []);
     if ($transform && $this->hasTransformer()) {
 
       // as long as we want to transform and have a transformer, we'll go for
@@ -168,7 +247,29 @@ trait OptionsManagementTrait {
       }
     }
 
+    $this->maybeCacheOptions($optionsInOne);
     return $optionsInOne;
+  }
+
+  /**
+   * maybeCacheOptions
+   *
+   * If we're using our options cache, then this method stores what we selected
+   * from the database in memory so that we don't have to select and re-select
+   * it over and over again.
+   *
+   * @param array $options
+   */
+  protected function maybeCacheOptions (array $options): void {
+    if ($this->useOptionsCache) {
+
+      // if we're here, then we're using our options cache.  so, we'll merge the
+      // options in our parameter into the cache so that we have a record of what
+      // we selected.  we don't replace the cache with $options because that
+      // might destroy other data that we didn't select this time.
+
+      $this->optionsCache = array_merge($this->optionsCache, $options);
+    }
   }
 
   /**
@@ -210,15 +311,22 @@ trait OptionsManagementTrait {
    * its results.
    *
    * @param string $option
-   * @param string $value
+   * @param mixed  $value
    * @param bool   $transform
    *
    * @return bool
    * @throws HandlerException
    */
-  public function updateOption (string $option, string $value, bool $transform = true): bool {
-    if ($this->isOptionValid($option)) {
+  public function updateOption (string $option, $value, bool $transform = true): bool {
 
+    // since we transform our $value before we cram it in the database, it's
+    // easier for us to (maybe) add it to our cache first.  that way, we have
+    // the value the visitor sent us in memory and we don't have to remember to
+    // transform it before using it elsewhere.
+
+    $this->maybeCacheOption($option, $value);
+
+    if ($this->isOptionValid($option)) {
       $value = $transform && $this->hasTransformer()
         ? $this->transformer->transformForStorage($option, $value)
         : $value;
@@ -245,7 +353,6 @@ trait OptionsManagementTrait {
    */
   public function updateAllOptions (array $values, bool $transform = true): bool {
     $success = true;
-
     foreach ($values as $option => $value) {
 
       // the updateOption method returns true when it updates our option.  we
@@ -273,7 +380,18 @@ trait OptionsManagementTrait {
    * @return bool
    * @throws HandlerException
    */
-  public function updateAllOptionsInOne(array $values, string $optionsInOneName = '', bool $transform = true): bool {
+  public function updateAllOptionsInOne (array $values, string $optionsInOneName = '', bool $transform = true): bool {
+    if (empty ($optionsInOneName)) {
+      $optionsInOneName = $this->getOptionsInOneName();
+    }
+
+    // since we're about to transform our values for storage, it's easier for
+    // us to maybe store them in the cache first, then transform, then update
+    // the database.  then, we also update the record of all of our options
+    // in the cache as well.
+
+    $this->maybeCacheOptions($values);
+    $this->maybeCacheOption($optionsInOneName, $values);
     if ($transform && $this->hasTransformer()) {
 
       // if we want to transform and have a transformer, we'll go for it.  note
@@ -283,10 +401,6 @@ trait OptionsManagementTrait {
       foreach ($values as $option => &$value) {
         $value = $this->transformer->transformForStorage($option, $value);
       }
-    }
-
-    if (empty ($optionsInOneName)) {
-      $optionsInOneName = $this->getOptionsInOneName();
     }
 
     return update_option($optionsInOneName, $values);

@@ -17,9 +17,9 @@
     },
     "minimum-stability": "stable",
     "require": {
-        "php": "^7.2",
         "dashifen/exception": "^1",
         "dashifen/repository": "^1",
-        "dashifen/transformer": "^2"
+        "dashifen/transformer": "^2",
+        "php": ">=7.2"
     }
 }
