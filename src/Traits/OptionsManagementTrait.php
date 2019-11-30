@@ -203,38 +203,39 @@ trait OptionsManagementTrait {
   }
 
   /**
-   * getAllOptionsInOne
+   * getOptionsSnapshot
    *
    * Sometimes is important to be sure we use the minimum number of database
    * queries.  This will pull an array from the database in a single query and
    * then transform it and return that array.  It'll only have data to provide
-   * if updateAllOptionsInOne has been used to store these options in the
+   * if updateOptionsSnapshot has been used to store these options in the
    * database in this capacity.
    *
-   * @param string $optionsInOneName
+   * @param string $snapshotName
    * @param bool   $transform
    *
    * @return array
    * @throws HandlerException
    */
-  public function getAllOptionsInOne (string $optionsInOneName = '', bool $transform = true): array {
-    if (empty($optionsInOneName)) {
-      $optionsInOneName = $this->getOptionsInOneName();
+  public function getOptionsSnapshot (string $snapshotName = '', bool $transform = true): array {
+    if (empty($snapshotName)) {
+      $snapshotName = $this->getSnapshotName();
     }
 
     // just like singular options that we might select above, we might have an
     // in-memory cache of our complete option set.  if so, we'll want to use
     // it to cut down on database queries.
 
-    if ($this->isOptionCached($optionsInOneName)) {
-      return $this->getCachedOption($optionsInOneName);
+    if ($this->isOptionCached($snapshotName)) {
+      return $this->getCachedOption($snapshotName);
     }
 
     // if we didn't have a cached version of our options, we'll select them
     // from the database.  then, we loop ovr them and transform each value if
-    // necessary.
+    // necessary.  because we might loop after our selection, we default to an
+    // empty array if we've not previously saved a snapshot for these options.
 
-    $optionsInOne = get_option($optionsInOneName, []);
+    $snapshot = get_option($snapshotName, []);
     if ($transform && $this->hasTransformer()) {
 
       // as long as we want to transform and have a transformer, we'll go for
@@ -242,13 +243,13 @@ trait OptionsManagementTrait {
       // thus, when we're done, we will have actually transformed the array
       // we return below.
 
-      foreach ($optionsInOne as $option => &$value) {
+      foreach ($snapshot as $option => &$value) {
         $value = $this->transformer->transformFromStorage($option, $value);
       }
     }
 
-    $this->maybeCacheOptions($optionsInOne);
-    return $optionsInOne;
+    $this->maybeCacheOptions($snapshot);
+    return $snapshot;
   }
 
   /**
@@ -273,7 +274,7 @@ trait OptionsManagementTrait {
   }
 
   /**
-   * getOptionsInOneName
+   * getSnapshotName
    *
    * Returns a unique name for this handler's settings for use when saving or
    * retrieving them in a single database call.
@@ -281,7 +282,7 @@ trait OptionsManagementTrait {
    * @return string
    * @throws HandlerException
    */
-  protected function getOptionsInOneName (): string {
+  protected function getSnapshotName (): string {
 
     // to try and make a automatic and repeatably generated option name, we'll
     // create the sha1 hash of our option names and add our prefix so that a
@@ -293,14 +294,14 @@ trait OptionsManagementTrait {
 
     $optionNames = $this->getOptionNames();
     $hashedNames = sha1(join('', $optionNames));
-    $optionsInOneName = $this->getOptionNamePrefix() . $hashedNames;
+    $snapshotName = $this->getOptionNamePrefix() . $hashedNames;
 
-    if (strlen($optionsInOneName) > 64) {
-      throw new HandlerException("Option name too long:  $optionsInOneName",
+    if (strlen($snapshotName) > 64) {
+      throw new HandlerException("Option name too long:  $snapshotName",
         HandlerException::OPTION_TOO_LONG);
     }
 
-    return $optionsInOneName;
+    return $snapshotName;
   }
 
   /**
@@ -368,30 +369,33 @@ trait OptionsManagementTrait {
   }
 
   /**
-   * updateAllOptionsInOne
+   * updateOptionsSnapshot
    *
    * To reduce the number of database calls, this method saves all of this
    * handlers options in a single database entry.
    *
    * @param array  $values
-   * @param string $optionsInOneName
+   * @param string $snapshotName
    * @param bool   $transform
    *
    * @return bool
    * @throws HandlerException
    */
-  public function updateAllOptionsInOne (array $values, string $optionsInOneName = '', bool $transform = true): bool {
-    if (empty ($optionsInOneName)) {
-      $optionsInOneName = $this->getOptionsInOneName();
+  public function updateOptionsSnapshot (array $values, string $snapshotName = '', bool $transform = true): bool {
+    if (empty ($snapshotName)) {
+      $snapshotName = $this->getSnapshotName();
     }
 
     // since we're about to transform our values for storage, it's easier for
     // us to maybe store them in the cache first, then transform, then update
     // the database.  then, we also update the record of all of our options
-    // in the cache as well.
+    // in the cache as well.  finally, we update this information in the
+    // individual options as well so that the snapshot record matches
 
     $this->maybeCacheOptions($values);
-    $this->maybeCacheOption($optionsInOneName, $values);
+    $this->maybeCacheOption($snapshotName, $values);
+    $this->updateAllOptions($values, $transform);
+
     if ($transform && $this->hasTransformer()) {
 
       // if we want to transform and have a transformer, we'll go for it.  note
@@ -403,7 +407,7 @@ trait OptionsManagementTrait {
       }
     }
 
-    return update_option($optionsInOneName, $values);
+    return update_option($snapshotName, $values);
   }
 
   /**
