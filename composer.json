@@ -2,7 +2,7 @@
     "name": "dashifen/wp-handler",
     "description": "An object to define handlers for various WordPress action and filter hooks using protected methods. ",
     "type": "project",
-    "license": "MIT",
+    "license": "The Hippocratic License",
     "authors": [
         {
             "name": "David Dashifen Kees",
