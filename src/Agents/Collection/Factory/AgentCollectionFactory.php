@@ -23,17 +23,20 @@ class AgentCollectionFactory implements AgentCollectionFactoryInterface {
   public function produceAgentCollection (HandlerInterface $handler): AgentCollection {
     $collection = new AgentCollection();
 
-    foreach ($this->agentRegistry as $agent) {
+    foreach ($this->agentRegistry as list($agent, $parameters)) {
 
       // we know that each $agent in our registry is a class name descended
       // from the AgentInterface class because of our test in registerAgent
-      // below.  each Agent needs a reference to its handler, so as we
-      // construct them here to return them as a collection, we pass along
-      // our HandlerInterface reference as well.  notice that we use the name
-      // of the agent as its index within the collection.  this allows for an
-      // easy look-up later if we need one.
+      // below.  each Agent needs a reference to its handler, but how we give
+      // them that reference is based on the $parameters variable.  if it's
+      // not empty, we assume that our reference is in there already.
+      // otherwise, we pass it directly.
 
-      $collection->set($agent, new $agent($handler));
+      $instance = is_array($parameters) && sizeof($parameters) > 0
+        ? new $agent(...$parameters)
+        : new $agent($handler);
+
+      $collection->set($agent, $instance);
     }
 
     return $collection;
@@ -46,11 +49,12 @@ class AgentCollectionFactory implements AgentCollectionFactoryInterface {
    * we can produce a collection including it later.
    *
    * @param string $agent
+   * @param array  $parameters
    *
    * @return void
    * @throws AgentCollectionFactoryException
    */
-  public function registerAgent (string $agent): void {
+  public function registerAgent (string $agent, array $parameters = []): void {
     if (!class_exists($agent)) {
       throw new AgentCollectionFactoryException(
         sprintf("Unknown agent: %s", $this->getAgentShortName($agent)),
@@ -76,7 +80,12 @@ class AgentCollectionFactory implements AgentCollectionFactoryInterface {
     $temp = $agent;
     while ($temp = get_parent_class($temp)) {
       if (preg_match("/Abstract(?:Theme|Plugin)?Agent/", $temp)) {
-        $this->agentRegistry[] = $agent;
+
+        // if the name of this parent of our agent matches our regular
+        // expression, then we're good to register it.  we do so simply by
+        // adding it to our registry along with it's constructor parameters.
+
+        $this->agentRegistry[] = [$agent, $parameters];
         return;
       }
     }
