@@ -97,15 +97,17 @@ interface HandlerInterface {
   /**
    * debug
    *
-   * Given stuff, print information about it and then die() if
-   * the $die flag is set.
+   * Given stuff, print information about it and then die() if the $die flag is
+   * set.  Typically, this only works when the isDebug() method returns true,
+   * but the $force parameter will override this behavior.
    *
    * @param mixed $stuff
    * @param bool  $die
+   * @param bool  $force
    *
    * @return void
    */
-  public static function debug ($stuff, $die = false): void;
+  public static function debug ($stuff, bool $die = false, bool $force = false): void;
 
   /**
    * writeLog

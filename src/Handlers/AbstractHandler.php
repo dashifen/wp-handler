@@ -390,31 +390,27 @@ abstract class AbstractHandler implements HandlerInterface {
   /**
    * debug
    *
-   * Given stuff, print information about it and then die() if the $die flag
-   * is set.
+   * Given stuff, print information about it and then die() if the $die flag is
+   * set.  Typically, this only works when the isDebug() method returns true,
+   * but the $force parameter will override this behavior.
    *
    * @param mixed $stuff
    * @param bool  $die
+   * @param bool  $force
    *
    * @return void
    */
-  public static function debug ($stuff, $die = false): void {
-    if (!self::isDebug()) {
+  public static function debug ($stuff, bool $die = false, bool $force = false): void {
+    if (self::isDebug() || $force) {
+      $message = "<pre>" . print_r($stuff, true) . "</pre>";
 
-      // this return ensures that we don't print debugging statements
-      // on installations where WP debugging is turned off.
+      if (!$die) {
+        echo $message;
+        return;
+      }
 
-      return;
+      die($message);
     }
-
-    $message = "<pre>" . print_r($stuff, true) . "</pre>";
-
-    if (!$die) {
-      echo $message;
-      return;
-    }
-
-    die($message);
   }
 
   /**
