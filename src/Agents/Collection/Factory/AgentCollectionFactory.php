@@ -54,7 +54,7 @@ class AgentCollectionFactory implements AgentCollectionFactoryInterface {
    * @return void
    * @throws AgentCollectionFactoryException
    */
-  public function registerAgent (string $agent, array $parameters = []): void {
+  public function registerAgent (string $agent, ...$parameters): void {
     if (!class_exists($agent)) {
       throw new AgentCollectionFactoryException(
         sprintf("Unknown agent: %s", $this->getAgentShortName($agent)),
