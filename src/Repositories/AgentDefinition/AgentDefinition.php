@@ -117,28 +117,8 @@ class AgentDefinition extends Repository {
    * @param array $parameters
    *
    * @return void
-   * @throws AgentDefinitionException
    */
   protected function setParameters (array $parameters): void {
-
-    // if we receive parameters for our agent, the first one of them must be
-    // a HandlerInterface implementation.  the subsequent ones have no
-    // requirements, though, so we just test the first one and move on.  if
-    // we get an empty array, that's fine, too.
-
-    if (sizeof($parameters) > 0) {
-      $interfaces = class_exists($parameters[0])
-        ? class_implements($parameters[0])
-        : [];
-
-      if (!in_array(HandlerInterface::class, $interfaces)) {
-        throw new AgentDefinitionException(
-          sprintf('First parameter for an agent, %s, must be a handler.', $this->getObjectShortName($parameters[0])),
-          AgentDefinitionException::NOT_A_HANDLER
-        );
-      }
-    }
-
     $this->parameters = $parameters;
   }
 }

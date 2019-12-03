@@ -28,19 +28,15 @@ class AgentCollectionFactory implements AgentCollectionFactoryInterface {
 
     foreach ($this->agentDefinitions as $agentDefinition) {
 
-      // if our agent definition has an array of parameters, the setter for
-      // that property requires that the first one be a Handler.  therefore, we
-      // can construct our agent using those parameters and ignore $handler in
-      // such cases.  otherwise, we can just use $handler as the single
-      // argument to an agent's constructor.
+      // the first parameter sent to our agents' constructors must be their
+      // handler.  so, before we instantiate anything, we want to add $handler
+      // to the front of the array parameters in this definition.  then, we
+      // use this local array to instantiate our objects.  finally, we add it
+      // to our collection using the agent's name as its index to provide an
+      // easy, O(1) lookup should we need to find it again later.
 
-      $instance = is_array($agentDefinition->parameters) && sizeof($agentDefinition->parameters) > 0
-        ? new $agentDefinition->agent(...$agentDefinition->parameters)
-        : new $agentDefinition->agent($handler);
-
-      // we use the name of our agent as the index within our collection so
-      // that we can find it again later in an O(1) lookup if we need to.
-
+      $parameters = array_unshift($agentDefinition->parameters, $handler);
+      $instance = new $agentDefinition->agent(...$parameters);
       $collection->set($agentDefinition->agent, $instance);
     }
 
