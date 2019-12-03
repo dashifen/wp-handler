@@ -35,7 +35,7 @@ class AgentCollectionFactory implements AgentCollectionFactoryInterface {
       // to our collection using the agent's name as its index to provide an
       // easy, O(1) lookup should we need to find it again later.
 
-      $parameters = array_unshift($agentDefinition->parameters, $handler);
+      $parameters = array_merge([$handler], $agentDefinition->parameters);
       $instance = new $agentDefinition->agent(...$parameters);
       $collection->set($agentDefinition->agent, $instance);
     }
