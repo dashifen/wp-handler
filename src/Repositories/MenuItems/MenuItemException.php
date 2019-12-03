@@ -1,6 +1,6 @@
 <?php
 
-namespace Dashifen\WPHandler\Repositories;
+namespace Dashifen\WPHandler\Repositories\MenuItems;
 
 use Dashifen\Repository\RepositoryException;
 

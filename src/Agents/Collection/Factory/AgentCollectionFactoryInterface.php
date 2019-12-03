@@ -4,6 +4,8 @@ namespace Dashifen\WPHandler\Agents\Collection\Factory;
 
 use Dashifen\WPHandler\Handlers\HandlerInterface;
 use Dashifen\WPHandler\Agents\Collection\AgentCollection;
+use Dashifen\WPHandler\Agents\Collection\AgentCollectionException;
+use Dashifen\WPHandler\Repositories\AgentDefinition\AgentDefinition;
 
 interface AgentCollectionFactoryInterface {
   /**
@@ -14,6 +16,7 @@ interface AgentCollectionFactoryInterface {
    * @param HandlerInterface $handler
    *
    * @return AgentCollection
+   * @throws AgentCollectionException
    */
   public function produceAgentCollection(HandlerInterface $handler): AgentCollection;
 
@@ -23,11 +26,11 @@ interface AgentCollectionFactoryInterface {
    * Given the fully namespaced object name for an Agent, stores it so that
    * we can produce a collection including it later.
    *
-   * @param string $agent
+   * @param AgentDefinition $agent
    *
    * @return void
    */
-  public function registerAgent(string $agent): void;
+  public function registerAgent(AgentDefinition $agent): void;
 
   /**
    * registerAgents
@@ -35,7 +38,7 @@ interface AgentCollectionFactoryInterface {
    * Given an array of fully namespaced objects, stores them all for later
    * production as a collection.
    *
-   * @param array $agents
+   * @param AgentDefinition[] $agents
    */
   public function registerAgents(array $agents): void;
 }

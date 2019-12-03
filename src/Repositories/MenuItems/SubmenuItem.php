@@ -1,8 +1,6 @@
 <?php
 
-/** @noinspection PhpUnusedPrivateFieldInspection */
-
-namespace Dashifen\WPHandler\Repositories;
+namespace Dashifen\WPHandler\Repositories\MenuItems;
 
 use Dashifen\Repository\RepositoryException;
 use Dashifen\WPHandler\Handlers\Plugins\PluginHandlerInterface;
@@ -10,7 +8,7 @@ use Dashifen\WPHandler\Handlers\Plugins\PluginHandlerInterface;
 /**
  * Class MenuItem
  *
- * @package Dashifen\WPHandler\Repositories
+ * @package Dashifen\WPHandler\Repositories\MenuItems
  * @property string   $pageTitle
  * @property string   $menuTitle
  * @property string   $parentSlug

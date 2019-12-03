@@ -10,6 +10,7 @@ use Dashifen\WPHandler\Hooks\Factory\HookFactoryInterface;
 use Dashifen\WPHandler\Hooks\Collection\HookCollectionInterface;
 use Dashifen\WPHandler\Hooks\Collection\HookCollectionException;
 use Dashifen\WPHandler\Agents\Collection\AgentCollectionInterface;
+use Dashifen\WPHandler\Agents\Collection\AgentCollectionException;
 use Dashifen\WPHandler\Hooks\Collection\Factory\HookCollectionFactoryInterface;
 use Dashifen\WPHandler\Agents\Collection\Factory\AgentCollectionFactoryInterface;
 
@@ -222,6 +223,9 @@ abstract class AbstractHandler implements HandlerInterface {
    * saves it in our properties.
    *
    * @param AgentCollectionFactoryInterface $agentCollectionFactory
+   *
+   * @return void
+   * @throws AgentCollectionException
    */
   public function setAgentCollection (AgentCollectionFactoryInterface $agentCollectionFactory): void {
 

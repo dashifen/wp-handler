@@ -1,6 +1,6 @@
 <?php
 
-namespace Dashifen\WPHandler\Repositories;
+namespace Dashifen\WPHandler\Repositories\MenuItems;
 
 use Dashifen\Repository\AbstractRepository;
 use Dashifen\Repository\RepositoryException;
@@ -9,7 +9,7 @@ use Dashifen\WPHandler\Handlers\Plugins\PluginHandlerInterface;
 /**
  * Class MenuItem
  *
- * @package Dashifen\WPHandler\Repositories
+ * @package Dashifen\WPHandler\Repositories\MenuItems
  * @property string   $pageTitle
  * @property string   $menuTitle
  * @property string   $menuSlug

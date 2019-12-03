@@ -2,8 +2,6 @@
 
 namespace Dashifen\WPHandler\Hooks\Collection;
 
-use Iterator;
-use ArrayAccess;
 use Dashifen\WPHandler\Hooks\HookInterface;
 
 /**
