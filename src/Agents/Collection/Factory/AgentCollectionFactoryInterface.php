@@ -2,6 +2,7 @@
 
 namespace Dashifen\WPHandler\Agents\Collection\Factory;
 
+use Dashifen\Repository\RepositoryException;
 use Dashifen\WPHandler\Handlers\HandlerInterface;
 use Dashifen\WPHandler\Agents\Collection\AgentCollection;
 use Dashifen\WPHandler\Agents\Collection\AgentCollectionException;
@@ -18,27 +19,43 @@ interface AgentCollectionFactoryInterface {
    * @return AgentCollection
    * @throws AgentCollectionException
    */
-  public function produceAgentCollection(HandlerInterface $handler): AgentCollection;
+  public function produceAgentCollection (HandlerInterface $handler): AgentCollection;
 
   /**
    * registerAgent
    *
-   * Given the fully namespaced object name for an Agent, stores it so that
-   * we can produce a collection including it later.
+   * A convenience method that constructs an AgentDefinition based on this
+   * method's parameters and then passes it to the registerAgentDefinition
+   * method below.
+   *
+   * @param string $agent
+   * @param array  ...$parameters
+   *
+   * @return void
+   * @throws RepositoryException
+   */
+  public function registerAgent (string $agent, ...$parameters): void;
+
+  /**
+   * registerAgentDefinition
+   *
+   * Given the definition for an Agent, stores it so that we can produce a
+   * collection including it later.
    *
    * @param AgentDefinition $agent
    *
    * @return void
    */
-  public function registerAgent(AgentDefinition $agent): void;
+  public function registerAgentDefinition (AgentDefinition $agent): void;
 
   /**
-   * registerAgents
+   * registerAgentDefinitions
    *
-   * Given an array of fully namespaced objects, stores them all for later
-   * production as a collection.
+   * Given an array of agent definitions, registers them.
    *
    * @param AgentDefinition[] $agents
+   *
+   * @return void
    */
-  public function registerAgents(array $agents): void;
+  public function registerAgentDefinitions (array $agents): void;
 }

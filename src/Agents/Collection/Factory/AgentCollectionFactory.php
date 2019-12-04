@@ -2,6 +2,7 @@
 
 namespace Dashifen\WPHandler\Agents\Collection\Factory;
 
+use Dashifen\Repository\RepositoryException;
 use Dashifen\WPHandler\Handlers\HandlerInterface;
 use Dashifen\WPHandler\Agents\Collection\AgentCollection;
 use Dashifen\WPHandler\Agents\Collection\AgentCollectionException;
@@ -46,34 +47,51 @@ class AgentCollectionFactory implements AgentCollectionFactoryInterface {
   /**
    * registerAgent
    *
-   * Given the fully namespaced object name for an Agent, stores it so that
-   * we can produce a collection including it later.
+   * A convenience method that constructs an AgentDefinition based on this
+   * method's parameters and then passes it to the registerAgentDefinition
+   * method below.
+   *
+   * @param string $agent
+   * @param array ...$parameters
+   *
+   * @return void
+   * @throws RepositoryException
+   */
+  public function registerAgent(string $agent, ...$parameters): void {
+    $agentDefinition = new AgentDefinition($agent, ...$parameters);
+    $this->registerAgentDefinition($agentDefinition);
+  }
+
+  /**
+   * registerAgentDefinition
+   *
+   * Given the definition for an Agent, stores it so that we can produce a
+   * collection including it later.
    *
    * @param AgentDefinition $agent
    *
    * @return void
    */
-  public function registerAgent (AgentDefinition $agent): void {
+  public function registerAgentDefinition (AgentDefinition $agent): void {
     $this->agentDefinitions[] = $agent;
   }
 
   /**
-   * registerAgents
+   * registerAgentDefinitions
    *
-   * Given an array of fully namespaced objects, stores them all for later
-   * production as a collection.
+   * Given an array of agent definitions, registers them.
    *
    * @param AgentDefinition[] $agents
    *
    * @return void
    */
-  public function registerAgents (array $agents): void {
+  public function registerAgentDefinitions (array $agents): void {
 
     // since we can't type hint the values within our parameter array, we
     // walk $agents and pass them to registerAgent() above.  then, its type
     // hint will throw a PHP error if someone passes something other than an
     // AgentDefinition here.
 
-    array_walk($agents, [$this, 'registerAgent']);
+    array_walk($agents, [$this, 'registerAgentDefinition']);
   }
 }

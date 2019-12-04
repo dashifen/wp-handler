@@ -18,6 +18,16 @@ use Dashifen\WPHandler\Handlers\Themes\ThemeHandlerInterface;
  */
 interface PluginHandlerInterface extends ThemeHandlerInterface {
   /**
+   * getPluginFilename
+   *
+   * Returns the WP-style plugin filename which is <dir>/<file> for the file
+   * in which the WP plugin header is located.
+   *
+   * @return string
+   */
+  public function getPluginFilename(): string;
+
+  /**
    * getPluginDir
    *
    * Returns the path to the directory containing this plugin.
@@ -34,16 +44,6 @@ interface PluginHandlerInterface extends ThemeHandlerInterface {
    * @return string
    */
   public function getPluginUrl(): string;
-
-  /**
-   * getPluginFilename
-   *
-   * Returns the WP-style plugin filename which is <dir>/<file> for the file
-   * in which the WP plugin header is located.
-   *
-   * @return string
-   */
-  public function getPluginFilename(): string;
 
   /**
    * registerActivationHook

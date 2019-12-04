@@ -45,10 +45,12 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
    *
    * @param HookFactoryInterface           $hookFactory
    * @param HookCollectionFactoryInterface $hookCollectionFactory
+   *
+   * @throws HandlerException
    */
   public function __construct (
-    HookFactoryInterface $hookFactory,
-    HookCollectionFactoryInterface $hookCollectionFactory
+    HookFactoryInterface $hookFactory = null,
+    HookCollectionFactoryInterface $hookCollectionFactory = null
   ) {
     parent::__construct($hookFactory, $hookCollectionFactory);
 
@@ -111,39 +113,83 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
   /**
    * setPluginFilename
    *
-   * Given the backtrace of this PluginHandler's __constructor() call, this
-   * method returns
+   * Given a backtrace of the call stack that lead us here, identify the plugin
+   * definition file within that stack.  Note:  it may reside in a different
+   * folder from the one we identify using findPluginDirectory().
    *
    * @param array $backtrace
    *
    * @return void
+   * @throws HandlerException
    */
   protected function setPluginFilename (array $backtrace = []): void {
 
-    // given the debug_backtrace() results called from our __constructor, we'll
-    // identify the plugin filename for WordPress based on that data.  we allow
-    // an empty array so that this method can be more easily overridden by
-    // extensions of this object.
+    // we assume that backtrace is the output of the debug_backtrace()
+    // function.  if it's anything else, this probably won't work.
 
-    if (!empty($backtrace)) {
+    foreach ($backtrace as $trace) {
+      $file = $trace['file'] ?? false;
+      if ($file && $this->isPluginFile($file)) {
 
-      // we want to set our property to <dir>/<file> for the file in which this
-      // plugin's WP block comment is located.  it should be listed in the file index
-      // of the first value in the $backtrace array.
+        // if we're all the way in here, we've found our plugin definition
+        // file.  WordPress wants our plugin's filename to the directory in
+        // which it can be found followed by the actual filename.  so, to
+        // build a string that is <dir>/<filename> we break up $file by the
+        // directory separator, slice off the last two items, and then join
+        // them with an forward slash.  after we set our property, we're done.
 
-      $file = array_shift($backtrace)['file'] ?? '';
-      if (!empty($file)) {
-
-        // if we've identified our file, we want to break its path into its
-        // component parts.  then, we slice off everything but the final two
-        // and re-join those with a forward slash to produce the <dir>/<file>
-        // that we need.
-
-        $fileParts = explode(DIRECTORY_SEPARATOR, $file);
-        $dirAndFile = array_slice($fileParts, -2);
-        $this->pluginFilename = join('/', $dirAndFile);
+        $pathParts = explode(DIRECTORY_SEPARATOR, $file);
+        $filenameParts = array_slice($pathParts, -2);
+        $this->pluginFilename = join('/', $filenameParts);
+        return;
       }
     }
+
+    // if we make it here, then we somehow traveled all the way through our
+    // backtrace and did not find our plugin filename.  this shouldn't happen,
+    // but if it does, we'll throw an Exception and hope the programmer can
+    // fix it.
+
+    throw new HandlerException('Unable to identify plugin file');
+  }
+
+  /**
+   * isPluginFile
+   *
+   * Checks within $file to see if it has the WordPress plugin header comment.
+   *
+   * @param string $file
+   *
+   * @return bool
+   */
+  protected function isPluginFile (string $file): bool {
+
+    // here we read the first 8KB of our file.  why 8KB?  because that's what
+    // the core get_file_data() function does.  why don't we use that one?
+    // because it hasn't been included (yet) as our plugins are being loaded.
+
+    $fp = fopen($file, 'r');
+    $data = fread($fp, 1024 * 8);
+    fclose($fp);
+
+    // now, to determine if this is the plugin definition file, we look for the
+    // "Plugin Name:" string what we've read.  this is required by WordPress in
+    // order for our plugin to be a plugin; the other plugin header "tags"
+    // aren't.
+
+    return strpos($data, 'Plugin Name:') !== false;
+  }
+
+  /**
+   * getPluginFilename
+   *
+   * Returns the WP-style plugin filename which is <dir>/<file> for the file
+   * in which the WP plugin header is located.
+   *
+   * @return string
+   */
+  public function getPluginFilename (): string {
+    return $this->pluginFilename;
   }
 
   /**
@@ -166,18 +212,6 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
    */
   public function getPluginUrl (): string {
     return $this->pluginUrl;
-  }
-
-  /**
-   * getPluginFilename
-   *
-   * Returns the WP-style plugin filename which is <dir>/<file> for the file
-   * in which the WP plugin header is located.
-   *
-   * @return string
-   */
-  public function getPluginFilename (): string {
-    return $this->pluginFilename;
   }
 
   /**

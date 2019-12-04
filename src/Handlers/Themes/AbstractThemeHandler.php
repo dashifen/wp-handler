@@ -34,8 +34,8 @@ abstract class AbstractThemeHandler extends AbstractHandler implements ThemeHand
    * @param HookCollectionFactoryInterface $hookCollectionFactory
    */
   public function __construct (
-    HookFactoryInterface $hookFactory,
-    HookCollectionFactoryInterface $hookCollectionFactory
+    HookFactoryInterface $hookFactory = null,
+    HookCollectionFactoryInterface $hookCollectionFactory = null
   ) {
     parent::__construct($hookFactory, $hookCollectionFactory);
 

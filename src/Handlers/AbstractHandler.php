@@ -6,6 +6,7 @@ namespace Dashifen\WPHandler\Handlers;
 
 use Throwable;
 use Dashifen\WPHandler\Hooks\HookException;
+use Dashifen\WPHandler\Hooks\Factory\HookFactory;
 use Dashifen\WPHandler\Hooks\Factory\HookFactoryInterface;
 use Dashifen\WPHandler\Hooks\Collection\HookCollectionInterface;
 use Dashifen\WPHandler\Hooks\Collection\HookCollectionException;
@@ -47,10 +48,17 @@ abstract class AbstractHandler implements HandlerInterface {
    * @param HookCollectionFactoryInterface $hookCollectionFactory
    */
   public function __construct (
-    HookFactoryInterface $hookFactory,
-    HookCollectionFactoryInterface $hookCollectionFactory
+    HookFactoryInterface $hookFactory = null,
+    HookCollectionFactoryInterface $hookCollectionFactory = null
   ) {
-    $this->hookFactory = $hookFactory;
+
+    // likely, the vast majority of situations will not require behaviors other
+    // than those that are defined in the HookFactory and HookCollectionFactory
+    // objects.  therefore, we default our parameters to null and, if we still
+    // have nulls herein, we use the null coalescing operator to construct the
+    // default objects as needed.
+
+    $this->hookFactory = $hookFactory ?? new HookFactory();
 
     // from this abstract class descends all of our Handlers and Agents, each
     // of which should have their own hook collection, we don't pass around the
@@ -59,6 +67,7 @@ abstract class AbstractHandler implements HandlerInterface {
     // than trying to share a single one.  then, we store the factory locally,
     // too, because any Agents this Handler employs will need it, too.
 
+    $hookCollectionFactory = $hookCollectionFactory ?? new HookCollectionException();
     $this->hookCollection = $hookCollectionFactory->produceHookCollection();
     $this->hookCollectionFactory = $hookCollectionFactory;
   }
