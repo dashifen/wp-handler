@@ -2,6 +2,7 @@
 
 namespace Dashifen\WPHandler\Agents\Collection\Factory;
 
+use stdClass;
 use Dashifen\Repository\RepositoryException;
 use Dashifen\WPHandler\Handlers\HandlerInterface;
 use Dashifen\WPHandler\Agents\Collection\AgentCollection;
@@ -30,13 +31,18 @@ class AgentCollectionFactory implements AgentCollectionFactoryInterface {
     foreach ($this->agentDefinitions as $agentDefinition) {
 
       // the first parameter sent to our agents' constructors must be their
-      // handler.  so, before we instantiate anything, we want to add $handler
-      // to the front of the array parameters in this definition.  then, we
-      // use this local array to instantiate our objects.  finally, we add it
-      // to our collection using the agent's name as its index to provide an
-      // easy, O(1) lookup should we need to find it again later.
+      // handler.  so, before we instantiate anything, we'll see if that's the
+      // case.  if not, we'll add the reference we receive as the parameter to
+      // this method.  this allows people to register an agent with or without
+      // the handler reference based on their preference and we'll make sure it
+      // all works out here.
 
-      $parameters = array_merge([$handler], $agentDefinition->parameters);
+      $parameters = $agentDefinition->parameters;
+      $firstParam = $parameters[0] ?? new stdClass();
+      if (!in_array(HandlerInterface::class, class_implements($firstParam))) {
+        $parameters = array_merge([$handler], $parameters);
+      }
+
       $instance = new $agentDefinition->agent(...$parameters);
       $collection->set($agentDefinition->agent, $instance);
     }
