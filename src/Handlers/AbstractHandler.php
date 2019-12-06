@@ -6,6 +6,7 @@ namespace Dashifen\WPHandler\Handlers;
 
 use Throwable;
 use Dashifen\WPHandler\Hooks\HookException;
+use Dashifen\Repository\RepositoryException;
 use Dashifen\WPHandler\Hooks\Factory\HookFactory;
 use Dashifen\WPHandler\Hooks\Factory\HookFactoryInterface;
 use Dashifen\WPHandler\Hooks\Collection\HookCollectionInterface;
@@ -44,12 +45,12 @@ abstract class AbstractHandler implements HandlerInterface {
   /**
    * AbstractHandler constructor.
    *
-   * @param HookFactoryInterface           $hookFactory
-   * @param HookCollectionFactoryInterface $hookCollectionFactory
+   * @param HookFactoryInterface|null           $hookFactory
+   * @param HookCollectionFactoryInterface|null $hookCollectionFactory
    */
   public function __construct (
-    HookFactoryInterface $hookFactory = null,
-    HookCollectionFactoryInterface $hookCollectionFactory = null
+    ?HookFactoryInterface $hookFactory = null,
+    ?HookCollectionFactoryInterface $hookCollectionFactory = null
   ) {
 
     // likely, the vast majority of situations will not require behaviors other
@@ -294,6 +295,7 @@ abstract class AbstractHandler implements HandlerInterface {
    * @param int    $arguments
    *
    * @return string
+   * @throws RepositoryException
    * @throws HandlerException
    */
   protected function addAction (string $hook, string $method, int $priority = 10, int $arguments = 1): string {
@@ -312,6 +314,7 @@ abstract class AbstractHandler implements HandlerInterface {
    * @param int    $arguments
    *
    * @return void
+   * @throws RepositoryException
    * @throws HandlerException
    */
   private function addHookToCollection (string $hook, string $method, int $priority, int $arguments): void {
@@ -377,6 +380,7 @@ abstract class AbstractHandler implements HandlerInterface {
    * @param int    $arguments
    *
    * @return string
+   * @throws RepositoryException
    * @throws HandlerException
    */
   protected function addFilter (string $hook, string $method, int $priority = 10, int $arguments = 1): string {

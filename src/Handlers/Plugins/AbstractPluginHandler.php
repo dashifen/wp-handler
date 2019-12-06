@@ -5,12 +5,12 @@ namespace Dashifen\WPHandler\Handlers\Plugins;
 use ReflectionClass;
 use ReflectionException;
 use Dashifen\Repository\RepositoryException;
+use Dashifen\WPHandler\Handlers\HandlerException;
 use Dashifen\WPHandler\Repositories\MenuItems\MenuItem;
 use Dashifen\WPHandler\Repositories\MenuItems\SubmenuItem;
-use Dashifen\WPHandler\Handlers\HandlerException;
-use Dashifen\WPHandler\Repositories\MenuItems\MenuItemException;
 use Dashifen\WPHandler\Hooks\Factory\HookFactoryInterface;
 use Dashifen\WPHandler\Handlers\Themes\AbstractThemeHandler;
+use Dashifen\WPHandler\Repositories\MenuItems\MenuItemException;
 use Dashifen\WPHandler\Hooks\Collection\Factory\HookCollectionFactoryInterface;
 
 /**
@@ -43,14 +43,14 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
   /**
    * AbstractPluginHandler constructor.
    *
-   * @param HookFactoryInterface           $hookFactory
-   * @param HookCollectionFactoryInterface $hookCollectionFactory
+   * @param HookFactoryInterface|null           $hookFactory
+   * @param HookCollectionFactoryInterface|null $hookCollectionFactory
    *
    * @throws HandlerException
    */
   public function __construct (
-    HookFactoryInterface $hookFactory = null,
-    HookCollectionFactoryInterface $hookCollectionFactory = null
+    ?HookFactoryInterface $hookFactory = null,
+    ?HookCollectionFactoryInterface $hookCollectionFactory = null
   ) {
     parent::__construct($hookFactory, $hookCollectionFactory);
 
