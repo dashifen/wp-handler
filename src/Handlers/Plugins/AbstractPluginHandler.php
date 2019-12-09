@@ -41,6 +41,16 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
   protected $pluginFilename = "";
 
   /**
+   * @var string
+   */
+  private $pluginId = "";
+
+  /**
+   * @var ReflectionClass
+   */
+  private $reflection;
+
+  /**
    * AbstractPluginHandler constructor.
    *
    * @param HookFactoryInterface|null           $hookFactory
@@ -54,14 +64,29 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
   ) {
     parent::__construct($hookFactory, $hookCollectionFactory);
 
-    $pluginUrl = WP_PLUGIN_URL . "/" . $this->findPluginDirectory();
-    $this->pluginUrl = preg_replace("/^https?:/", "", $pluginUrl);
-    $this->pluginDir = WP_PLUGIN_DIR . "/" . $this->findPluginDirectory();
-    $this->setPluginFilename(debug_backtrace());
+    $directory = $this->getCurrentDirectory();
+    $this->pluginDir = WP_PLUGIN_DIR . '/' . $directory;
+    $this->pluginUrl = WP_PLUGIN_URL . '/' . $directory;
+
+    // we'll remove the HTTP protocol from our URL so that assets enqueued by
+    // this object are included into the DOM using the same protocol as the
+    // original HTTP request.  this avoids any mixed HTTP vs. HTTPS warnings
+    // that a browser might have otherwise thrown.
+
+    $this->pluginUrl = preg_replace('/^https?:/', '', $this->pluginUrl);
+
+    // our plugin ID is the SHA1 hash of the static class name for this object.
+    // while it's possible that this might collide with another one, it's so
+    // unlikely that we're not going to worry too much about it.  plus, better
+    // hashes produce longer results, and WP recommends option names that are
+    // no more than 64 characters long.
+
+    $this->pluginId = sha1(static::class);
+    $this->setPluginFilename();
   }
 
   /**
-   * findPluginDirectory
+   * getCurrentDirectory
    *
    * Returns the name of the directory in which our concrete extension
    * of this class resides.  Note:  this is different from the other method
@@ -71,43 +96,41 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
    *
    * @return string
    */
-  protected function findPluginDirectory (): string {
+  private function getCurrentDirectory (): string {
+
+    // to get the directory in which our object's concrete extension is
+    // defined, we use a reflection to get the filename.  then, we can use that
+    // to get its directory, explode that path, and return just the final
+    // directory in which our class resides.
+
+    $directory = dirname($this->getReflection()->getFilename());
+    $directoryParts = explode(DIRECTORY_SEPARATOR, $directory);
+    return array_pop($directoryParts);
+  }
+
+  /**
+   * getReflection
+   *
+   * Since reflecting a class is a little expensive, we only do it once herein.
+   * Then, we can use this method to return the previous reflection.
+   *
+   * @return ReflectionClass
+   */
+  private function getReflection (): ReflectionClass {
     try {
+      $this->reflection = new ReflectionClass(static::class);
+    } catch (ReflectionException $e) {
 
-      // to get the directory name of this object's children we need to
-      // reflect the static::class name of that child.  then, we can get
-      // it's directory from it's full, absolute filename.  ordinarily,
-      // we might want to avoid using a ReflectionClass since they can be
-      // expensive, but because the object is already in memory, it's
-      // much less so.
+      // a ReflectionException is thrown when the class that we're trying to
+      // reflect doesn't exist.  but, since we're reflecting this class, we
+      // know it exists.  in order to avoid IDE related messages about uncaught
+      // exceptions, we'll trigger the following error, but we also know that
+      // we should never get here.
 
-      $classInfo = new ReflectionClass(static::class);
-      $absPath = dirname($classInfo->getFileName());
-
-      // now, all we really want is the final directory in the path.
-      // that'll be the one in which our plugin lives, and keeping all
-      // of the other information would actually cause our links to
-      // fail.
-
-      $absPathParts = explode(DIRECTORY_SEPARATOR, $absPath);
-      $directory = array_pop($absPathParts);
-    } catch (ReflectionException $exception) {
-
-      // a ReflectionException is thrown when the class that we're
-      // trying to reflect doesn't exist.  but, since we're reflecting
-      // this class, we know it exists.  in order to avoid IDE related
-      // messages about uncaught exceptions, we'll trigger the following
-      // error, but we also know that we should never get here.
-
-      trigger_error("Unable to reflect.", E_ERROR);
+      trigger_error("Unable to reflect", E_ERROR);
     }
 
-    // the trigger_error() call in the catch block would halt our execution
-    // of this method, but IDEs may flag the following line as a problem
-    // because $directory would only exist if the exception isn't thrown.
-    // thus, we'll use the null coalescing operator to make them happy.
-
-    return $directory ?? "";
+    return $this->reflection;
   }
 
   /**
@@ -115,14 +138,72 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
    *
    * Given a backtrace of the call stack that lead us here, identify the plugin
    * definition file within that stack.  Note:  it may reside in a different
-   * folder from the one we identify using findPluginDirectory().
+   * folder from the one we identify using getCurrentDirectory.
    *
    * @param array $backtrace
    *
    * @return void
    * @throws HandlerException
    */
-  protected function setPluginFilename (array $backtrace = []): void {
+  private function setPluginFilename (array $backtrace = []): void {
+    if (is_null($backtrace)) {
+
+      // if a call stack backtrace wasn't provided, we'll create one here.
+      // we can skip function/method arguments because we're not using those
+      // data and doing so saves some memory.
+
+      $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
+    }
+
+    // because looping over the backtrace and opening files to check for the WP
+    // plugin header is an expensive prospect, we may have cached the filename
+    // that we previously identified in the database.  we'll try to rely on
+    // that and only do the more expensive search when we absolutely have to.
+
+    $this->pluginFilename = $this->maybeGetPluginFilename();
+
+    if (is_null($this->pluginFilename)) {
+      $this->pluginFilename = $this->findPluginFilename($backtrace);
+      $this->cachePluginFilename();
+    }
+  }
+
+  /**
+   * maybeGetPluginFilename
+   *
+   * Returns a previously cached plugin filename or null if it's too old to use
+   * or doesn't exist.
+   *
+   * @return string|null
+   */
+  private function maybeGetPluginFilename (): ?string {
+
+    // if the last time that we stored our plugin filename is before the last
+    // time that our plugin class file was modified, then we're going to force
+    // this system to re-identify the plugin filename in case the larger
+    // structure of the plugin changed, too.  otherwise, we just return our
+    // cache or null if the cache is empty.
+
+    $lastFileMod = filemtime($this->getReflection()->getFileName());
+    $timestamp = get_option($this->pluginId . '-pluginFilenameTimestamp', 0);
+
+    return $timestamp > $lastFileMod
+      ? get_option($this->pluginId . '-pluginFilename', null)
+      : null;
+  }
+
+  /**
+   * findPluginFilename
+   *
+   * Searches through a call stack backtrace looking for the file that defines
+   * our plugin using the WP plugin header.
+   *
+   * @param array $backtrace
+   *
+   * @return string
+   * @throws HandlerException
+   */
+  private function findPluginFilename (array $backtrace): string {
 
     // we assume that backtrace is the output of the debug_backtrace()
     // function.  if it's anything else, this probably won't work.
@@ -140,8 +221,7 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
 
         $pathParts = explode(DIRECTORY_SEPARATOR, $file);
         $filenameParts = array_slice($pathParts, -2);
-        $this->pluginFilename = join('/', $filenameParts);
-        return;
+        return join('/', $filenameParts);
       }
     }
 
@@ -153,6 +233,7 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
     throw new HandlerException('Unable to identify plugin file');
   }
 
+
   /**
    * isPluginFile
    *
@@ -162,11 +243,11 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
    *
    * @return bool
    */
-  protected function isPluginFile (string $file): bool {
+  private function isPluginFile (string $file): bool {
 
     // here we read the first 8KB of our file.  why 8KB?  because that's what
     // the core get_file_data() function does.  why don't we use that one?
-    // because it hasn't been included (yet) as our plugins are being loaded.
+    // because it may not have been included (yet) if this is a MU plugin.
 
     $fp = fopen($file, 'r');
     $data = fread($fp, 1024 * 8);
@@ -178,6 +259,25 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
     // aren't.
 
     return strpos($data, 'Plugin Name:') !== false;
+  }
+
+  /**
+   * cachePluginFilename
+   *
+   * Stores the identified plugin filename in the database along with the
+   * current timestamp so we can tell if it might be out of date later.
+   *
+   * @return void
+   */
+  private function cachePluginFilename (): void {
+
+    // we set the autoload flag for these options to true so that they're
+    // selected along with the other autoloaded options.  since they'll be
+    // needed every time the plugin is needed, we save database query time by
+    // doing so.
+
+    update_option($this->pluginId . '-pluginFilename', $this->pluginFilename, true);
+    update_option($this->pluginId . '-pluginFilenameTimestamp', time(), true);
   }
 
   /**
@@ -419,7 +519,7 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
    * @param string $method
    *
    * @return string
-   * @throws RepositoryException
+   * @throws MenuItemException
    * @throws HandlerException
    */
   public function wpAddSubmenuPage (string $parentSlug, string $pageTitle, string $menuTitle, string $capability, string $menuSlug, string $method): string {

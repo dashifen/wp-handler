@@ -13,6 +13,7 @@ use Dashifen\WPHandler\Hooks\Collection\HookCollectionInterface;
 use Dashifen\WPHandler\Hooks\Collection\HookCollectionException;
 use Dashifen\WPHandler\Agents\Collection\AgentCollectionInterface;
 use Dashifen\WPHandler\Agents\Collection\AgentCollectionException;
+use Dashifen\WPHandler\Hooks\Collection\Factory\HookCollectionFactory;
 use Dashifen\WPHandler\Hooks\Collection\Factory\HookCollectionFactoryInterface;
 use Dashifen\WPHandler\Agents\Collection\Factory\AgentCollectionFactoryInterface;
 
@@ -68,7 +69,7 @@ abstract class AbstractHandler implements HandlerInterface {
     // than trying to share a single one.  then, we store the factory locally,
     // too, because any Agents this Handler employs will need it, too.
 
-    $hookCollectionFactory = $hookCollectionFactory ?? new HookCollectionException();
+    $hookCollectionFactory = $hookCollectionFactory ?? new HookCollectionFactory();
     $this->hookCollection = $hookCollectionFactory->produceHookCollection();
     $this->hookCollectionFactory = $hookCollectionFactory;
   }
@@ -295,7 +296,6 @@ abstract class AbstractHandler implements HandlerInterface {
    * @param int    $arguments
    *
    * @return string
-   * @throws RepositoryException
    * @throws HandlerException
    */
   protected function addAction (string $hook, string $method, int $priority = 10, int $arguments = 1): string {
@@ -314,7 +314,6 @@ abstract class AbstractHandler implements HandlerInterface {
    * @param int    $arguments
    *
    * @return void
-   * @throws RepositoryException
    * @throws HandlerException
    */
   private function addHookToCollection (string $hook, string $method, int $priority, int $arguments): void {
@@ -322,7 +321,7 @@ abstract class AbstractHandler implements HandlerInterface {
 
     try {
       $this->hookCollection->set($hookIndex, $this->hookFactory->produceHook($hook, $this, $method, $priority, $arguments));
-    } catch (HookCollectionException | HookException $exception) {
+    } catch (HookCollectionException | HookException | RepositoryException $exception) {
 
       // to make things easier on the calling scope, we'll "merge" the two
       // types of exceptions thrown by the hook collection here into a single
@@ -380,7 +379,6 @@ abstract class AbstractHandler implements HandlerInterface {
    * @param int    $arguments
    *
    * @return string
-   * @throws RepositoryException
    * @throws HandlerException
    */
   protected function addFilter (string $hook, string $method, int $priority = 10, int $arguments = 1): string {
