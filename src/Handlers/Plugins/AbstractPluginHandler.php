@@ -83,6 +83,14 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
 
     $this->pluginId = sha1(static::class);
     $this->setPluginFilename();
+
+    // typically, a plugin should not remove options when deactivating, but
+    // there's no easy way to do so when the plugin is uninstalled from here.
+    // so, because we will have cached a few options related to this plugin
+    // we'll want to clean them up when we deactivate.  they'll be re-created
+    // if it's re-activated so it's not such a big deal this time.
+
+    $this->registerDeactivationHook('uncachePluginFilename');
   }
 
   /**
@@ -127,7 +135,7 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
       // exceptions, we'll trigger the following error, but we also know that
       // we should never get here.
 
-      trigger_error("Unable to reflect", E_ERROR);
+      trigger_error('Unable to reflect', E_ERROR);
     }
 
     return $this->reflection;
@@ -140,12 +148,12 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
    * definition file within that stack.  Note:  it may reside in a different
    * folder from the one we identify using getCurrentDirectory.
    *
-   * @param array $backtrace
+   * @param array|null $backtrace
    *
    * @return void
    * @throws HandlerException
    */
-  private function setPluginFilename (array $backtrace = []): void {
+  private function setPluginFilename (?array $backtrace = null): void {
     if (is_null($backtrace)) {
 
       // if a call stack backtrace wasn't provided, we'll create one here.
@@ -247,7 +255,7 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
 
     // here we read the first 8KB of our file.  why 8KB?  because that's what
     // the core get_file_data() function does.  why don't we use that one?
-    // because it may not have been included (yet) if this is a MU plugin.
+    // because it is not included (yet).
 
     $fp = fopen($file, 'r');
     $data = fread($fp, 1024 * 8);
@@ -278,6 +286,19 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
 
     update_option($this->pluginId . '-pluginFilename', $this->pluginFilename, true);
     update_option($this->pluginId . '-pluginFilenameTimestamp', time(), true);
+  }
+
+  /**
+   * uncachePluginFilename
+   *
+   * Hooked to the deactivation action, this method simply removes the data
+   * that we cached above.
+   *
+   * @return void
+   */
+  protected function uncachePluginFilename (): void {
+    delete_option($this->pluginId . '-pluginFilenameTimestamp');
+    delete_option($this->pluginId . '-pluginFilename');
   }
 
   /**
@@ -422,7 +443,7 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
    */
   final private function hookMenuItem (MenuItem $menuItem): string {
     if (!$menuItem->isComplete()) {
-      throw new MenuItemException("Attempt to use incomplete menu item",
+      throw new MenuItemException('Attempt to use incomplete menu item',
         MenuItemException::ITEM_NOT_READY);
     }
 
