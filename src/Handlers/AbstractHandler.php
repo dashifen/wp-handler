@@ -355,9 +355,14 @@ abstract class AbstractHandler implements HandlerInterface {
    */
   private function addHookToCollection (string $hook, $callback, int $priority, int $arguments): void {
     try {
-      $hook = $this->hookFactory->produceHook($hook, $this, $callback, $priority, $arguments);
-      $hookIndex = $hookIndex = $this->hookFactory->produceHookIndex($hook, $this, $callback, $priority);
-      $this->hookCollection->set($hookIndex, $hook);
+
+      // to add a hook to our collection, we need the index it'll use therein
+      // and the actually HookInterface implementation that we store.  we make
+      // those and then pass them to our collection's set method.
+
+      $hookIndex = $this->hookFactory->produceHookIndex($hook, $this, $callback, $priority);
+      $hookObject = $this->hookFactory->produceHook($hook, $this, $callback, $priority, $arguments);
+      $this->hookCollection->set($hookIndex, $hookObject);
     } catch (HookCollectionException | HookException $exception) {
 
       // to make things easier on the calling scope, we'll "merge" the two

@@ -45,4 +45,17 @@ class ClosureHook extends AbstractHook {
       throw $this->convertException($e, HookException::FAILURE_TO_CONSTRUCT);
     }
   }
+
+  /**
+   * setCallback
+   *
+   * Sets the callback property.
+   *
+   * @param Closure $callback
+   *
+   * @return void
+   */
+  protected function setCallback (Closure $callback) {
+    $this->callback = $callback;
+  }
 }
