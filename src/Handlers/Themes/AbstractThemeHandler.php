@@ -129,7 +129,7 @@ abstract class AbstractThemeHandler extends AbstractHandler implements ThemeHand
     }
 
     // if the asset we're enqueuing begins with "//" then it's a remote
-    // asset.  we don't want to prefix it with our local URL and DIR
+    // asset.  we don't want to prefix it with our local URL and directory
     // values.  first, we replace the protocol designation just to be
     // sure it's not present for our test.
 

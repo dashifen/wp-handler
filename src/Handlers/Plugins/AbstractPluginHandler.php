@@ -2,8 +2,6 @@
 
 namespace Dashifen\WPHandler\Handlers\Plugins;
 
-use ReflectionClass;
-use ReflectionException;
 use Dashifen\Repository\RepositoryException;
 use Dashifen\WPHandler\Handlers\HandlerException;
 use Dashifen\WPHandler\Repositories\MenuItems\MenuItem;
@@ -46,11 +44,6 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
   private $pluginId = "";
 
   /**
-   * @var ReflectionClass
-   */
-  private $reflection;
-
-  /**
    * AbstractPluginHandler constructor.
    *
    * @param HookFactoryInterface|null           $hookFactory
@@ -87,8 +80,8 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
     // typically, a plugin should not remove options when deactivating, but
     // there's no easy way to do so when the plugin is uninstalled from here.
     // so, because we will have cached a few options related to this plugin
-    // we'll want to clean them up when we deactivate.  they'll be re-created
-    // if it's re-activated so it's not such a big deal this time.
+    // we'll want to clean them up when we deactivate.  they'll be recreated
+    // if it's reactivated so it's not such a big deal this time.
 
     $this->registerDeactivationHook('uncachePluginFilename');
   }
@@ -111,34 +104,9 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
     // to get its directory, explode that path, and return just the final
     // directory in which our class resides.
 
-    $directory = dirname($this->getReflection()->getFilename());
+    $directory = dirname($this->handlerReflection->getFilename());
     $directoryParts = explode(DIRECTORY_SEPARATOR, $directory);
     return array_pop($directoryParts);
-  }
-
-  /**
-   * getReflection
-   *
-   * Since reflecting a class is a little expensive, we only do it once herein.
-   * Then, we can use this method to return the previous reflection.
-   *
-   * @return ReflectionClass
-   */
-  private function getReflection (): ReflectionClass {
-    try {
-      $this->reflection = new ReflectionClass(static::class);
-    } catch (ReflectionException $e) {
-
-      // a ReflectionException is thrown when the class that we're trying to
-      // reflect doesn't exist.  but, since we're reflecting this class, we
-      // know it exists.  in order to avoid IDE related messages about uncaught
-      // exceptions, we'll trigger the following error, but we also know that
-      // we should never get here.
-
-      trigger_error('Unable to reflect', E_ERROR);
-    }
-
-    return $this->reflection;
   }
 
   /**
@@ -192,7 +160,7 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
     // structure of the plugin changed, too.  otherwise, we just return our
     // cache or null if the cache is empty.
 
-    $lastFileMod = filemtime($this->getReflection()->getFileName());
+    $lastFileMod = filemtime($this->handlerReflection->getFileName());
     $timestamp = get_option($this->pluginId . '-pluginFilenameTimestamp', 0);
 
     return $timestamp > $lastFileMod
@@ -240,7 +208,6 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
 
     throw new HandlerException('Unable to identify plugin file');
   }
-
 
   /**
    * isPluginFile
@@ -292,7 +259,8 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
    * uncachePluginFilename
    *
    * Hooked to the deactivation action, this method simply removes the data
-   * that we cached above.
+   * that we cached above.  this one is protected because it becomes a callback
+   * during this handler's deactivation hook.
    *
    * @return void
    */

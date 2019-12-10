@@ -2,10 +2,11 @@
 
 namespace Dashifen\WPHandler\Hooks\Factory;
 
-use Dashifen\WPHandler\Hooks\Hook;
+use Closure;
+use Dashifen\WPHandler\Hooks\MethodHook;
+use Dashifen\WPHandler\Hooks\ClosureHook;
 use Dashifen\WPHandler\Hooks\HookException;
 use Dashifen\WPHandler\Hooks\HookInterface;
-use Dashifen\Repository\RepositoryException;
 use Dashifen\WPHandler\Handlers\HandlerInterface;
 
 class HookFactory implements HookFactoryInterface {
@@ -16,23 +17,23 @@ class HookFactory implements HookFactoryInterface {
    *
    * @param string           $hook
    * @param HandlerInterface $object
-   * @param string           $method
+   * @param string|Closure   $callback
    * @param int              $priority
    * @param int              $argumentCount
    *
    * @return HookInterface
    * @throws HookException
-   * @throws RepositoryException
    */
-  public function produceHook (string $hook, HandlerInterface $object, string $method, int $priority = 10, int $argumentCount = 1): HookInterface {
+  public function produceHook (string $hook, HandlerInterface $object, $callback, int $priority = 10, int $argumentCount = 1): HookInterface {
 
     // the purpose of this function is to provide a single place where
-    // HookInterface implementations are constructed.  thus, when a plugin
-    // or theme needs to modify the default Hook object to perform in some
-    // other way, a new HookFactory can produce that object and be added to
-    // the appropriate handlers.
+    // HookInterface implementations are constructed.  our default factory
+    // produces either MethodHooks or ClosureHooks based on the type of
+    // $callback.
 
-    return new Hook($hook, $object, $method, $priority, $argumentCount);
+    return is_string($callback)
+      ? new MethodHook($hook, $object, $callback, $priority, $argumentCount)
+      : new ClosureHook($hook, $callback, $priority, $argumentCount);
   }
 
   /**
@@ -42,22 +43,22 @@ class HookFactory implements HookFactoryInterface {
    *
    * @param string           $hook
    * @param HandlerInterface $object
-   * @param string           $method
+   * @param string|Closure   $callback
    * @param int              $priority
    *
    * @return string
    */
-  public function produceHookIndex (string $hook, HandlerInterface $object, string $method, int $priority): string {
+  public function produceHookIndex (string $hook, HandlerInterface $object, $callback, int $priority): string {
 
-    // like the prior method, this is to provide a way to get a hook index
-    // if an implementation of the HookInterface needs to change the default
-    // indexing structure of a handler's hooks.  it is very likely that we
-    // might change the prior method without this one; only if a HookInterface
-    // object constructs its indices differently that the default Hook object
-    // do we need to change this.  by default, we simply join our parameters
-    // like strings and return the resulting string to the calling scope.
+    // in the past, we just made a string out of our parameters and called it
+    // the hook's index.  now that we're allowing Closures as callbacks, we
+    // we have to use spl_object_hash to create a string from the object.  then
+    // we can produce an index with that string as if it were a method name.
 
-    $format = join(":", array_fill(0, func_num_args(), "%s"));
-    return vsprintf($format, func_get_args());
+    if ($callback instanceof Closure) {
+      $callback = spl_object_hash($callback);
+    }
+
+    return sprintf('%s:%s:%s:%s', $hook, $object, $callback, $priority);
   }
 }

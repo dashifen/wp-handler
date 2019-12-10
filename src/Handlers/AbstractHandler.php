@@ -4,9 +4,11 @@
 
 namespace Dashifen\WPHandler\Handlers;
 
+use Closure;
 use Throwable;
+use ReflectionClass;
+use ReflectionException;
 use Dashifen\WPHandler\Hooks\HookException;
-use Dashifen\Repository\RepositoryException;
 use Dashifen\WPHandler\Hooks\Factory\HookFactory;
 use Dashifen\WPHandler\Hooks\Factory\HookFactoryInterface;
 use Dashifen\WPHandler\Hooks\Collection\HookCollectionInterface;
@@ -44,6 +46,11 @@ abstract class AbstractHandler implements HandlerInterface {
   protected $initialized = false;
 
   /**
+   * @var ReflectionClass
+   */
+  protected $handlerReflection;
+
+  /**
    * AbstractHandler constructor.
    *
    * @param HookFactoryInterface|null           $hookFactory
@@ -72,6 +79,25 @@ abstract class AbstractHandler implements HandlerInterface {
     $hookCollectionFactory = $hookCollectionFactory ?? new HookCollectionFactory();
     $this->hookCollection = $hookCollectionFactory->produceHookCollection();
     $this->hookCollectionFactory = $hookCollectionFactory;
+
+    try {
+
+      // within this class and it's extensions, we often need to know about our
+      // methods or the location of our definition files.  the easiest (only?)
+      // way to do this is with Reflection.  newer versions of PHP make them
+      // much faster, but we still don't want to reflect over and over again.
+      // so, we'll do reflect now and keep a reference to it in our properties.
+
+      $this->handlerReflection = new ReflectionClass($this);
+    } catch (ReflectionException $e) {
+
+      // since we're reflecting $this and, therefore, the class should already
+      // be in memory, we should never get here.  but, if we do, it's pretty
+      // much a total failure to thrive.  we'll raise an error and hope the
+      // programmer can take it from here.
+
+      trigger_error('Unable to reflect ' . static::class, E_USER_ERROR);
+    }
   }
 
   /**
@@ -88,12 +114,10 @@ abstract class AbstractHandler implements HandlerInterface {
    */
   public function __call (string $method, array $arguments) {
 
-    // getting here should only happen via WordPress callbacks.  sure, there's
-    // a bunch of other ways to do so, but callbacks are the ones we care
-    // about.  so, we'll start trying to make sure that the method WordPress is
-    // trying to execute is one to which it's been given access; i.e., it's in
-    // our hook collection.  first step, recreate the hook index for the method
-    // as if it were being executed at the current action and priority.
+    // getting here should only happen via WordPress callbacks and only for
+    // MethodHooks;  closures aren't a part of an object so they won't ever get
+    // called like this.  once we get here, we want to see if there's a method
+    // in our hook collection that corresponds to this action and priority.
 
     $action = current_action();
 
@@ -141,22 +165,28 @@ abstract class AbstractHandler implements HandlerInterface {
       }
     }
 
-    // if we made it through all that, we're good to go.  we return the
-    // results of our method call because some of them might be filters and
-    // not returning their results would be a problem.  before we do so, we
-    // don't want to send a method anything it's not expecting.  so, we'll
-    // make sure to slice off any additional arguments that ended up here
-    // (due to the variadic nature of this method) before we unpack them
-    // and send them over there.  notice we don't care if the number of
-    // expected arguments is greater than what we have; in that case, it's
-    // likely an error, and we'll handle it elsewhere.  this is similar to
-    // the work done by WP Core in the WP_Hook::apply_filters() method.
+    // the final test is to ensure that we have at least as many arguments as
+    // we need.  i.e. if the argument count for this call is 3 but we only have
+    // 2 here, that's a problem.
 
+    $localArgumentCount = sizeof($arguments);
     $hook = $this->hookCollection->get($hookIndex);
-    if ($hook->argumentCount < sizeof($arguments)) {
-      $arguments = array_slice($arguments, 0, $hook->argumentCount);
+    if ($localArgumentCount < $hook->argumentCount) {
+      throw new HandlerException(
+        sprintf('%s expected %d parameters, received %d', $method,
+          $hook->argumentCount, $localArgumentCount),
+        HandlerException::INAPPROPRIATE_CALL
+      );
     }
 
+    // now we know that we have at least as many arguments as the hook expects.
+    // but, in keeping with WP Core's WP_Hook::apply_filters method, we want to
+    // remove any extra arguments before passing them over.  this is not likely
+    // too problematic unless we have a variadic method that might do something
+    // to/with unexpected parameters.  so, before we call our method, we use
+    // array_slice to remove extra arguments.
+
+    $arguments = array_slice($arguments, 0, $hook->argumentCount);
     return $this->{$method}(...$arguments);
   }
 
@@ -290,17 +320,24 @@ abstract class AbstractHandler implements HandlerInterface {
    *
    * Passes its arguments to add_action() and adds a Hook to our collection.
    *
-   * @param string $hook
-   * @param string $method
-   * @param int    $priority
-   * @param int    $arguments
+   * @param string         $hook
+   * @param string|Closure $callback
+   * @param int            $priority
+   * @param int            $arguments
    *
    * @return string
    * @throws HandlerException
    */
-  protected function addAction (string $hook, string $method, int $priority = 10, int $arguments = 1): string {
-    $this->addHookToCollection($hook, $method, $priority, $arguments);
-    return add_action($hook, [$this, $method], $priority, $arguments);
+  protected function addAction (string $hook, $callback, int $priority = 10, int $arguments = 1): string {
+    $this->addHookToCollection($hook, $callback, $priority, $arguments);
+
+    // if $callback is a string, then we need to add our action to WP using
+    // the array syntax for method calls.  otherwise, we can just pass it over
+    // to add_action since it is, itself, callable.
+
+    return is_string($callback)
+      ? add_action($hook, [$this, $callback], $priority, $arguments)
+      : add_action($hook, $callback, $priority, $arguments);
   }
 
   /**
@@ -308,20 +345,20 @@ abstract class AbstractHandler implements HandlerInterface {
    *
    * Given data about a hook, produces one and add it to our collection.
    *
-   * @param string $hook
-   * @param string $method
-   * @param int    $priority
-   * @param int    $arguments
+   * @param string         $hook
+   * @param string|Closure $callback
+   * @param int            $priority
+   * @param int            $arguments
    *
    * @return void
    * @throws HandlerException
    */
-  private function addHookToCollection (string $hook, string $method, int $priority, int $arguments): void {
-    $hookIndex = $this->hookFactory->produceHookIndex($hook, $this, $method, $priority);
-
+  private function addHookToCollection (string $hook, $callback, int $priority, int $arguments): void {
     try {
-      $this->hookCollection->set($hookIndex, $this->hookFactory->produceHook($hook, $this, $method, $priority, $arguments));
-    } catch (HookCollectionException | HookException | RepositoryException $exception) {
+      $hook = $this->hookFactory->produceHook($hook, $this, $callback, $priority, $arguments);
+      $hookIndex = $hookIndex = $this->hookFactory->produceHookIndex($hook, $this, $callback, $priority);
+      $this->hookCollection->set($hookIndex, $hook);
+    } catch (HookCollectionException | HookException $exception) {
 
       // to make things easier on the calling scope, we'll "merge" the two
       // types of exceptions thrown by the hook collection here into a single
@@ -339,7 +376,8 @@ abstract class AbstractHandler implements HandlerInterface {
    * removeAction
    *
    * Removes a hooked method from WP core and the record of the hook from our
-   * collection.
+   * collection.  Note:  closures cannot be removed at this time because they
+   * cannot be removed using WP's remove_action.
    *
    * @param string $hook
    * @param string $method
@@ -371,25 +409,33 @@ abstract class AbstractHandler implements HandlerInterface {
   /**
    * addFilter
    *
-   * Passes its arguments to add_filter() and adds a Hook to our collection.
+   * Passes its arguments to add_filter and adds a Hook to our collection.
    *
-   * @param string $hook
-   * @param string $method
-   * @param int    $priority
-   * @param int    $arguments
+   * @param string         $hook
+   * @param string|Closure $callback
+   * @param int            $priority
+   * @param int            $arguments
    *
    * @return string
    * @throws HandlerException
    */
-  protected function addFilter (string $hook, string $method, int $priority = 10, int $arguments = 1): string {
-    $this->addHookToCollection($hook, $method, $priority, $arguments);
-    return add_filter($hook, [$this, $method], $priority, $arguments);
+  protected function addFilter (string $hook, $callback, int $priority = 10, int $arguments = 1): string {
+    $this->addHookToCollection($hook, $callback, $priority, $arguments);
+
+    // based on the type of $callback, we can handle the arguments to the WP
+    // add_filter function like we did in addAction above.
+
+    return is_string($callback)
+      ? add_filter($hook, [$this, $callback], $priority, $arguments)
+      : add_filter($hook, $callback, $priority, $arguments);
   }
 
   /**
    * removeFilter
    *
    * Removes a filter from WP and the record of the Hook from our collection.
+   * Note:  closures cannot be removed at this time because closures cannot be
+   * removed using WP's remove_filter.
    *
    * @param string $hook
    * @param string $method
