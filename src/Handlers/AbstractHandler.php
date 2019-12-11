@@ -7,6 +7,7 @@ namespace Dashifen\WPHandler\Handlers;
 use Closure;
 use Throwable;
 use ReflectionClass;
+use ReflectionMethod;
 use ReflectionException;
 use Dashifen\WPHandler\Hooks\HookException;
 use Dashifen\WPHandler\Hooks\Factory\HookFactory;
@@ -52,14 +53,19 @@ abstract class AbstractHandler implements HandlerInterface
     protected $handlerReflection;
     
     /**
+     * @var ReflectionMethod[]
+     */
+    private $reflectionMethods = [];
+    
+    /**
      * AbstractHandler constructor.
      *
      * @param HookFactoryInterface|null           $hookFactory
      * @param HookCollectionFactoryInterface|null $hookCollectionFactory
      */
     public function __construct(
-      ?HookFactoryInterface $hookFactory = null,
-      ?HookCollectionFactoryInterface $hookCollectionFactory = null
+        ?HookFactoryInterface $hookFactory = null,
+        ?HookCollectionFactoryInterface $hookCollectionFactory = null
     ) {
         // likely, the vast majority of situations will not require behaviors other
         // than those that are defined in the HookFactory and HookCollectionFactory
@@ -121,8 +127,8 @@ abstract class AbstractHandler implements HandlerInterface
         
         if (empty($action)) {
             throw new HandlerException(
-              "Unable to determine action/filter at which $method was called",
-              HandlerException::INAPPROPRIATE_CALL
+                "Unable to determine action/filter at which $method was called",
+                HandlerException::INAPPROPRIATE_CALL
             );
         }
         
@@ -142,15 +148,15 @@ abstract class AbstractHandler implements HandlerInterface
                     
                     if ($hook->hook !== $action) {
                         throw new HandlerException(
-                          "$method is hooked but not via $action",
-                          HandlerException::INAPPROPRIATE_CALL
+                            "$method is hooked but not via $action",
+                            HandlerException::INAPPROPRIATE_CALL
                         );
                     }
                     
                     if ($hook->priority !== $priority) {
                         throw new HandlerException(
-                          "$method is hooked but not at $priority",
-                          HandlerException::INAPPROPRIATE_CALL
+                            "$method is hooked but not at $priority",
+                            HandlerException::INAPPROPRIATE_CALL
                         );
                     }
                 }
@@ -161,37 +167,19 @@ abstract class AbstractHandler implements HandlerInterface
                 // that, too.
                 
                 throw new HandlerException(
-                  "Unhooked method: $method.",
-                  HandlerException::UNHOOKED_METHOD
+                    "Unhooked method: $method.",
+                    HandlerException::UNHOOKED_METHOD
                 );
             }
         }
         
-        // the final test is to ensure that we have at least as many arguments as
-        // we need.  i.e. if the argument count for this call is 3 but we only have
-        // 2 here, that's a problem.
-        
-        $localArgumentCount = sizeof($arguments);
+        // in keeping with WP Core's WP_Hook::apply_filters method, we want to
+        // remove any extra arguments before passing them over.  this is not
+        // likely too problematic unless we have a variadic method that might
+        // do something to/with unexpected parameters.  so, before we call our
+        // method, we use array_slice to remove extra arguments.
+    
         $hook = $this->hookCollection->get($hookIndex);
-        if ($localArgumentCount < $hook->argumentCount) {
-            throw new HandlerException(
-              sprintf(
-                '%s expected %d parameters, received %d',
-                $method,
-                $hook->argumentCount,
-                $localArgumentCount
-              ),
-              HandlerException::INAPPROPRIATE_CALL
-            );
-        }
-        
-        // now we know that we have at least as many arguments as the hook expects.
-        // but, in keeping with WP Core's WP_Hook::apply_filters method, we want to
-        // remove any extra arguments before passing them over.  this is not likely
-        // too problematic unless we have a variadic method that might do something
-        // to/with unexpected parameters.  so, before we call our method, we use
-        // array_slice to remove extra arguments.
-        
         $arguments = array_slice($arguments, 0, $hook->argumentCount);
         return $this->{$method}(...$arguments);
     }
@@ -342,15 +330,93 @@ abstract class AbstractHandler implements HandlerInterface
      */
     protected function addAction(string $hook, $callback, int $priority = 10, int $arguments = 1): string
     {
+        if (!$this->isValidCallback($callback)) {
+            throw new HandlerException(
+                $this->getInvalidCallbackMessage($callback),
+                HandlerException::INVALID_CALLBACK
+            );
+        }
+        
         $this->addHookToCollection($hook, $callback, $priority, $arguments);
         
         // if $callback is a string, then we need to add our action to WP using
-        // the array syntax for method calls.  otherwise, we can just pass it over
-        // to add_action since it is, itself, callable.
+        // the array syntax for method calls.  otherwise, we can just pass it
+        // over to add_action since it is, itself, callable.
         
         return is_string($callback)
-          ? add_action($hook, [$this, $callback], $priority, $arguments)
-          : add_action($hook, $callback, $priority, $arguments);
+            ? add_action($hook, [$this, $callback], $priority, $arguments)
+            : add_action($hook, $callback, $priority, $arguments);
+    }
+    
+    /**
+     * isValidCallback
+     *
+     * Given a callback, returns true if it's valid, false otherwise.
+     *
+     * @param string|Closure $callback
+     *
+     * @return bool
+     */
+    protected function isValidCallback($callback): bool
+    {
+        // if $callback is a Closure, we're fine.  it's the string case that's
+        // more difficult so we'll bug out before worrying about anything else
+        // here.
+        
+        if ($callback instanceof Closure) {
+            return true;
+        }
+        
+        // now, if we're here, then $callback better be a string and, if so, it
+        // also has to be a non-private method of this object.  we can use our
+        // reflection to handle these tests.
+        
+        try {
+            if (!isset($this->reflectionMethods[$callback])) {
+                $this->reflectionMethods[$callback] = $this->handlerReflection->getMethod($callback);
+            }
+            
+            return !$this->reflectionMethods[$callback]->isPrivate();
+        } catch (ReflectionException $e) {
+            
+            // the getMethod method throws an exception when the requested
+            // method doesn't exist.  if it doesn't exist, then it can't be a
+            // callback, so we can just return false here.
+            
+            return false;
+        }
+    }
+    
+    /**
+     * getInvalidCallbackMessage
+     *
+     * Returns an exception message based on the type of $callback.
+     *
+     * @param string|object $callback
+     *
+     * @return string
+     */
+    private function getInvalidCallbackMessage($callback): string
+    {
+        // like the isValidCallback method above, this one uses the type of
+        // $callback to return an exception message about it's invalidity.
+        
+        if (is_string($callback)) {
+            
+            // if it's a string, then either (a) it wasn't a method of our
+            // object or (b) it was private.  we'll return a message based on
+            // which it was here.
+            
+            return $this->handlerReflection->hasMethod($callback)
+                ? $callback . ' must be public or protected'
+                : 'Method not found: ' . $callback;
+        }
+        
+        // if $callback wasn't a string, it must be an object, but that object
+        // must not have been a Closure or it would have been valid.  so, we'll
+        // simply request a method or Closure here.
+        
+        return 'Callbacks must be a handler method or Closure';
     }
     
     /**
@@ -382,9 +448,9 @@ abstract class AbstractHandler implements HandlerInterface
             // type:  our HandlerException.
             
             throw new HandlerException(
-              $exception->getMessage(),
-              HandlerException::FAILURE_TO_HOOK,
-              $exception
+                $exception->getMessage(),
+                HandlerException::FAILURE_TO_HOOK,
+                $exception
             );
         }
     }
@@ -440,14 +506,21 @@ abstract class AbstractHandler implements HandlerInterface
      */
     protected function addFilter(string $hook, $callback, int $priority = 10, int $arguments = 1): string
     {
+        if (!$this->isValidCallback($callback)) {
+            throw new HandlerException(
+                $this->getInvalidCallbackMessage($callback),
+                HandlerException::INVALID_CALLBACK
+            );
+        }
+        
         $this->addHookToCollection($hook, $callback, $priority, $arguments);
         
         // based on the type of $callback, we can handle the arguments to the WP
         // add_filter function like we did in addAction above.
         
         return is_string($callback)
-          ? add_filter($hook, [$this, $callback], $priority, $arguments)
-          : add_filter($hook, $callback, $priority, $arguments);
+            ? add_filter($hook, [$this, $callback], $priority, $arguments)
+            : add_filter($hook, $callback, $priority, $arguments);
     }
     
     /**
