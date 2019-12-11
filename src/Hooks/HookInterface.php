@@ -24,6 +24,7 @@ use Dashifen\WPHandler\Handlers\HandlerInterface;
  *
  * @package Dashifen\WPHandler\Hooks
  */
-interface HookInterface {
+interface HookInterface
+{
 
 }

@@ -12,46 +12,54 @@ namespace Dashifen\WPHandler\Traits;
  *
  * @package Dashifen\WPHandler\Traits
  */
-trait CaseChangingTrait {
-  /**
-   * toCamelCase
-   *
-   * Converts a kebab-case HTML attribute value into a camelCase string.
-   *
-   * @param string $kebabCase
-   *
-   * @return string
-   */
-  public static function toCamelCase (string $kebabCase): string {
-    return preg_replace_callback("/-([a-z])/", function (array $matches): string {
-      return strtoupper($matches[1]);
-    }, $kebabCase);
-  }
-
-  /**
-   * toStudlyCaps
-   *
-   * Given a kebab-case string, converts it first to camelCase and then
-   * uses ucfirst() to capitalize the first letter, too.
-   *
-   * @param string $kebabCase
-   *
-   * @return string
-   */
-  public static function toStudlyCaps (string $kebabCase): string {
-    return ucfirst(self::toCamelCase($kebabCase));
-  }
-
-  /**
-   * makeReadable
-   *
-   * Turns a kebab-case string into a human readable one.
-   *
-   * @param string $kebabCase
-   *
-   * @return string
-   */
-  public static function makeReadable (string $kebabCase): string {
-    return ucwords(str_replace('-', ' ', $kebabCase));
-  }
+trait CaseChangingTrait
+{
+    /**
+     * toCamelCase
+     *
+     * Converts a kebab-case HTML attribute value into a camelCase string.
+     *
+     * @param string $kebabCase
+     *
+     * @return string
+     */
+    public static function toCamelCase(string $kebabCase): string
+    {
+        return preg_replace_callback(
+          "/-([a-z])/",
+          function (array $matches): string {
+              return strtoupper($matches[1]);
+          },
+          $kebabCase
+        );
+    }
+    
+    /**
+     * toStudlyCaps
+     *
+     * Given a kebab-case string, converts it first to camelCase and then
+     * uses ucfirst() to capitalize the first letter, too.
+     *
+     * @param string $kebabCase
+     *
+     * @return string
+     */
+    public static function toStudlyCaps(string $kebabCase): string
+    {
+        return ucfirst(self::toCamelCase($kebabCase));
+    }
+    
+    /**
+     * makeReadable
+     *
+     * Turns a kebab-case string into a human readable one.
+     *
+     * @param string $kebabCase
+     *
+     * @return string
+     */
+    public static function makeReadable(string $kebabCase): string
+    {
+        return ucwords(str_replace('-', ' ', $kebabCase));
+    }
 }
