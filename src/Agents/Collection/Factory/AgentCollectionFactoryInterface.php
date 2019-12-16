@@ -4,8 +4,8 @@ namespace Dashifen\WPHandler\Agents\Collection\Factory;
 
 use Dashifen\Repository\RepositoryException;
 use Dashifen\WPHandler\Handlers\HandlerInterface;
-use Dashifen\WPHandler\Agents\Collection\AgentCollection;
 use Dashifen\WPHandler\Agents\Collection\AgentCollectionException;
+use Dashifen\WPHandler\Agents\Collection\AgentCollectionInterface;
 use Dashifen\WPHandler\Repositories\AgentDefinition\AgentDefinition;
 
 interface AgentCollectionFactoryInterface
@@ -17,10 +17,10 @@ interface AgentCollectionFactoryInterface
      *
      * @param HandlerInterface $handler
      *
-     * @return AgentCollection
+     * @return AgentCollectionInterface
      * @throws AgentCollectionException
      */
-    public function produceAgentCollection(HandlerInterface $handler): AgentCollection;
+    public function produceAgentCollection (HandlerInterface $handler): AgentCollectionInterface;
     
     /**
      * registerAgent
@@ -35,7 +35,7 @@ interface AgentCollectionFactoryInterface
      * @return void
      * @throws RepositoryException
      */
-    public function registerAgent(string $agent, ...$parameters): void;
+    public function registerAgent (string $agent, ...$parameters): void;
     
     /**
      * registerAgentDefinition
@@ -47,7 +47,7 @@ interface AgentCollectionFactoryInterface
      *
      * @return void
      */
-    public function registerAgentDefinition(AgentDefinition $agent): void;
+    public function registerAgentDefinition (AgentDefinition $agent): void;
     
     /**
      * registerAgentDefinitions
@@ -58,5 +58,5 @@ interface AgentCollectionFactoryInterface
      *
      * @return void
      */
-    public function registerAgentDefinitions(array $agents): void;
+    public function registerAgentDefinitions (array $agents): void;
 }

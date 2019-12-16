@@ -7,6 +7,7 @@ use Dashifen\Repository\RepositoryException;
 use Dashifen\WPHandler\Handlers\HandlerInterface;
 use Dashifen\WPHandler\Agents\Collection\AgentCollection;
 use Dashifen\WPHandler\Agents\Collection\AgentCollectionException;
+use Dashifen\WPHandler\Agents\Collection\AgentCollectionInterface;
 use Dashifen\WPHandler\Repositories\AgentDefinition\AgentDefinition;
 
 class AgentCollectionFactory implements AgentCollectionFactoryInterface
@@ -23,10 +24,10 @@ class AgentCollectionFactory implements AgentCollectionFactoryInterface
      *
      * @param HandlerInterface $handler
      *
-     * @return AgentCollection
+     * @return AgentCollectionInterface
      * @throws AgentCollectionException
      */
-    public function produceAgentCollection(HandlerInterface $handler): AgentCollection
+    public function produceAgentCollection (HandlerInterface $handler): AgentCollectionInterface
     {
         $collection = new AgentCollection();
         
@@ -64,7 +65,7 @@ class AgentCollectionFactory implements AgentCollectionFactoryInterface
      * @return void
      * @throws RepositoryException
      */
-    public function registerAgent(string $agent, ...$parameters): void
+    public function registerAgent (string $agent, ...$parameters): void
     {
         $agentDefinition = new AgentDefinition($agent, ...$parameters);
         $this->registerAgentDefinition($agentDefinition);
@@ -80,7 +81,7 @@ class AgentCollectionFactory implements AgentCollectionFactoryInterface
      *
      * @return void
      */
-    public function registerAgentDefinition(AgentDefinition $agent): void
+    public function registerAgentDefinition (AgentDefinition $agent): void
     {
         $this->agentDefinitions[] = $agent;
     }
@@ -94,7 +95,7 @@ class AgentCollectionFactory implements AgentCollectionFactoryInterface
      *
      * @return void
      */
-    public function registerAgentDefinitions(array $agents): void
+    public function registerAgentDefinitions (array $agents): void
     {
         // since we can't type hint the values within our parameter array, we
         // walk $agents and pass them to registerAgent() above.  then, its type
