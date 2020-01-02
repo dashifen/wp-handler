@@ -29,9 +29,10 @@ class AgentCollectionFactory implements AgentCollectionFactoryInterface
      */
     public function produceAgentCollection (HandlerInterface $handler): AgentCollectionInterface
     {
-        $collection = new AgentCollection();
+        $collection = $this->produceAgentCollectionInstance();
         
         foreach ($this->agentDefinitions as $agentDefinition) {
+            
             // the first parameter sent to our agents' constructors must be their
             // handler.  so, before we instantiate anything, we'll see if that's the
             // case.  if not, we'll add the reference we receive as the parameter to
@@ -50,6 +51,20 @@ class AgentCollectionFactory implements AgentCollectionFactoryInterface
         }
         
         return $collection;
+    }
+    
+    /**
+     * produceAgentCollectionInterface
+     *
+     * This method provides an easy way to override the default use of the
+     * AgentCollection object herein.  Just extend this object and override
+     * this method and you're good to go!
+     *
+     * @return AgentCollectionInterface
+     */
+    protected function produceAgentCollectionInstance (): AgentCollectionInterface
+    {
+        return new AgentCollection();
     }
     
     /**
