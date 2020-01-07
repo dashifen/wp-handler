@@ -9,15 +9,16 @@ use Dashifen\WPHandler\Handlers\Plugins\PluginHandlerInterface;
 /**
  * Class MenuItem
  *
+ * @property-read string   $pageTitle
+ * @property-read string   $menuTitle
+ * @property-read string   $menuSlug
+ * @property-read string   $capability
+ * @property-read string   $method
+ * @property-read callable $callable
+ * @property-read string   $iconUrl
+ * @property-read int      $position
+ *
  * @package Dashifen\WPHandler\Repositories\MenuItems
- * @property string   $pageTitle
- * @property string   $menuTitle
- * @property string   $menuSlug
- * @property string   $capability
- * @property string   $method
- * @property callable $callable
- * @property string   $iconUrl
- * @property int      $position
  */
 class MenuItem extends AbstractRepository implements MenuItemInterface
 {
@@ -27,13 +28,13 @@ class MenuItem extends AbstractRepository implements MenuItemInterface
     // based on the argument order to the WP core add_(sub)menu_item function.
     
     protected const WP_ARGUMENT_ORDER = [
-      "pageTitle",
-      "menuTitle",
-      "capability",
-      "menuSlug",
-      "callable",
-      "iconUrl",
-      "position"
+        "pageTitle",
+        "menuTitle",
+        "capability",
+        "menuSlug",
+        "callable",
+        "iconUrl",
+        "position"
     ];
     
     protected const OPTIONAL_ARGUMENTS = ["callable", "iconUrl", "position"];
@@ -91,7 +92,7 @@ class MenuItem extends AbstractRepository implements MenuItemInterface
      *
      * @throws RepositoryException
      */
-    public function __construct(PluginHandlerInterface $handler, array $data = [])
+    public function __construct (PluginHandlerInterface $handler, array $data = [])
     {
         $this->handler = $handler;
         
@@ -112,7 +113,7 @@ class MenuItem extends AbstractRepository implements MenuItemInterface
      *
      * @return array
      */
-    protected function getHiddenPropertyNames(): array
+    protected function getHiddenPropertyNames (): array
     {
         return ["handler"];
     }
@@ -121,12 +122,13 @@ class MenuItem extends AbstractRepository implements MenuItemInterface
      * getCustomPropertyDefaults
      *
      * Intended as a way to provide for functional defaults (e.g. the current
-     * date), extensions can override this function to return an array of default
-     * values for properties.  that array should be indexed by property names.
+     * date), extensions can override this function to return an array of
+     * default values for properties.  that array should be indexed by property
+     * names.
      *
      * @return array
      */
-    protected function getCustomPropertyDefaults(): array
+    protected function getCustomPropertyDefaults (): array
     {
         return [];
     }
@@ -139,7 +141,7 @@ class MenuItem extends AbstractRepository implements MenuItemInterface
      *
      * @return array
      */
-    protected function getRequiredProperties(): array
+    protected function getRequiredProperties (): array
     {
         return ['pageTitle', 'menuTitle', 'menuSlug', 'capability', 'method'];
     }
@@ -156,10 +158,10 @@ class MenuItem extends AbstractRepository implements MenuItemInterface
      *
      * @return array
      */
-    public function toArray(string $format = ARRAY_N): array
+    public function toArray (string $format = ARRAY_N): array
     {
         // we want to use the WP_ARGUMENT_ORDER constant to be sure that we
-        // return our properties in that order.  this is to ensure compatibility
+        // return our properties in that order.  this ensures compatibility
         // with the WP core add_menu_item() and add_submenu_item() functions.
         
         $properties = [];
@@ -168,21 +170,22 @@ class MenuItem extends AbstractRepository implements MenuItemInterface
         }
         
         return $format !== ARRAY_A
-          ? array_values($properties)
-          : $properties;
+            ? array_values($properties)
+            : $properties;
     }
     
     /**
      * getParentSlug
      *
-     * Returns an empty string because only the SubmenuItem class, an extension
-     * of this one, has a parent slug.
+     * Menu items don't have a parent slug, but the plugin handler needs to be
+     * able to call this method for both menu and submenu items.  So, here, we
+     * simply return the empty string to make our handlers happy.
      *
      * @return string
      */
-    public function getParentSlug(): string
+    public function getParentSlug (): string
     {
-        return "";
+        return '';
     }
     
     /**
@@ -193,13 +196,13 @@ class MenuItem extends AbstractRepository implements MenuItemInterface
      *
      * @return bool
      */
-    public function isComplete(): bool
+    public function isComplete (): bool
     {
         // for a menu item to be complete, the properties listed in the
-        // WP_ARGUMENT_ORDER constant must not be empty unless they're also listed
-        // listed in the OPTIONAL_ARGUMENTS constant.  we'll get the items in the
-        // former that aren't in the latter, loop over them, and return false if
-        // we find an empty one.
+        // WP_ARGUMENT_ORDER constant must not be empty unless they're also
+        // listed listed in the OPTIONAL_ARGUMENTS constant.  we'll get the
+        // items in the former that aren't in the latter, loop over them, and
+        // return false if we find an empty one.
         
         $properties = array_diff(static::WP_ARGUMENT_ORDER, static::OPTIONAL_ARGUMENTS);
         
@@ -223,7 +226,7 @@ class MenuItem extends AbstractRepository implements MenuItemInterface
      *
      * @return void
      */
-    public function setPageTitle(string $pageTitle): void
+    protected function setPageTitle (string $pageTitle): void
     {
         $this->pageTitle = $pageTitle;
         $this->setMenuTitle($pageTitle);
@@ -247,7 +250,7 @@ class MenuItem extends AbstractRepository implements MenuItemInterface
      *
      * @return void
      */
-    public function setMenuTitle(string $menuTitle): void
+    protected function setMenuTitle (string $menuTitle): void
     {
         $this->menuTitle = $menuTitle;
     }
@@ -261,7 +264,7 @@ class MenuItem extends AbstractRepository implements MenuItemInterface
      *
      * @return void
      */
-    public function setMenuSlug(string $menuSlug): void
+    protected function setMenuSlug (string $menuSlug): void
     {
         $this->menuSlug = $menuSlug;
     }
@@ -275,7 +278,7 @@ class MenuItem extends AbstractRepository implements MenuItemInterface
      *
      * @return void
      */
-    public function setCapability(string $capability): void
+    protected function setCapability (string $capability): void
     {
         $this->capability = $capability;
     }
@@ -289,7 +292,7 @@ class MenuItem extends AbstractRepository implements MenuItemInterface
      *
      * @return void
      */
-    public function setMethod(string $method): void
+    protected function setMethod (string $method): void
     {
         $this->setCallable($this->handler, $method);
         $this->method = $method;
@@ -305,7 +308,7 @@ class MenuItem extends AbstractRepository implements MenuItemInterface
      *
      * @return void
      */
-    public function setCallable(PluginHandlerInterface $object, string $method): void
+    protected function setCallable (PluginHandlerInterface $object, string $method): void
     {
         $this->callable = [$object, $method];
     }
@@ -319,7 +322,7 @@ class MenuItem extends AbstractRepository implements MenuItemInterface
      *
      * @return void
      */
-    public function setIconUrl(string $iconUrl): void
+    protected function setIconUrl (string $iconUrl): void
     {
         $this->iconUrl = $iconUrl;
     }
@@ -333,7 +336,7 @@ class MenuItem extends AbstractRepository implements MenuItemInterface
      *
      * @return void
      */
-    public function setPosition(int $position): void
+    protected function setPosition (int $position): void
     {
         // if we don't get a positive number, then we'll stick to our
         // default value of 26 which puts this item after the Comments

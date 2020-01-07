@@ -52,9 +52,9 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
      *
      * @throws HandlerException
      */
-    public function __construct(
-      ?HookFactoryInterface $hookFactory = null,
-      ?HookCollectionFactoryInterface $hookCollectionFactory = null
+    public function __construct (
+        ?HookFactoryInterface $hookFactory = null,
+        ?HookCollectionFactoryInterface $hookCollectionFactory = null
     ) {
         parent::__construct($hookFactory, $hookCollectionFactory);
         
@@ -62,27 +62,27 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
         $this->pluginDir = WP_PLUGIN_DIR . '/' . $directory;
         $this->pluginUrl = WP_PLUGIN_URL . '/' . $directory;
         
-        // we'll remove the HTTP protocol from our URL so that assets enqueued by
-        // this object are included into the DOM using the same protocol as the
-        // original HTTP request.  this avoids any mixed HTTP vs. HTTPS warnings
-        // that a browser might have otherwise thrown.
+        // we'll remove the HTTP protocol from our URL so that assets enqueued
+        // by this object are included into the DOM using the same protocol as
+        // the original HTTP request.  this avoids any mixed HTTP vs. HTTPS
+        // warnings that a browser might have otherwise thrown.
         
         $this->pluginUrl = preg_replace('/^https?:/', '', $this->pluginUrl);
         
-        // our plugin ID is the SHA1 hash of the static class name for this object.
-        // while it's possible that this might collide with another one, it's so
-        // unlikely that we're not going to worry too much about it.  plus, better
-        // hashes produce longer results, and WP recommends option names that are
-        // no more than 64 characters long.
+        // our plugin ID is the SHA1 hash of the static class name for this
+        // object. while it's possible that this might collide with another
+        // one, it's so unlikely that we're not going to worry too much about
+        // it.  plus, better hashes produce longer results, and WP recommends
+        // option names that are no more than 64 characters long.
         
         $this->pluginId = sha1(static::class);
         $this->setPluginFilename();
         
         // typically, a plugin should not remove options when deactivating, but
-        // there's no easy way to do so when the plugin is uninstalled from here.
-        // so, because we will have cached a few options related to this plugin
-        // we'll want to clean them up when we deactivate.  they'll be recreated
-        // if it's reactivated so it's not such a big deal this time.
+        // there's no easy way to do so when the plugin is uninstalled from
+        // here.  so, because we will have cached a few options related to this
+        // plugin we'll want to clean them up when we deactivate.  they'll be
+        // recreated if it's reactivated so it's not such a big deal this time.
         
         $this->registerDeactivationHook('uncachePluginFilename');
     }
@@ -98,12 +98,12 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
      *
      * @return string
      */
-    private function getCurrentDirectory(): string
+    private function getCurrentDirectory (): string
     {
         // to get the directory in which our object's concrete extension is
-        // defined, we use a reflection to get the filename.  then, we can use that
-        // to get its directory, explode that path, and return just the final
-        // directory in which our class resides.
+        // defined, we use a reflection to get the filename.  then, we can use
+        // that to get its directory, explode that path, and return just the
+        // final directory in which our class resides.
         
         $directory = dirname($this->handlerReflection->getFilename());
         $directoryParts = explode(DIRECTORY_SEPARATOR, $directory);
@@ -113,29 +113,31 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
     /**
      * setPluginFilename
      *
-     * Given a backtrace of the call stack that lead us here, identify the plugin
-     * definition file within that stack.  Note:  it may reside in a different
-     * folder from the one we identify using getCurrentDirectory.
+     * Given a backtrace of the call stack that lead us here, identify the
+     * plugin definition file within that stack.  Note:  it may reside in a
+     * different folder from the one we identify using getCurrentDirectory.
      *
      * @param array|null $backtrace
      *
      * @return void
      * @throws HandlerException
      */
-    private function setPluginFilename(?array $backtrace = null): void
+    private function setPluginFilename (?array $backtrace = null): void
     {
         if (is_null($backtrace)) {
-            // if a call stack backtrace wasn't provided, we'll create one here.
-            // we can skip function/method arguments because we're not using those
-            // data and doing so saves some memory.
+            
+            // if a call stack backtrace wasn't provided, we'll create one
+            // here.  we can skip function/method arguments because we're not
+            // using those data and doing so saves some memory.
             
             $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
         }
         
-        // because looping over the backtrace and opening files to check for the WP
-        // plugin header is an expensive prospect, we may have cached the filename
-        // that we previously identified in the database.  we'll try to rely on
-        // that and only do the more expensive search when we absolutely have to.
+        // because looping over the backtrace and opening files to check for
+        // the WP plugin header is an expensive prospect, we may have cached
+        // the filename that we previously identified in the database.  we'll
+        // try to rely on that and only do the more expensive search when we
+        // absolutely have to.
         
         $this->pluginFilename = $this->maybeGetPluginFilename();
         
@@ -148,39 +150,39 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
     /**
      * maybeGetPluginFilename
      *
-     * Returns a previously cached plugin filename or null if it's too old to use
-     * or doesn't exist.
+     * Returns a previously cached plugin filename or null if it's too old to
+     * use or doesn't exist.
      *
      * @return string|null
      */
-    private function maybeGetPluginFilename(): ?string
+    private function maybeGetPluginFilename (): ?string
     {
-        // if the last time that we stored our plugin filename is before the last
-        // time that our plugin class file was modified, then we're going to force
-        // this system to re-identify the plugin filename in case the larger
-        // structure of the plugin changed, too.  otherwise, we just return our
-        // cache or null if the cache is empty.
+        // if the last time that we stored our plugin filename is before the
+        // last time that our plugin class file was modified, then we're going
+        // to force this system to re-identify the plugin filename in case the
+        // larger structure of the plugin changed, too.  otherwise, we just
+        // return our cache or null if the cache is empty.
         
         $lastFileMod = filemtime($this->handlerReflection->getFileName());
         $timestamp = get_option($this->pluginId . '-pluginFilenameTimestamp', 0);
         
         return $timestamp > $lastFileMod
-          ? get_option($this->pluginId . '-pluginFilename', null)
-          : null;
+            ? get_option($this->pluginId . '-pluginFilename', null)
+            : null;
     }
     
     /**
      * findPluginFilename
      *
-     * Searches through a call stack backtrace looking for the file that defines
-     * our plugin using the WP plugin header.
+     * Searches through a call stack backtrace looking for the file that
+     * defines our plugin using the WP plugin header.
      *
      * @param array $backtrace
      *
      * @return string
      * @throws HandlerException
      */
-    private function findPluginFilename(array $backtrace): string
+    private function findPluginFilename (array $backtrace): string
     {
         // we assume that backtrace is the output of the debug_backtrace()
         // function.  if it's anything else, this probably won't work.
@@ -188,12 +190,14 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
         foreach ($backtrace as $trace) {
             $file = $trace['file'] ?? false;
             if ($file && $this->isPluginFile($file)) {
-                // if we're all the way in here, we've found our plugin definition
-                // file.  WordPress wants our plugin's filename to the directory in
-                // which it can be found followed by the actual filename.  so, to
-                // build a string that is <dir>/<filename> we break up $file by the
-                // directory separator, slice off the last two items, and then join
-                // them with an forward slash.  after we set our property, we're done.
+                
+                // if we're all the way in here, we've found our plugin file.
+                // WordPress wants our plugin's filename to the directory in
+                // which it can be found followed by the actual filename.  so,
+                // to build a string that is <dir>/<filename> we break up $file
+                // by the directory separator, slice off the last two items,
+                // and then join them with an forward slash.  after we set our
+                // property, we're done.
                 
                 $pathParts = explode(DIRECTORY_SEPARATOR, $file);
                 $filenameParts = array_slice($pathParts, -2);
@@ -202,9 +206,9 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
         }
         
         // if we make it here, then we somehow traveled all the way through our
-        // backtrace and did not find our plugin filename.  this shouldn't happen,
-        // but if it does, we'll throw an Exception and hope the programmer can
-        // fix it.
+        // backtrace and did not find our plugin filename.  this shouldn't
+        // happen, but if it does, we'll throw an Exception and hope the
+        // programmer can fix it.
         
         throw new HandlerException('Unable to identify plugin file');
     }
@@ -212,26 +216,27 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
     /**
      * isPluginFile
      *
-     * Checks within $file to see if it has the WordPress plugin header comment.
+     * Checks within $file to see if it has the WordPress plugin header
+     * comment.
      *
      * @param string $file
      *
      * @return bool
      */
-    private function isPluginFile(string $file): bool
+    private function isPluginFile (string $file): bool
     {
-        // here we read the first 8KB of our file.  why 8KB?  because that's what
-        // the core get_file_data() function does.  why don't we use that one?
-        // because it is not included (yet).
+        // here we read the first 8KB of our file.  why 8KB?  because that's
+        // what the core get_file_data() function does.  why don't we use that
+        // one?  because it is not included (yet).
         
         $fp = fopen($file, 'r');
         $data = fread($fp, 1024 * 8);
         fclose($fp);
         
-        // now, to determine if this is the plugin definition file, we look for the
-        // "Plugin Name:" string what we've read.  this is required by WordPress in
-        // order for our plugin to be a plugin; the other plugin header "tags"
-        // aren't.
+        // now, to determine if this is the plugin definition file, we look for
+        // the "Plugin Name:" string what we've read.  this is required by
+        // WordPress in order for our plugin to be a plugin; the other plugin
+        // header "tags" aren't.
         
         return strpos($data, 'Plugin Name:') !== false;
     }
@@ -244,12 +249,12 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
      *
      * @return void
      */
-    private function cachePluginFilename(): void
+    private function cachePluginFilename (): void
     {
         // we set the autoload flag for these options to true so that they're
         // selected along with the other autoloaded options.  since they'll be
-        // needed every time the plugin is needed, we save database query time by
-        // doing so.
+        // needed every time the plugin is needed, we save database query time
+        // by doing so.
         
         update_option($this->pluginId . '-pluginFilename', $this->pluginFilename, true);
         update_option($this->pluginId . '-pluginFilenameTimestamp', time(), true);
@@ -264,7 +269,7 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
      *
      * @return void
      */
-    protected function uncachePluginFilename(): void
+    protected function uncachePluginFilename (): void
     {
         delete_option($this->pluginId . '-pluginFilenameTimestamp');
         delete_option($this->pluginId . '-pluginFilename');
@@ -278,7 +283,7 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
      *
      * @return string
      */
-    public function getPluginFilename(): string
+    public function getPluginFilename (): string
     {
         return $this->pluginFilename;
     }
@@ -290,7 +295,7 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
      *
      * @return string
      */
-    public function getPluginDir(): string
+    public function getPluginDir (): string
     {
         return $this->pluginDir;
     }
@@ -302,7 +307,7 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
      *
      * @return string
      */
-    public function getPluginUrl(): string
+    public function getPluginUrl (): string
     {
         return $this->pluginUrl;
     }
@@ -321,7 +326,7 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
      *
      * @return string
      */
-    protected function enqueue(string $file, array $dependencies = [], $finalArg = null, string $url = "", string $dir = ""): string
+    protected function enqueue (string $file, array $dependencies = [], $finalArg = null, string $url = "", string $dir = ""): string
     {
         // our parent's enqueue function enqueues things that are in the
         // stylesheet's directory.  but that won't work for plugins.  we'll
@@ -350,7 +355,7 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
      * @return string
      * @throws HandlerException
      */
-    public function registerActivationHook(string $method): string
+    public function registerActivationHook (string $method): string
     {
         // WordPress's register_activation_hook() function simply attaches a
         // "normal" callable to the activate_<plugin-filename> hook.  so, all
@@ -371,7 +376,7 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
      * @return string
      * @throws HandlerException
      */
-    public function registerDeactivationHook(string $method): string
+    public function registerDeactivationHook (string $method): string
     {
         return $this->addAction('deactivate_' . $this->getPluginFilename(), $method);
     }
@@ -388,7 +393,7 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
      * @throws MenuItemException
      * @throws HandlerException
      */
-    final public function addMenuPage(MenuItem $menuItem): string
+    final public function addMenuPage (MenuItem $menuItem): string
     {
         // given a MenuItem we want to add it to WordPress.  we have to call
         // the WP Core add_menu_page() method first because whether or not the
@@ -414,24 +419,24 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
      * @throws MenuItemException
      * @throws HandlerException
      */
-    final private function hookMenuItem(MenuItem $menuItem): string
+    final private function hookMenuItem (MenuItem $menuItem): string
     {
         if (!$menuItem->isComplete()) {
             throw new MenuItemException(
-              'Attempt to use incomplete menu item',
-              MenuItemException::ITEM_NOT_READY
+                'Attempt to use incomplete menu item',
+                MenuItemException::ITEM_NOT_READY
             );
         }
         
         // WordPress uses the get_plugin_page_hookname() function to produce an
-        // unique action hook that is executed when a person clicks each menu item.
-        // it's created based on the menu and parent slugs for the item.  we'll
-        // call that same function here to produce the hook we need, then we can
-        // add it and the menu item's method to this Handler's list of Hooks.
-        // note that we get both MenuItem objects and their extension, SubmenuItem,
-        // here.  since the latter has a parent slug and the former does not, we
-        // use the getter for that property rather than reading it like a "normal"
-        // one.
+        // unique action hook that is executed when a person clicks each menu
+        // item.  it's created based on the menu and parent slugs for the item.
+        // we'll call that same function here to produce the hook we need, then
+        // we can add it and the menu item's method to this Handler's list of
+        // Hooks.  note that we get both MenuItem objects and their extension,
+        // SubmenuItem, here.  since the latter has a parent slug and the
+        // former does not, we use the getter for that property rather than
+        // reading it like a "normal" one.
         
         $displayHook = get_plugin_page_hookname($menuItem->menuSlug, $menuItem->getParentSlug());
         return $this->addAction($displayHook, $menuItem->method);
@@ -455,24 +460,25 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
      * @throws HandlerException
      * @throws MenuItemException
      */
-    final public function wpAddMenuPage(string $pageTitle, string $menuTitle, string $capability, string $menuSlug, string $method, string $iconUrl = "", ?int $position = null)
+    final public function wpAddMenuPage (string $pageTitle, string $menuTitle, string $capability, string $menuSlug, string $method, string $iconUrl = "", ?int $position = null)
     {
         try {
             $menuItem = new MenuItem(
-              $this, [
-              "pageTitle"  => $pageTitle,
-              "menuTitle"  => $menuTitle,
-              "capability" => $capability,
-              "menuSlug"   => $menuSlug,
-              "method"     => $method,
-              "iconUrl"    => $iconUrl,
-              "position"   => $position
-            ]
+                $this, [
+                    "pageTitle"  => $pageTitle,
+                    "menuTitle"  => $menuTitle,
+                    "capability" => $capability,
+                    "menuSlug"   => $menuSlug,
+                    "method"     => $method,
+                    "iconUrl"    => $iconUrl,
+                    "position"   => $position
+                ]
             );
         } catch (RepositoryException $e) {
-            // rather than throw our general RepositoryException, we'll "convert"
-            // it into a MenuItemException which is a little most specific for our
-            // purposes here.
+            
+            // rather than throw our general RepositoryException, we'll
+            // "convert" it into a MenuItemException which is a little most
+            // specific for our purposes here.
             
             throw new MenuItemException($e->getMessage(), $e->getCode(), $e);
         }
@@ -492,7 +498,7 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
      * @throws MenuItemException
      * @throws HandlerException
      */
-    final public function addSubmenuPage(SubmenuItem $submenuItem): string
+    final public function addSubmenuPage (SubmenuItem $submenuItem): string
     {
         // like addMenuPage, but this one gets a SubmenuItem.  as before, the
         // action hook used to execute the submenu item's callback will be
@@ -521,22 +527,23 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
      * @throws MenuItemException
      * @throws HandlerException
      */
-    public function wpAddSubmenuPage(string $parentSlug, string $pageTitle, string $menuTitle, string $capability, string $menuSlug, string $method): string
+    public function wpAddSubmenuPage (string $parentSlug, string $pageTitle, string $menuTitle, string $capability, string $menuSlug, string $method): string
     {
         try {
             $submenuItem = new SubmenuItem(
-              $this, [
-              "parentSlug" => $parentSlug,
-              "pageTitle"  => $pageTitle,
-              "menuTitle"  => $menuTitle,
-              "capability" => $capability,
-              "menuSlug"   => $menuSlug,
-            ]
+                $this, [
+                    "parentSlug" => $parentSlug,
+                    "pageTitle"  => $pageTitle,
+                    "menuTitle"  => $menuTitle,
+                    "capability" => $capability,
+                    "menuSlug"   => $menuSlug,
+                ]
             );
         } catch (RepositoryException $e) {
-            // rather than throw our general RepositoryException, we'll "convert"
-            // it into a MenuItemException which is a little most specific for our
-            // purposes here.
+            
+            // rather than throw our general RepositoryException, we'll
+            // "convert" it into a MenuItemException which is a little most
+            // specific for our purposes here.
             
             throw new MenuItemException($e->getMessage(), $e->getCode(), $e);
         }
@@ -556,12 +563,13 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
      * @throws MenuItemException
      * @throws HandlerException
      */
-    final public function addDashboardPage(SubmenuItem $submenuItem): string
+    final public function addDashboardPage (SubmenuItem $submenuItem): string
     {
         // the purpose of this and the following methods is to provide similar
         // methods to the WordPress core functions of similar name mostly for
-        // completeness.  they all add the required parent slug to our $submenuItem
-        // parameter and then pass it over to the addSubmenuPage() method.
+        // completeness.  they all add the required parent slug to our
+        // $submenuItem parameter and then pass it over to the addSubmenuPage()
+        // method.
         
         $submenuItem->setParentSlug("index.php");
         return $this->addSubmenuPage($submenuItem);
@@ -579,7 +587,7 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
      * @throws MenuItemException
      * @throws HandlerException
      */
-    final public function addPostsPage(SubmenuItem $submenuItem): string
+    final public function addPostsPage (SubmenuItem $submenuItem): string
     {
         $submenuItem->setParentSlug("edit.php");
         return $this->addSubmenuPage($submenuItem);
@@ -597,7 +605,7 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
      * @throws MenuItemException
      * @throws HandlerException
      */
-    final public function addMediaPage(SubmenuItem $submenuItem): string
+    final public function addMediaPage (SubmenuItem $submenuItem): string
     {
         $submenuItem->setParentSlug("upload.php");
         return $this->addSubmenuPage($submenuItem);
@@ -615,7 +623,7 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
      * @throws MenuItemException
      * @throws HandlerException
      */
-    final public function addCommentsPage(SubmenuItem $submenuItem): string
+    final public function addCommentsPage (SubmenuItem $submenuItem): string
     {
         $submenuItem->setParentSlug("edit-comments.php");
         return $this->addSubmenuPage($submenuItem);
@@ -633,7 +641,7 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
      * @throws MenuItemException
      * @throws HandlerException
      */
-    final public function addThemePage(SubmenuItem $submenuItem): string
+    final public function addThemePage (SubmenuItem $submenuItem): string
     {
         $submenuItem->setParentSlug("themes.php");
         return $this->addSubmenuPage($submenuItem);
@@ -652,7 +660,7 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
      * @throws MenuItemException
      * @throws HandlerException
      */
-    final public function addAppearancePage(SubmenuItem $submenuItem): string
+    final public function addAppearancePage (SubmenuItem $submenuItem): string
     {
         return $this->addThemePage($submenuItem);
     }
@@ -669,7 +677,7 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
      * @throws MenuItemException
      * @throws HandlerException
      */
-    final public function addPluginsPage(SubmenuItem $submenuItem): string
+    final public function addPluginsPage (SubmenuItem $submenuItem): string
     {
         $submenuItem->setParentSlug("plugins.php");
         return $this->addSubmenuPage($submenuItem);
@@ -687,7 +695,7 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
      * @throws MenuItemException
      * @throws HandlerException
      */
-    final public function addUsersPage(SubmenuItem $submenuItem): string
+    final public function addUsersPage (SubmenuItem $submenuItem): string
     {
         $submenuItem->setParentSlug("users.php");
         return $this->addSubmenuPage($submenuItem);
@@ -705,7 +713,7 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
      * @throws MenuItemException
      * @throws HandlerException
      */
-    final public function addManagementPage(SubmenuItem $submenuItem): string
+    final public function addManagementPage (SubmenuItem $submenuItem): string
     {
         $submenuItem->setParentSlug("tools.php");
         return $this->addSubmenuPage($submenuItem);
@@ -723,7 +731,7 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
      * @throws MenuItemException
      * @throws HandlerException
      */
-    final public function addToolsPage(SubmenuItem $submenuItem): string
+    final public function addToolsPage (SubmenuItem $submenuItem): string
     {
         return $this->addManagementPage($submenuItem);
     }
@@ -740,7 +748,7 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
      * @throws MenuItemException
      * @throws HandlerException
      */
-    final public function addOptionsPage(SubmenuItem $submenuItem): string
+    final public function addOptionsPage (SubmenuItem $submenuItem): string
     {
         $submenuItem->setParentSlug("options-general.php");
         return $this->addSubmenuPage($submenuItem);
@@ -758,9 +766,28 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
      * @throws MenuItemException
      * @throws HandlerException
      */
-    final public function addSettingsPage(SubmenuItem $submenuItem): string
+    final public function addSettingsPage (SubmenuItem $submenuItem): string
     {
         return $this->addOptionsPage($submenuItem);
+    }
+    
+    /**
+     * addNetworkSettingsPage
+     *
+     * A method similar to the others but that makes explicit that this submenu
+     * item will be added to the Network settings page, not the individual site
+     * settings.
+     *
+     * @param SubmenuItem $submenuItem
+     *
+     * @return string
+     * @throws MenuItemException
+     * @throws HandlerException
+     */
+    final public function addNetworkSettingsPage (SubmenuItem $submenuItem): string
+    {
+        $submenuItem->setParentSlug("settings.php");
+        return $this->addSubmenuPage($submenuItem);
     }
     
     /**
@@ -776,7 +803,7 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
      * @throws MenuItemException
      * @throws HandlerException
      */
-    final public function addPostTypePage(string $postType, SubmenuItem $submenuItem): string
+    final public function addPostTypePage (string $postType, SubmenuItem $submenuItem): string
     {
         $submenuItem->setParentSlug("edit.php?post_type=" . $postType);
         return $this->addSubmenuPage($submenuItem);
@@ -794,7 +821,7 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
      * @throws MenuItemException
      * @throws HandlerException
      */
-    final public function addPagesPage(SubmenuItem $submenuItem): string
+    final public function addPagesPage (SubmenuItem $submenuItem): string
     {
         return $this->addPostTypePage("page", $submenuItem);
     }

@@ -11,8 +11,9 @@ interface MenuItemInterface extends RepositoryInterface
      *
      * While we don't usually list getters in interfaces, this one is a little
      * unique because MenuItems don't have a parent slug while SubmenuItems do.
-     * Both of those objects implement this interface, so we thought it best
-     * to be explicit that both objects have this getter.
+     * Since plugin handlers need that information, we'll force menu items to
+     * implement this getter to be sure that there's a consistent interface
+     * regardless of the existence of an item's parent.
      *
      * @return string
      */

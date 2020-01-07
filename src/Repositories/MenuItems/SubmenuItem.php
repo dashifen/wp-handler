@@ -8,14 +8,9 @@ use Dashifen\WPHandler\Handlers\Plugins\PluginHandlerInterface;
 /**
  * Class MenuItem
  *
+ * @property-read string $parentSlug
+ *
  * @package Dashifen\WPHandler\Repositories\MenuItems
- * @property string   $pageTitle
- * @property string   $menuTitle
- * @property string   $parentSlug
- * @property string   $menuSlug
- * @property string   $capability
- * @property string   $method
- * @property callable $callable
  */
 class SubmenuItem extends MenuItem
 {
@@ -26,12 +21,12 @@ class SubmenuItem extends MenuItem
     // that array to call add_submenu_page().
     
     protected const WP_ARGUMENT_ORDER = [
-      "parentSlug",
-      "pageTitle",
-      "menuTitle",
-      "capability",
-      "menuSlug",
-      "callable"
+        "parentSlug",
+        "pageTitle",
+        "menuTitle",
+        "capability",
+        "menuSlug",
+        "callable"
     ];
     
     /**
@@ -47,7 +42,7 @@ class SubmenuItem extends MenuItem
      *
      * @throws RepositoryException
      */
-    public function __construct(PluginHandlerInterface $handler, array $data = [])
+    public function __construct (PluginHandlerInterface $handler, array $data = [])
     {
         parent::__construct($handler, $data);
     }
@@ -61,33 +56,21 @@ class SubmenuItem extends MenuItem
      *
      * @return array
      */
-    protected function getHiddenPropertyNames(): array
+    protected function getHiddenPropertyNames (): array
     {
         return array_merge(parent::getHiddenPropertyNames(), ["iconUrl", "position"]);
     }
     
     /**
-     * getRequiredProperties
-     *
-     * Returns an array of property names that must be non-empty after
-     * construction.
-     *
-     * @return array
-     */
-    protected function getRequiredProperties(): array
-    {
-        return array_merge(parent::getRequiredProperties(), ['parentSlug']);
-    }
-    
-    
-    /**
      * setParentSlug
      *
-     * Sets the parent slug property.
+     * Sets the parent slug property.  This method is public to facilitate its
+     * use from within handlers using methods like addAppearancePage to avoid
+     * having to specify the slug by hand when using addSubmenuPage.
      *
      * @param string $parentSlug
      */
-    public function setParentSlug(string $parentSlug): void
+    public function setParentSlug (string $parentSlug): void
     {
         $this->parentSlug = $parentSlug;
     }
@@ -95,11 +78,15 @@ class SubmenuItem extends MenuItem
     /**
      * getParentSlug
      *
-     * Returns the value of the parent slug property.
+     * Typically, we'd provide access to parentSlug using the arrow operator
+     * only like other Repositories.  But, in this case, plugin handlers need
+     * to access this method for both menu and submenu items, the former of
+     * which doesn't actually have this property.  Hence, we use an explicit
+     * getter here.
      *
      * @return string
      */
-    public function getParentSlug(): string
+    public function getParentSlug (): string
     {
         return $this->parentSlug;
     }
@@ -114,11 +101,11 @@ class SubmenuItem extends MenuItem
      *
      * @throws MenuItemException
      */
-    public function setIconUrl(string $iconUrl): void
+    protected function setIconUrl (string $iconUrl): void
     {
         throw new MenuItemException(
-          "Submenu items don't have icons.",
-          MenuItemException::ATTEMPT_TO_SET_SUBMENU_ICON
+            "Submenu items don't have icons.",
+            MenuItemException::ATTEMPT_TO_SET_SUBMENU_ICON
         );
     }
     
@@ -132,11 +119,11 @@ class SubmenuItem extends MenuItem
      *
      * @throws MenuItemException
      */
-    public function setPosition(int $position): void
+    protected function setPosition (int $position): void
     {
         throw new MenuItemException(
-          "Submenu items don't have positions.",
-          MenuItemException::ATTEMPT_TO_SET_SUBMENU_POSITION
+            "Submenu items don't have positions.",
+            MenuItemException::ATTEMPT_TO_SET_SUBMENU_POSITION
         );
     }
 }
