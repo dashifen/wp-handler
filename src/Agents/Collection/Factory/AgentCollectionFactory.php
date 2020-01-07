@@ -86,7 +86,8 @@ class AgentCollectionFactory implements AgentCollectionFactoryInterface
      */
     private function addHandler (array $parameters, HandlerInterface $handler): array
     {
-        return array_merge([$handler], $parameters);
+        array_unshift($parameters, $handler);
+        return $parameters;
     }
     
     /**
