@@ -32,17 +32,20 @@ class AgentCollectionFactory implements AgentCollectionFactoryInterface
         $collection = new AgentCollection();
         
         foreach ($this->agentDefinitions as $agentDefinition) {
-            // the first parameter sent to our agents' constructors must be their
-            // handler.  so, before we instantiate anything, we'll see if that's the
-            // case.  if not, we'll add the reference we receive as the parameter to
-            // this method.  this allows people to register an agent with or without
-            // the handler reference based on their preference and we'll make sure it
-            // all works out here.
+            
+            // an agent constructor's first parameter is that agent's handler.
+            // but, for convenience, we let definitions skip that one if the
+            // programmer wants to.  therefore, here we must check to see if
+            // the agent definition has a reference to its handler and, if not,
+            // use our handler parameter to add one.  just in case teh array of
+            // this agent's parameters is empty, notice we use a stdClass
+            // object and the null coalescing operator to avoid errors.
             
             $parameters = $agentDefinition->parameters;
-            $firstParam = $parameters[0] ?? new stdClass();
-            if (!in_array(HandlerInterface::class, class_implements($firstParam))) {
-                $parameters = array_merge([$handler], $parameters);
+            $firstParameter = $parameters[0] ?? new stdClass();
+            
+            if (!$this->isHandler($firstParameter)) {
+                $parameters = $this->addHandler($parameters, $handler);
             }
             
             $instance = new $agentDefinition->agent(...$parameters);
@@ -50,6 +53,40 @@ class AgentCollectionFactory implements AgentCollectionFactoryInterface
         }
         
         return $collection;
+    }
+    
+    /**
+     * isHandler
+     *
+     * Returns true if this object is a handler.
+     *
+     * @param object $maybeHandler
+     *
+     * @return bool
+     */
+    private function isHandler (object $maybeHandler): bool
+    {
+        // all handlers must, eventually, implement the HandlerInterface.  so,
+        // if we can find it in our parameter's interfaces, we know that this
+        // one is good to go.
+        
+        return in_array(HandlerInterface::class, class_implements($maybeHandler));
+    }
+    
+    /**
+     * addHandler
+     *
+     * Adds the HandlerInterface reference to the front of the parameters
+     * array.
+     *
+     * @param array            $parameters
+     * @param HandlerInterface $handler
+     *
+     * @return array
+     */
+    private function addHandler (array $parameters, HandlerInterface $handler): array
+    {
+        return array_merge([$handler], $parameters);
     }
     
     /**
@@ -99,8 +136,8 @@ class AgentCollectionFactory implements AgentCollectionFactoryInterface
     {
         // since we can't type hint the values within our parameter array, we
         // walk $agents and pass them to registerAgent() above.  then, its type
-        // hint will throw a PHP error if someone passes something other than an
-        // AgentDefinition here.
+        // hint will throw a PHP error if someone passes something other than
+        // an AgentDefinition here.
         
         array_walk($agents, [$this, 'registerAgentDefinition']);
     }

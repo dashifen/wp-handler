@@ -9,9 +9,10 @@ use Dashifen\WPHandler\Agents\AgentInterface;
 /**
  * Class AgentDefinition
  *
- * @package Dashifen\WPHandler\Repositories
  * @property-read string $agent
  * @property-read array  $parameters;
+ *
+ * @package Dashifen\WPHandler\Repositories
  */
 class AgentDefinition extends Repository
 {
