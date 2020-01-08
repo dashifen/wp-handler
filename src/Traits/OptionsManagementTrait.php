@@ -10,7 +10,11 @@ use Dashifen\Transformer\StorageTransformer\StorageTransformerInterface;
  *
  * Provides methods for the getting and updating of Handler's options as well
  * as a mechanism for storing option values in memory rather than frequently
- * selecting them from the database.
+ * selecting them from the database.  Note:  this trait is incompatible with
+ * the NetworkOptionsManagementTrait because it uses this one and simply
+ * overrides methods as necessary.  It is, therefore, recommended that you make
+ * two objects, one for single-site options and another for network ones, if
+ * you're working on something that needs both.
  *
  * @property StorageTransformerInterface $transformer
  *
