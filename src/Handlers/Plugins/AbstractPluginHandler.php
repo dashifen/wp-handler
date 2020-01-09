@@ -124,15 +124,6 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
      */
     private function setPluginFilename (?array $backtrace = null): void
     {
-        if (is_null($backtrace)) {
-            
-            // if a call stack backtrace wasn't provided, we'll create one
-            // here.  we can skip function/method arguments because we're not
-            // using those data and doing so saves some memory.
-            
-            $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
-        }
-        
         // because looping over the backtrace and opening files to check for
         // the WP plugin header is an expensive prospect, we may have cached
         // the filename that we previously identified in the database.  we'll
@@ -142,6 +133,15 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
         $this->pluginFilename = $this->maybeGetPluginFilename();
         
         if (is_null($this->pluginFilename)) {
+            if (is_null($backtrace)) {
+        
+                // if a call stack backtrace wasn't provided, we'll create one
+                // here.  we can skip function/method arguments because we're not
+                // using those data and doing so saves some memory.
+        
+                $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
+            }
+    
             $this->pluginFilename = $this->findPluginFilename($backtrace);
             $this->cachePluginFilename();
         }
