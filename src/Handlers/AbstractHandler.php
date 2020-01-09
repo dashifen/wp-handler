@@ -67,38 +67,40 @@ abstract class AbstractHandler implements HandlerInterface
         ?HookFactoryInterface $hookFactory = null,
         ?HookCollectionFactoryInterface $hookCollectionFactory = null
     ) {
-        // likely, the vast majority of situations will not require behaviors other
-        // than those that are defined in the HookFactory and HookCollectionFactory
-        // objects.  therefore, we default our parameters to null and, if we still
-        // have nulls herein, we use the null coalescing operator to construct the
-        // default objects as needed.
+        // the vast majority of situations will not require behaviors other
+        // than those defined in the HookFactory and HookCollectionFactory
+        // objects.  therefore, we default our parameters to null and, if we
+        // still have nulls herein, we use the null coalescing operator to
+        // construct the default objects as needed.
         
         $this->hookFactory = $hookFactory ?? new HookFactory();
-        
-        // from this abstract class descends all of our Handlers and Agents, each
-        // of which should have their own hook collection, we don't pass around the
-        // collection itself, we pass the factory which makes them.  that way,
-        // every Handler and all of its Agents gets their own collection rather
-        // than trying to share a single one.  then, we store the factory locally,
-        // too, because any Agents this Handler employs will need it, too.
-        
         $hookCollectionFactory = $hookCollectionFactory ?? new HookCollectionFactory();
         $this->hookCollection = $hookCollectionFactory->produceHookCollection();
+        
+        // to make sure that each of our agents gets their own hook collection
+        // of the same type as we do, we store a reference to our factory here.
+        // then, agents can also use it to produce hook collections of their
+        // own.  this ensures that the methods they hook into the WordPress
+        // ecosystem can live in their own scope.
+    
         $this->hookCollectionFactory = $hookCollectionFactory;
         
         try {
-            // within this class and it's extensions, we often need to know about our
-            // methods or the location of our definition files.  the easiest (only?)
-            // way to do this is with Reflection.  newer versions of PHP make them
-            // much faster, but we still don't want to reflect over and over again.
-            // so, we'll do reflect now and keep a reference to it in our properties.
+            
+            // within this class and it's extensions, we often need to know
+            // about our methods or the location of our definition files.  the
+            // easiest (only?) way to do this is with Reflection.  newer
+            // versions of PHP make them much faster, but we still don't want
+            // to reflect over and over again.  so, we'll do reflect now and
+            // keep a reference to it in our properties.
             
             $this->handlerReflection = new ReflectionClass($this);
         } catch (ReflectionException $e) {
-            // since we're reflecting $this and, therefore, the class should already
-            // be in memory, we should never get here.  but, if we do, it's pretty
-            // much a total failure to thrive.  we'll raise an error and hope the
-            // programmer can take it from here.
+            
+            // since we're reflecting $this and, therefore, the class should
+            // already be in memory, we should never get here.  but, if we do,
+            // it's pretty much a total failure to thrive.  we'll raise an
+            // error and hope the programmer can take it from here.
             
             trigger_error('Unable to reflect ' . static::class, E_USER_ERROR);
         }
@@ -119,9 +121,10 @@ abstract class AbstractHandler implements HandlerInterface
     public function __call(string $method, array $arguments)
     {
         // getting here should only happen via WordPress callbacks and only for
-        // MethodHooks;  closures aren't a part of an object so they won't ever get
-        // called like this.  once we get here, we want to see if there's a method
-        // in our hook collection that corresponds to this action and priority.
+        // MethodHooks;  closures aren't a part of an object so they won't ever
+        // get called like this.  once we get here, we want to see if there's a
+        // method in our hook collection that corresponds to this action and
+        // priority.
         
         $action = current_action();
         
@@ -134,17 +137,19 @@ abstract class AbstractHandler implements HandlerInterface
         
         $priority = has_filter($action, [$this, $method]);
         $hookIndex = $this->hookFactory->produceHookIndex($action, $this, $method, $priority);
-        if (!$this->hookCollection->has($hookIndex)) {
-            // if we're in here, then we don't have a Hook that exactly matches
-            // this method, action, and priority combination.  since we're about
-            // to crash out of things anyway, we'll see if we can help the
-            // programmer identify the problem.
+        if (!isset($this->hookCollection[$hookIndex])) {
             
-            foreach ($this->hookCollection->getAll() as $hook) {
+            // if we're in here, then we don't have a Hook that exactly matches
+            // this method, action, and priority combination.  since we're
+            // about to crash out of things anyway, we'll see if we can help
+            // the programmer identify the problem.
+            
+            foreach ($this->hookCollection as $hook) {
                 if ($hook->method === $method) {
-                    // well, we just found a hook using this method, so the problem
-                    // must be that we're at the wrong action or priority.  let's see
-                    // if which it is.
+                    
+                    // well, we just found a hook using this method, so the
+                    // problem must be that we're at the wrong action or
+                    // priority.  let's see if which it is.
                     
                     if ($hook->hook !== $action) {
                         throw new HandlerException(
@@ -161,10 +166,10 @@ abstract class AbstractHandler implements HandlerInterface
                     }
                 }
                 
-                // if we looped over all of our hooked methods and never threw any of
-                // the above exceptions, then the only remaining option is that the
-                // method was never hooked the first place.  we have an exception for
-                // that, too.
+                // if we looped over all of our hooked methods and never threw
+                // any of the above exceptions, then the only remaining option
+                // is that the method was never hooked the first place.  we
+                // have an exception for that, too.
                 
                 throw new HandlerException(
                     "Unhooked method: $method.",
@@ -179,7 +184,7 @@ abstract class AbstractHandler implements HandlerInterface
         // do something to/with unexpected parameters.  so, before we call our
         // method, we use array_slice to remove extra arguments.
     
-        $hook = $this->hookCollection->get($hookIndex);
+        $hook = $this->hookCollection[$hookIndex];
         $arguments = array_slice($arguments, 0, $hook->argumentCount);
         return $this->{$method}(...$arguments);
     }
@@ -270,8 +275,9 @@ abstract class AbstractHandler implements HandlerInterface
     public function setAgentCollection(AgentCollectionFactoryInterface $agentCollectionFactory): void
     {
         // and this is why we have a setter for our agent collection and don't
-        // define an agent collection factory as a dependency of our constructor:
-        // the factory needs to know who the handler will be for its agents.
+        // define an agent collection factory as a dependency of our
+        // constructor:  the factory needs to know who the handler will be for
+        // its agents.
         
         $this->agentCollection = $agentCollectionFactory->produceAgentCollection($this);
     }
@@ -309,7 +315,7 @@ abstract class AbstractHandler implements HandlerInterface
         // in sequence.
         
         if ($this->agentCollection instanceof AgentCollectionInterface) {
-            foreach ($this->agentCollection->getAll() as $agent) {
+            foreach ($this->agentCollection as $agent) {
                 $agent->initialize();
             }
         }
@@ -431,21 +437,31 @@ abstract class AbstractHandler implements HandlerInterface
      *
      * @return void
      * @throws HandlerException
+     *
+     * The HookCollectionException is thrown within the ArrayAccess offsetSet
+     * method.  That's not apparent to Dash's IDE so they've suppressed the
+     * warning about it not being thrown using the following @noinspection
+     * override.
+     *
+     * @noinspection PhpRedundantCatchClauseInspection
      */
     private function addHookToCollection(string $hook, $callback, int $priority, int $arguments): void
     {
         try {
-            // to add a hook to our collection, we need the index it'll use therein
-            // and the actually HookInterface implementation that we store.  we make
-            // those and then pass them to our collection's set method.
+            
+            // to add a hook to our collection, we need the index it'll use
+            // therein and the actually HookInterface implementation that we
+            // store.  we make those and then pass them to our collection's set
+            // method.
             
             $hookIndex = $this->hookFactory->produceHookIndex($hook, $this, $callback, $priority);
             $hookObject = $this->hookFactory->produceHook($hook, $this, $callback, $priority, $arguments);
-            $this->hookCollection->set($hookIndex, $hookObject);
+            $this->hookCollection[$hookIndex] = $hookObject;
         } catch (HookCollectionException | HookException $exception) {
-            // to make things easier on the calling scope, we'll "merge" the two
-            // types of exceptions thrown by the hook collection here into a single
-            // type:  our HandlerException.
+            
+            // to make things easier on the calling scope, we'll "merge" the
+            // two types of exceptions thrown by the hook collection here into
+            // a single type:  our HandlerException.
             
             throw new HandlerException(
                 $exception->getMessage(),
@@ -488,7 +504,7 @@ abstract class AbstractHandler implements HandlerInterface
     private function removeHookFromCollection(string $hook, string $method, int $priority): void
     {
         $hookIndex = $this->hookFactory->produceHookIndex($hook, $this, $method, $priority);
-        $this->hookCollection->reset($hookIndex);
+        unset($this->hookCollection[$hookIndex]);
     }
     
     /**
@@ -515,8 +531,8 @@ abstract class AbstractHandler implements HandlerInterface
         
         $this->addHookToCollection($hook, $callback, $priority, $arguments);
         
-        // based on the type of $callback, we can handle the arguments to the WP
-        // add_filter function like we did in addAction above.
+        // based on the type of $callback, we can handle the arguments to the
+        // WP add_filter function like we did in addAction above.
         
         return is_string($callback)
             ? add_filter($hook, [$this, $callback], $priority, $arguments)
@@ -527,8 +543,8 @@ abstract class AbstractHandler implements HandlerInterface
      * removeFilter
      *
      * Removes a filter from WP and the record of the Hook from our collection.
-     * Note:  closures cannot be removed at this time because closures cannot be
-     * removed using WP's remove_filter.
+     * Note:  closures cannot be removed at this time because closures cannot
+     * be removed using WP's remove_filter.
      *
      * @param string $hook
      * @param string $method
@@ -545,9 +561,9 @@ abstract class AbstractHandler implements HandlerInterface
     /**
      * debug
      *
-     * Given stuff, print information about it and then die() if the $die flag is
-     * set.  Typically, this only works when the isDebug() method returns true,
-     * but the $force parameter will override this behavior.
+     * Given stuff, print information about it and then die() if the $die flag
+     * is set.  Typically, this only works when the isDebug() method returns
+     * true, but the $force parameter will override this behavior.
      *
      * @param mixed $stuff
      * @param bool  $die

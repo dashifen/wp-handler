@@ -6,7 +6,6 @@ use stdClass;
 use Dashifen\Repository\RepositoryException;
 use Dashifen\WPHandler\Handlers\HandlerInterface;
 use Dashifen\WPHandler\Agents\Collection\AgentCollection;
-use Dashifen\WPHandler\Agents\Collection\AgentCollectionException;
 use Dashifen\WPHandler\Agents\Collection\AgentCollectionInterface;
 use Dashifen\WPHandler\Repositories\AgentDefinition\AgentDefinition;
 
@@ -25,12 +24,10 @@ class AgentCollectionFactory implements AgentCollectionFactoryInterface
      * @param HandlerInterface $handler
      *
      * @return AgentCollectionInterface
-     * @throws AgentCollectionException
      */
     public function produceAgentCollection (HandlerInterface $handler): AgentCollectionInterface
     {
-        $collection = new AgentCollection();
-        
+        $collection = $this->produceAgentCollectionInstance();
         foreach ($this->agentDefinitions as $agentDefinition) {
             
             // an agent constructor's first parameter is that agent's handler.
@@ -49,10 +46,24 @@ class AgentCollectionFactory implements AgentCollectionFactoryInterface
             }
             
             $instance = new $agentDefinition->agent(...$parameters);
-            $collection->set($agentDefinition->agent, $instance);
+            $collection[$agentDefinition->agent] = $instance;
         }
         
         return $collection;
+    }
+    
+    /**
+     * produceAgentCollectionInstance
+     *
+     * Returns an object implementing the AgentCollectionInterface to the
+     * calling scope.  Separating this from other contexts allows it to be
+     * easily overridden to produce objects other than the default.
+     *
+     * @return AgentCollectionInterface
+     */
+    protected function produceAgentCollectionInstance (): AgentCollectionInterface
+    {
+        return new AgentCollection();
     }
     
     /**

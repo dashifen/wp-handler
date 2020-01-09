@@ -56,7 +56,7 @@ trait OptionsManagementTrait
      * @return mixed
      * @throws HandlerException
      */
-    protected function getOption (string $option, $default = '', bool $transform = true)
+    public function getOption (string $option, $default = '', bool $transform = true)
     {
         if ($this->isOptionCached($option)) {
             return $this->getCachedOption($option);

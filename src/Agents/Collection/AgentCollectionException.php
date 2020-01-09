@@ -6,5 +6,5 @@ use Dashifen\Exception\Exception;
 
 class AgentCollectionException extends Exception
 {
-    public const KEY_EXISTS = 1;
+    public const NOT_AN_AGENT = 1;
 }
