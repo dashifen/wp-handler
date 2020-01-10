@@ -33,14 +33,6 @@ class AgentCollectionFactory implements AgentCollectionFactoryInterface
         
         foreach ($this->agentDefinitions as $agentDefinition) {
             
-<<<<<<< HEAD
-            // the first parameter sent to our agents' constructors must be their
-            // handler.  so, before we instantiate anything, we'll see if that's the
-            // case.  if not, we'll add the reference we receive as the parameter to
-            // this method.  this allows people to register an agent with or without
-            // the handler reference based on their preference and we'll make sure it
-            // all works out here.
-=======
             // an agent constructor's first parameter is that agent's handler.
             // but, for convenience, we let definitions skip that one if the
             // programmer wants to.  therefore, here we must check to see if
@@ -48,7 +40,6 @@ class AgentCollectionFactory implements AgentCollectionFactoryInterface
             // use our handler parameter to add one.  just in case teh array of
             // this agent's parameters is empty, notice we use a stdClass
             // object and the null coalescing operator to avoid errors.
->>>>>>> 4797760c1156f02bdd9c6d325ab72311d8c943f5
             
             $parameters = $agentDefinition->parameters;
             $firstParameter = $parameters[0] ?? new stdClass();
@@ -65,7 +56,6 @@ class AgentCollectionFactory implements AgentCollectionFactoryInterface
     }
     
     /**
-<<<<<<< HEAD
      * produceAgentCollectionInterface
      *
      * This method provides an easy way to override the default use of the
@@ -77,7 +67,9 @@ class AgentCollectionFactory implements AgentCollectionFactoryInterface
     protected function produceAgentCollectionInstance (): AgentCollectionInterface
     {
         return new AgentCollection();
-=======
+    }
+    
+    /**
      * isHandler
      *
      * Returns true if this object is a handler.
@@ -109,7 +101,6 @@ class AgentCollectionFactory implements AgentCollectionFactoryInterface
     private function addHandler (array $parameters, HandlerInterface $handler): array
     {
         return array_merge([$handler], $parameters);
->>>>>>> 4797760c1156f02bdd9c6d325ab72311d8c943f5
     }
     
     /**
