@@ -4,20 +4,57 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "b2136f784e3e8b6f47dc4f19c389cbd4",
+    "content-hash": "b88267386f9e8c52838ef400ac5a02e4",
     "packages": [
         {
-            "name": "dashifen/exception",
-            "version": "1.1.2",
+            "name": "dashifen/collection",
+            "version": "1.0.0",
             "source": {
                 "type": "git",
-                "url": "https://github.com/dashifen/exception.git",
-                "reference": "c900fdd58f4b50562810b9930d1f5c52b64da28b"
+                "url": "https://github.com/dashifen/collection.git",
+                "reference": "03ba9bddc0ce0cae3e6e38148ae83f18b1c53a02"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/dashifen/exception/zipball/c900fdd58f4b50562810b9930d1f5c52b64da28b",
-                "reference": "c900fdd58f4b50562810b9930d1f5c52b64da28b",
+                "url": "https://api.github.com/repos/dashifen/collection/zipball/03ba9bddc0ce0cae3e6e38148ae83f18b1c53a02",
+                "reference": "03ba9bddc0ce0cae3e6e38148ae83f18b1c53a02",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=7.1"
+            },
+            "type": "project",
+            "autoload": {
+                "psr-4": {
+                    "Dashifen\\Collection\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "David Dashifen Kees",
+                    "email": "dashifen@dashifen.com",
+                    "role": "developer"
+                }
+            ],
+            "description": "An abstract object from which concrete collections can be built.",
+            "time": "2020-01-11T11:15:44+00:00"
+        },
+        {
+            "name": "dashifen/exception",
+            "version": "1.2.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/dashifen/exception.git",
+                "reference": "e795e1d973e9f781eb3a8371b6299c852eef9bc1"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/dashifen/exception/zipball/e795e1d973e9f781eb3a8371b6299c852eef9bc1",
+                "reference": "e795e1d973e9f781eb3a8371b6299c852eef9bc1",
                 "shasum": ""
             },
             "require": {
@@ -42,7 +79,7 @@
                 }
             ],
             "description": "a base class for exceptions in Dashifen's other work",
-            "time": "2019-11-30T20:08:44+00:00"
+            "time": "2019-12-12T14:26:49+00:00"
         },
         {
             "name": "dashifen/repository",
@@ -122,9 +159,9 @@
     ],
     "packages-dev": [],
     "aliases": [],
-    "minimum-stability": "stable",
+    "minimum-stability": "dev",
     "stability-flags": [],
-    "prefer-stable": false,
+    "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
         "php": ">=7.2"

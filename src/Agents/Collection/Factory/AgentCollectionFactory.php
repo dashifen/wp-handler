@@ -6,7 +6,6 @@ use stdClass;
 use Dashifen\Repository\RepositoryException;
 use Dashifen\WPHandler\Handlers\HandlerInterface;
 use Dashifen\WPHandler\Agents\Collection\AgentCollection;
-use Dashifen\WPHandler\Agents\Collection\AgentCollectionException;
 use Dashifen\WPHandler\Agents\Collection\AgentCollectionInterface;
 use Dashifen\WPHandler\Repositories\AgentDefinition\AgentDefinition;
 
@@ -25,7 +24,6 @@ class AgentCollectionFactory implements AgentCollectionFactoryInterface
      * @param HandlerInterface $handler
      *
      * @return AgentCollectionInterface
-     * @throws AgentCollectionException
      */
     public function produceAgentCollection (HandlerInterface $handler): AgentCollectionInterface
     {
@@ -49,7 +47,7 @@ class AgentCollectionFactory implements AgentCollectionFactoryInterface
             }
             
             $instance = new $agentDefinition->agent(...$parameters);
-            $collection->set($agentDefinition->agent, $instance);
+            $collection[$agentDefinition->agent] = $instance;
         }
         
         return $collection;

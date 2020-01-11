@@ -3,141 +3,107 @@
 namespace Dashifen\WPHandler\Hooks\Collection;
 
 use Dashifen\WPHandler\Hooks\HookInterface;
+use Dashifen\Collection\AbstractCollection;
 
 /**
  * Class HookCollection
  *
  * @package Dashifen\WPHandler\Hooks\Collection
  */
-class HookCollection implements HookCollectionInterface
+class HookCollection extends AbstractCollection implements HookCollectionInterface
 {
     /**
-     * @var array
+     * @var HookInterface[]
      */
-    protected $collection = [];
+    protected $collection;
     
     /**
-     * @var int
-     */
-    protected $keyPosition = 0;
-    
-    /**
-     * @var array
-     */
-    protected $keys = [];
-    
-    /**
-     * get
+     * getCollection
      *
-     * Given a key, returns the HookInterface located at that key.  If the
-     * key is not found within the collection, returns null.
-     *
-     * @param string $key
-     *
-     * @return HookInterface|null
-     */
-    public function get(string $key): ?HookInterface
-    {
-        return $this->collection[$key] ?? null;
-    }
-    
-    /**
-     * getAll
-     *
-     * Returns the entire collection of Hooks.
+     * Returns the entire collection.  Overridden simply to provide the type
+     * hint here in the PHPDoc block.
      *
      * @return HookInterface[]
      */
-    public function getAll(): array
+    public function getCollection (): array
     {
-        return $this->collection;
+        return parent::getCollection();
     }
     
     /**
-     * has
+     * current
      *
-     * Returns true if a Hook has been added at the specified key; false
-     * otherwise.
+     * Returns the value at the current index in our collection.
      *
-     * @param string $key
+     * @return HookInterface
+     */
+    public function current (): HookInterface
+    {
+        return parent::current();
+    }
+    
+    /**
+     * key
+     *
+     * Returns the current index within the collection.
+     *
+     * @return string|null
+     */
+    public function key (): ?string
+    {
+        return parent::key();
+    }
+    
+    /**
+     * valid
+     *
+     * Returns true if the current index is valid.
      *
      * @return bool
      */
-    public function has(string $key): bool
+    public function valid (): bool
     {
-        return array_key_exists($key, $this->collection);
+        return is_string($this->key());
     }
     
     /**
-     * set
+     * offsetGet
      *
-     * Adds the Hook to the collection using the given key.  Will overwrite
-     * prior Hooks at the same key if flag is set.
+     * Returns the value at the specified index within the collection.  Note:
+     * because we can't alter the method's signature, we can't type hint $index
+     * here.  So, we'll rely on the phpDocBlock to help our IDEs out instead.
      *
+     * @param string $index
      *
-     * @param string        $key
-     * @param HookInterface $hook
-     * @param bool          $overwrite
+     * @return HookInterface|null
+     */
+    public function offsetGet ($index): ?HookInterface
+    {
+        return parent::offsetGet($index);
+    }
+    
+    /**
+     * offsetSet
+     *
+     * Adds the value to the collection at the specified index.  Note:  because
+     * we can't alter the method's signature, we can't type hint the parameters
+     * here.  So, we'll rely on the phpDocBlock to help our IDEs out instead.
+     *
+     * @param string        $index
+     * @param HookInterface $value
      *
      * @return void
      * @throws HookCollectionException
      */
-    public function set(string $key, HookInterface $hook, bool $overwrite = false): void
+    public function offsetSet ($index, $value)
     {
-        if (!$overwrite && $this->has($key)) {
-            // if we're not overwriting previously set hooks and this collection
-            // has the specified key, then we'll throw an exception.  hopefully,
-            // the calling scope will know what to do.
-            
+        if (!($value instanceof HookInterface)) {
             throw new HookCollectionException(
-              "Key exists: $key",
-              HookCollectionException::KEY_EXISTS
+                'Collected objects must implement HookInterface',
+                HookCollectionException::NOT_A_HOOK
             );
         }
         
-        $this->collection[$key] = $hook;
-        $this->updateKeys();
-    }
-    
-    /**
-     * updateKeys
-     *
-     * Updates the internal record of the keys that are in use within our
-     * collection for use within the Iterable interface methods below.  Updated
-     * whenever we set or reset a key.
-     *
-     * @return void
-     */
-    private function updateKeys(): void
-    {
-        $this->keys = array_keys($this->collection);
-    }
-    
-    /**
-     * reset
-     *
-     * Resets (removes) the Hook at the specified key.
-     *
-     * @param string $key
-     *
-     * @return void
-     */
-    public function reset(string $key): void
-    {
-        unset($this->collection[$key]);
-        $this->updateKeys();
-    }
-    
-    /**
-     * resetAll
-     *
-     * Removes all Hooks from the collection.
-     *
-     * @return void
-     */
-    public function resetAll(): void
-    {
-        $this->collection = [];
-        $this->updateKeys();
+        parent::offsetSet($index, $value);
     }
 }

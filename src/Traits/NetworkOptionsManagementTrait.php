@@ -2,17 +2,12 @@
 
 namespace Dashifen\WPHandler\Traits;
 
-use Dashifen\WPHandler\Handlers\HandlerException;
-use Dashifen\Transformer\StorageTransformer\StorageTransformerInterface;
-
 /**
  * Trait OptionsManagementTrait
  *
  * Provides methods for the getting and updating of Handler's options as well
  * as a mechanism for storing option values in memory rather than frequently
  * selecting them from the database.
- *
- * @property StorageTransformerInterface $transformer
  *
  * @package Dashifen\WPHandler\Traits
  */
@@ -51,6 +46,4 @@ trait NetworkOptionsManagementTrait
     {
         return update_site_option($option, $value);
     }
-    
-    
 }

@@ -6,5 +6,5 @@ use Dashifen\Exception\Exception;
 
 class HookCollectionException extends Exception
 {
-    public const KEY_EXISTS = 1;
+    public const NOT_A_HOOK = 1;
 }

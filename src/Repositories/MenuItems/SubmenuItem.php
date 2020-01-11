@@ -8,14 +8,9 @@ use Dashifen\WPHandler\Handlers\Plugins\PluginHandlerInterface;
 /**
  * Class MenuItem
  *
+ * @property string $parentSlug
+ *
  * @package Dashifen\WPHandler\Repositories\MenuItems
- * @property string   $pageTitle
- * @property string   $menuTitle
- * @property string   $parentSlug
- * @property string   $menuSlug
- * @property string   $capability
- * @property string   $method
- * @property callable $callable
  */
 class SubmenuItem extends MenuItem
 {
@@ -26,12 +21,12 @@ class SubmenuItem extends MenuItem
     // that array to call add_submenu_page().
     
     protected const WP_ARGUMENT_ORDER = [
-      "parentSlug",
-      "pageTitle",
-      "menuTitle",
-      "capability",
-      "menuSlug",
-      "callable"
+        "parentSlug",
+        "pageTitle",
+        "menuTitle",
+        "capability",
+        "menuSlug",
+        "callable"
     ];
     
     /**
@@ -47,7 +42,7 @@ class SubmenuItem extends MenuItem
      *
      * @throws RepositoryException
      */
-    public function __construct(PluginHandlerInterface $handler, array $data = [])
+    public function __construct (PluginHandlerInterface $handler, array $data = [])
     {
         parent::__construct($handler, $data);
     }
@@ -61,24 +56,10 @@ class SubmenuItem extends MenuItem
      *
      * @return array
      */
-    protected function getHiddenPropertyNames(): array
+    protected function getHiddenPropertyNames (): array
     {
         return array_merge(parent::getHiddenPropertyNames(), ["iconUrl", "position"]);
     }
-    
-    /**
-     * getRequiredProperties
-     *
-     * Returns an array of property names that must be non-empty after
-     * construction.
-     *
-     * @return array
-     */
-    protected function getRequiredProperties(): array
-    {
-        return array_merge(parent::getRequiredProperties(), ['parentSlug']);
-    }
-    
     
     /**
      * setParentSlug
@@ -87,7 +68,7 @@ class SubmenuItem extends MenuItem
      *
      * @param string $parentSlug
      */
-    public function setParentSlug(string $parentSlug): void
+    public function setParentSlug (string $parentSlug): void
     {
         $this->parentSlug = $parentSlug;
     }
@@ -99,7 +80,7 @@ class SubmenuItem extends MenuItem
      *
      * @return string
      */
-    public function getParentSlug(): string
+    public function getParentSlug (): string
     {
         return $this->parentSlug;
     }
@@ -114,11 +95,11 @@ class SubmenuItem extends MenuItem
      *
      * @throws MenuItemException
      */
-    public function setIconUrl(string $iconUrl): void
+    public function setIconUrl (string $iconUrl): void
     {
         throw new MenuItemException(
-          "Submenu items don't have icons.",
-          MenuItemException::ATTEMPT_TO_SET_SUBMENU_ICON
+            "Submenu items don't have icons.",
+            MenuItemException::ATTEMPT_TO_SET_SUBMENU_ICON
         );
     }
     
@@ -132,11 +113,11 @@ class SubmenuItem extends MenuItem
      *
      * @throws MenuItemException
      */
-    public function setPosition(int $position): void
+    public function setPosition (int $position): void
     {
         throw new MenuItemException(
-          "Submenu items don't have positions.",
-          MenuItemException::ATTEMPT_TO_SET_SUBMENU_POSITION
+            "Submenu items don't have positions.",
+            MenuItemException::ATTEMPT_TO_SET_SUBMENU_POSITION
         );
     }
 }

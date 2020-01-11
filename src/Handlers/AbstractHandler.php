@@ -13,7 +13,6 @@ use Dashifen\WPHandler\Hooks\HookException;
 use Dashifen\WPHandler\Hooks\Factory\HookFactory;
 use Dashifen\WPHandler\Hooks\Factory\HookFactoryInterface;
 use Dashifen\WPHandler\Hooks\Collection\HookCollectionInterface;
-use Dashifen\WPHandler\Hooks\Collection\HookCollectionException;
 use Dashifen\WPHandler\Agents\Collection\AgentCollectionInterface;
 use Dashifen\WPHandler\Agents\Collection\AgentCollectionException;
 use Dashifen\WPHandler\Hooks\Collection\Factory\HookCollectionFactory;
@@ -63,7 +62,7 @@ abstract class AbstractHandler implements HandlerInterface
      * @param HookFactoryInterface|null           $hookFactory
      * @param HookCollectionFactoryInterface|null $hookCollectionFactory
      */
-    public function __construct(
+    public function __construct (
         ?HookFactoryInterface $hookFactory = null,
         ?HookCollectionFactoryInterface $hookCollectionFactory = null
     ) {
@@ -116,7 +115,7 @@ abstract class AbstractHandler implements HandlerInterface
      * @return mixed
      * @throws HandlerException
      */
-    public function __call(string $method, array $arguments)
+    public function __call (string $method, array $arguments)
     {
         // getting here should only happen via WordPress callbacks and only for
         // MethodHooks;  closures aren't a part of an object so they won't ever get
@@ -134,13 +133,13 @@ abstract class AbstractHandler implements HandlerInterface
         
         $priority = has_filter($action, [$this, $method]);
         $hookIndex = $this->hookFactory->produceHookIndex($action, $this, $method, $priority);
-        if (!$this->hookCollection->has($hookIndex)) {
+        if (!$this->hookCollection[$hookIndex]) {
             // if we're in here, then we don't have a Hook that exactly matches
             // this method, action, and priority combination.  since we're about
             // to crash out of things anyway, we'll see if we can help the
             // programmer identify the problem.
             
-            foreach ($this->hookCollection->getAll() as $hook) {
+            foreach ($this->hookCollection as $hook) {
                 if ($hook->method === $method) {
                     // well, we just found a hook using this method, so the problem
                     // must be that we're at the wrong action or priority.  let's see
@@ -178,8 +177,8 @@ abstract class AbstractHandler implements HandlerInterface
         // likely too problematic unless we have a variadic method that might
         // do something to/with unexpected parameters.  so, before we call our
         // method, we use array_slice to remove extra arguments.
-    
-        $hook = $this->hookCollection->get($hookIndex);
+        
+        $hook = $this->hookCollection[$hookIndex];
         $arguments = array_slice($arguments, 0, $hook->argumentCount);
         return $this->{$method}(...$arguments);
     }
@@ -192,7 +191,7 @@ abstract class AbstractHandler implements HandlerInterface
      *
      * @return string
      */
-    public function __toString(): string
+    public function __toString (): string
     {
         return static::class;
     }
@@ -205,7 +204,7 @@ abstract class AbstractHandler implements HandlerInterface
      *
      * @return void
      */
-    abstract public function initialize(): void;
+    abstract public function initialize (): void;
     
     /**
      * getHookFactory
@@ -214,7 +213,7 @@ abstract class AbstractHandler implements HandlerInterface
      *
      * @return HookFactoryInterface
      */
-    public function getHookFactory(): HookFactoryInterface
+    public function getHookFactory (): HookFactoryInterface
     {
         return $this->hookFactory;
     }
@@ -226,7 +225,7 @@ abstract class AbstractHandler implements HandlerInterface
      *
      * @return HookCollectionInterface
      */
-    public function getHookCollection(): HookCollectionInterface
+    public function getHookCollection (): HookCollectionInterface
     {
         return $this->hookCollection;
     }
@@ -238,7 +237,7 @@ abstract class AbstractHandler implements HandlerInterface
      *
      * @return HookCollectionFactoryInterface
      */
-    public function getHookCollectionFactory(): HookCollectionFactoryInterface
+    public function getHookCollectionFactory (): HookCollectionFactoryInterface
     {
         return $this->hookCollectionFactory;
     }
@@ -251,7 +250,7 @@ abstract class AbstractHandler implements HandlerInterface
      *
      * @return AgentCollectionInterface
      */
-    public function getAgentCollection(): AgentCollectionInterface
+    public function getAgentCollection (): AgentCollectionInterface
     {
         return $this->agentCollection;
     }
@@ -267,7 +266,7 @@ abstract class AbstractHandler implements HandlerInterface
      * @return void
      * @throws AgentCollectionException
      */
-    public function setAgentCollection(AgentCollectionFactoryInterface $agentCollectionFactory): void
+    public function setAgentCollection (AgentCollectionFactoryInterface $agentCollectionFactory): void
     {
         // and this is why we have a setter for our agent collection and don't
         // define an agent collection factory as a dependency of our constructor:
@@ -285,7 +284,7 @@ abstract class AbstractHandler implements HandlerInterface
      *
      * @return bool
      */
-    final protected function isInitialized(): bool
+    final protected function isInitialized (): bool
     {
         $returnValue = $this->initialized;
         $this->initialized = true;
@@ -301,7 +300,7 @@ abstract class AbstractHandler implements HandlerInterface
      *
      * @return void
      */
-    protected function initializeAgents(): void
+    protected function initializeAgents (): void
     {
         // our agent collection implements the Iterable interface so we can
         // use a foreach to loop over each of the Agents that it has set within
@@ -309,7 +308,7 @@ abstract class AbstractHandler implements HandlerInterface
         // in sequence.
         
         if ($this->agentCollection instanceof AgentCollectionInterface) {
-            foreach ($this->agentCollection->getAll() as $agent) {
+            foreach ($this->agentCollection as $agent) {
                 $agent->initialize();
             }
         }
@@ -328,7 +327,7 @@ abstract class AbstractHandler implements HandlerInterface
      * @return string
      * @throws HandlerException
      */
-    protected function addAction(string $hook, $callback, int $priority = 10, int $arguments = 1): string
+    protected function addAction (string $hook, $callback, int $priority = 10, int $arguments = 1): string
     {
         if (!$this->isValidCallback($callback)) {
             throw new HandlerException(
@@ -357,7 +356,7 @@ abstract class AbstractHandler implements HandlerInterface
      *
      * @return bool
      */
-    protected function isValidCallback($callback): bool
+    protected function isValidCallback ($callback): bool
     {
         // if $callback is a Closure, we're fine.  it's the string case that's
         // more difficult so we'll bug out before worrying about anything else
@@ -396,7 +395,7 @@ abstract class AbstractHandler implements HandlerInterface
      *
      * @return string
      */
-    private function getInvalidCallbackMessage($callback): string
+    private function getInvalidCallbackMessage ($callback): string
     {
         // like the isValidCallback method above, this one uses the type of
         // $callback to return an exception message about it's invalidity.
@@ -432,7 +431,7 @@ abstract class AbstractHandler implements HandlerInterface
      * @return void
      * @throws HandlerException
      */
-    private function addHookToCollection(string $hook, $callback, int $priority, int $arguments): void
+    private function addHookToCollection (string $hook, $callback, int $priority, int $arguments): void
     {
         try {
             // to add a hook to our collection, we need the index it'll use therein
@@ -441,8 +440,8 @@ abstract class AbstractHandler implements HandlerInterface
             
             $hookIndex = $this->hookFactory->produceHookIndex($hook, $this, $callback, $priority);
             $hookObject = $this->hookFactory->produceHook($hook, $this, $callback, $priority, $arguments);
-            $this->hookCollection->set($hookIndex, $hookObject);
-        } catch (HookCollectionException | HookException $exception) {
+            $this->hookCollection[$hookIndex] = $hookObject;
+        } catch (HookException $exception) {
             // to make things easier on the calling scope, we'll "merge" the two
             // types of exceptions thrown by the hook collection here into a single
             // type:  our HandlerException.
@@ -468,7 +467,7 @@ abstract class AbstractHandler implements HandlerInterface
      *
      * @return bool
      */
-    protected function removeAction(string $hook, string $method, int $priority = 10): bool
+    protected function removeAction (string $hook, string $method, int $priority = 10): bool
     {
         $this->removeHookFromCollection($hook, $method, $priority);
         return remove_action($hook, [$this, $method], $priority);
@@ -485,10 +484,10 @@ abstract class AbstractHandler implements HandlerInterface
      *
      * @return void
      */
-    private function removeHookFromCollection(string $hook, string $method, int $priority): void
+    private function removeHookFromCollection (string $hook, string $method, int $priority): void
     {
         $hookIndex = $this->hookFactory->produceHookIndex($hook, $this, $method, $priority);
-        $this->hookCollection->reset($hookIndex);
+        unset($this->hookCollection[$hookIndex]);
     }
     
     /**
@@ -504,7 +503,7 @@ abstract class AbstractHandler implements HandlerInterface
      * @return string
      * @throws HandlerException
      */
-    protected function addFilter(string $hook, $callback, int $priority = 10, int $arguments = 1): string
+    protected function addFilter (string $hook, $callback, int $priority = 10, int $arguments = 1): string
     {
         if (!$this->isValidCallback($callback)) {
             throw new HandlerException(
@@ -536,7 +535,7 @@ abstract class AbstractHandler implements HandlerInterface
      *
      * @return bool
      */
-    protected function removeFilter(string $hook, string $method, int $priority = 10): bool
+    protected function removeFilter (string $hook, string $method, int $priority = 10): bool
     {
         $this->removeHookFromCollection($hook, $method, $priority);
         return remove_filter($hook, [$this, $method], $priority);
@@ -555,7 +554,7 @@ abstract class AbstractHandler implements HandlerInterface
      *
      * @return void
      */
-    public static function debug($stuff, bool $die = false, bool $force = false): void
+    public static function debug ($stuff, bool $die = false, bool $force = false): void
     {
         if (self::isDebug() || $force) {
             $message = "<pre>" . print_r($stuff, true) . "</pre>";
@@ -576,7 +575,7 @@ abstract class AbstractHandler implements HandlerInterface
      *
      * @return bool
      */
-    public static function isDebug(): bool
+    public static function isDebug (): bool
     {
         return defined("WP_DEBUG") && WP_DEBUG;
     }
@@ -590,13 +589,13 @@ abstract class AbstractHandler implements HandlerInterface
      *
      * @return void
      */
-    public static function writeLog($data): void
+    public static function writeLog ($data): void
     {
         // source:  https://www.elegantthemes.com/blog/tips-tricks/using-the-wordpress-debug-log
         // accessed:  2018-07-09
         
         if (!function_exists("write_log")) {
-            function write_log($log)
+            function write_log ($log)
             {
                 if (is_array($log) || is_object($log)) {
                     error_log(print_r($log, true));
@@ -620,7 +619,7 @@ abstract class AbstractHandler implements HandlerInterface
      *
      * @return void
      */
-    public static function catcher(Throwable $thrown): void
+    public static function catcher (Throwable $thrown): void
     {
         self::isDebug() ? self::debug($thrown, true) : self::writeLog($thrown);
     }
