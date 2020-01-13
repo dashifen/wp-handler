@@ -105,11 +105,11 @@ abstract class AbstractThemeHandler extends AbstractHandler implements ThemeHand
         // slash.
         
         if (empty($url)) {
-            $url = $this->stylesheetUrl;
+            $url = $this->getStylesheetUrl();
         }
         
         if (empty($dir)) {
-            $dir = $this->stylesheetDir;
+            $dir = $this->getStylesheetDir();
         }
         
         $url = trailingslashit($url);
