@@ -4,8 +4,45 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "f62eefaef0b415be754c1060e2f1d190",
+    "content-hash": "cb09c1a7412f751f5f0a245edaeb640b",
     "packages": [
+        {
+            "name": "dashifen/collection",
+            "version": "1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/dashifen/collection.git",
+                "reference": "03ba9bddc0ce0cae3e6e38148ae83f18b1c53a02"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/dashifen/collection/zipball/03ba9bddc0ce0cae3e6e38148ae83f18b1c53a02",
+                "reference": "03ba9bddc0ce0cae3e6e38148ae83f18b1c53a02",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=7.1"
+            },
+            "type": "project",
+            "autoload": {
+                "psr-4": {
+                    "Dashifen\\Collection\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "David Dashifen Kees",
+                    "email": "dashifen@dashifen.com",
+                    "role": "developer"
+                }
+            ],
+            "description": "An abstract object from which concrete collections can be built.",
+            "time": "2020-01-11T11:15:44+00:00"
+        },
         {
             "name": "dashifen/exception",
             "version": "1.2.0",

@@ -18,6 +18,7 @@
   "minimum-stability": "dev",
   "prefer-stable": true,
   "require": {
+    "dashifen/collection": "^1",
     "dashifen/exception": "^1",
     "dashifen/repository": "^2",
     "dashifen/transformer": "^2",
