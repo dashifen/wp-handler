@@ -161,7 +161,7 @@ trait OptionsManagementTrait
     abstract protected function getOptionNames(): array;
     
     /**
-     * getSettingsPrefix
+     * getOptionNamePrefix
      *
      * Returns the prefix that that is used to differentiate the options for
      * this handler's sphere of influence from others.  By default, we return

@@ -62,7 +62,7 @@ trait PostMetaManagementTrait
         // does with respect to the WP_DEBUG constant.
         
         if ($this->isPostMetaValid($postMeta, defined('WP_DEBUG') && WP_DEBUG)) {
-            $fullPostMetaName = $this->getPostMetaNamePrefix() . $postMeta;
+            $fullPostMetaName = $this->getFullPostMetaName($postMeta);
             $value = $this->retrievePostMeta($postId, $fullPostMetaName, $default, $single);
             $value = $transform && $this->hasTransformer()
                 ? $this->transformer->transformFromStorage($postMeta, $value)
@@ -167,7 +167,48 @@ trait PostMetaManagementTrait
     abstract protected function getPostMetaNames (): array;
     
     /**
-     * getSettingsPrefix
+     * getSnapshotName
+     *
+     * Returns a unique name for this handler's settings for use when saving or
+     * retrieving them in a single database call.
+     *
+     * @return string
+     */
+    protected function getPostMetaSnapshotName (): string
+    {
+        if ($this->postMetaSnapshotName !== null) {
+            
+            // if we've already done the work below, we don't need to do it
+            // again.  sure, we're only saving fractions of seconds but maybe
+            // every little bit counts, and for a big array of postMeta, the
+            // join and hashing operation below could be expensive.
+            
+            return $this->postMetaSnapshotName;
+        }
+        
+        // to try and make a automatic and repeatably generated post meta name,
+        // we'll create the sha1 hash of our post meta names and add our prefix
+        // so that a human will be able to see and recognize the hash as being
+        // linked to the rest of this handler's data.  a programmer can always
+        // override this if necessary.
+        
+        $hashedNames = sha1(join('', $this->getPostMetaNames()));
+        $snapshotName = $this->getPostMetaNamePrefix() . $hashedNames;
+        
+        // for option names, the codex tells us not to exceed 64 characters for
+        // option names (even though the column has a type of VARCHAR(191)).
+        // but, for post meta, no such limit is mentioned.  the meta key column
+        // has at type of VARCHAR(255) but we'll stick with 64 for some parity
+        // between this and the other trait.  finally, notice that we add an
+        // underscore in front of this meta key; that's to make sure it's
+        // hidden (see http://tiny.cc/55i3iz for more information).
+        
+        $snapshotName = '_' . substr($snapshotName, 0, 63);
+        return ($this->postMetaSnapshotName = $snapshotName);
+    }
+    
+    /**
+     * getPostMetaNamePrefix
      *
      * Returns the prefix that that is used to differentiate the post meta for
      * this handler's sphere of influence from others.  By default, we return
@@ -179,6 +220,32 @@ trait PostMetaManagementTrait
     public function getPostMetaNamePrefix (): string
     {
         return '';
+    }
+    
+    /**
+     * getFullPostMetaName
+     *
+     * Returns the full post meta name used in the database rather than the
+     * more convenient, more human-readable version we use in our code.
+     *
+     * @param string $postMeta
+     *
+     * @return string
+     */
+    protected function getFullPostMetaName (string $postMeta): string
+    {
+        // for options, we simply added the prefix onto the front of the
+        // option's name.  but, for post meta, there's something else to think
+        // about:  hidden meta.  in WP core, if a post meta name starts with an
+        // underscore, it's hidden from the admin editors, i.e. it can only be
+        // managed in code.  if $postMeta starts with an underscore, we want
+        // to make sure that the full post meta name does as well.  our regular
+        // expression matches a leading underscore followed by anything.  then,
+        // it crams our prefix in between whatever is matched by that pattern.
+        // thus name becomes {$prefix}name and _sort becomes _{$prefix}sort.
+        
+        $replacement = '$1' . $this->getPostMetaNamePrefix() . '$2';
+        return preg_replace('/^(_?)(.+)/', $replacement, $postMeta);
     }
     
     /**
@@ -319,47 +386,6 @@ trait PostMetaManagementTrait
         
         $this->maybeCachePostMeta($postId, $snapshotName, $snapshot);
         return $snapshot;
-    }
-    
-    /**
-     * getSnapshotName
-     *
-     * Returns a unique name for this handler's settings for use when saving or
-     * retrieving them in a single database call.
-     *
-     * @return string
-     */
-    protected function getPostMetaSnapshotName (): string
-    {
-        if ($this->postMetaSnapshotName !== null) {
-            
-            // if we've already done the work below, we don't need to do it
-            // again.  sure, we're only saving fractions of seconds but maybe
-            // every little bit counts, and for a big array of postMeta, the
-            // join and hashing operation below could be expensive.
-            
-            return $this->postMetaSnapshotName;
-        }
-        
-        // to try and make a automatic and repeatably generated post meta name,
-        // we'll create the sha1 hash of our post meta names and add our prefix
-        // so that a human will be able to see and recognize the hash as being
-        // linked to the rest of this handler's data.  a programmer can always
-        // override this if necessary.
-        
-        $hashedNames = sha1(join('', $this->getPostMetaNames()));
-        $snapshotName = $this->getPostMetaNamePrefix() . $hashedNames;
-        
-        // for option names, the codex tells us not to exceed 64 characters for
-        // option names (even though the column has a type of VARCHAR(191)).
-        // but, for post meta, no such limit is mentioned.  the meta key column
-        // has at type of VARCHAR(255) but we'll stick with 64 for some parity
-        // between this and the other trait.  finally, notice that we add an
-        // underscore in front of this meta key; that's to make sure it's
-        // hidden (see http://tiny.cc/55i3iz for more information).
-        
-        $snapshotName = '_' . substr($snapshotName, 0, 63);
-        return ($this->postMetaSnapshotName = $snapshotName);
     }
     
     /**
