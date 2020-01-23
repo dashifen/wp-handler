@@ -4,14 +4,13 @@ namespace Dashifen\WPHandler\Hooks\Collection;
 
 use Dashifen\WPHandler\Hooks\HookInterface;
 use Dashifen\Collection\AbstractCollection;
-use Dashifen\Repository\AbstractRepository;
 
 /**
  * Class HookCollection
  *
  * @package Dashifen\WPHandler\Hooks\Collection
  */
-class HookCollection extends AbstractRepository implements HookCollectionInterface
+class HookCollection extends AbstractCollection implements HookCollectionInterface
 {
     /**
      * @var HookInterface[]
