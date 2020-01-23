@@ -1,27 +1,26 @@
 {
-    "name": "dashifen/wp-handler",
-    "description": "An object to define handlers for various WordPress action and filter hooks using protected methods. ",
-    "type": "project",
-    "license": "MIT",
-    "authors": [
-        {
-            "name": "David Dashifen Kees",
-            "email": "dashifen@dashifen.com",
-            "role": "developer"
-        }
-    ],
-    "autoload": {
-        "psr-4": {
-            "Dashifen\\WPHandler\\": "src"
-        }
-    },
-    "minimum-stability": "dev",
-    "prefer-stable": true,
-    "require": {
-        "dashifen/collection": "^1",
-        "dashifen/exception": "^1",
-        "dashifen/repository": "^1",
-        "dashifen/transformer": "^2",
-        "php": ">=7.2"
+  "name": "dashifen/wp-handler",
+  "description": "An object to define handlers for various WordPress action and filter hooks using protected methods. ",
+  "type": "project",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "David Dashifen Kees",
+      "email": "dashifen@dashifen.com",
+      "role": "developer"
     }
+  ],
+  "autoload": {
+    "psr-4": {
+      "Dashifen\\WPHandler\\": "src"
+    }
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true,
+  "require": {
+    "dashifen/exception": "^1",
+    "dashifen/repository": "^2",
+    "dashifen/transformer": "^2",
+    "php": ">=7.3"
+  }
 }
