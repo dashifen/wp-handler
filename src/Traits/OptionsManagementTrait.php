@@ -31,7 +31,7 @@ trait OptionsManagementTrait
     /**
      * @var string
      */
-    private $snapshotName = null;
+    private $optionSnapshotName = null;
     
     /**
      * getOption
@@ -53,8 +53,6 @@ trait OptionsManagementTrait
             return $this->getCachedOption($option);
         }
         
-        $value = $default;
-        
         // it's hard to make a trait know about the methods that are available
         // in the classes in which it might be used.  so, we won't use the
         // isDebug method here, we'll just execute the same command that it
@@ -68,10 +66,11 @@ trait OptionsManagementTrait
               : $value;
         }
         
-        // here, we either selected a value from the database or it was set to
-        // the default before the if-block above.  regardless, if we're using
-        // the cache we want to remember it for next time.
-        
+        // here, if we didn't set $value in our if-block, we'll do so here with
+        // the null coalescing operator.  then, if we're using the cache we
+        // want to remember it for next time.
+    
+        $value = $value ?? $default;
         $this->maybeCacheOption($option, $value);
         return $value;
     }
@@ -147,8 +146,7 @@ trait OptionsManagementTrait
     protected function getValidOptionNames (): array
     {
         $options = $this->getOptionNames();
-        $snapshotName = $this->getSnapshotName();
-        array_unshift($options, $snapshotName);
+        $options[] = $this->getOptionSnapshotName();
         return $options;
     }
     
@@ -271,7 +269,7 @@ trait OptionsManagementTrait
         // an in-memory cache of our complete option set.  if so, we'll want to
         // use it to cut down on database queries.
     
-        $snapshotName = $this->getSnapshotName();
+        $snapshotName = $this->getOptionSnapshotName();
         if ($this->isOptionCached($snapshotName)) {
             return $this->getCachedOption($snapshotName);
         }
@@ -294,30 +292,8 @@ trait OptionsManagementTrait
             }
         }
         
-        $this->maybeCacheOptions($snapshot);
+        $this->maybeCacheOption($snapshotName, $snapshot);
         return $snapshot;
-    }
-    
-    /**
-     * maybeCacheOptions
-     *
-     * If we're using our options cache, then this method stores what we
-     * selected from the database in memory so that we don't have to select and
-     * re-select it over and over again.
-     *
-     * @param array $options
-     */
-    protected function maybeCacheOptions(array $options): void
-    {
-        if ($this->useOptionsCache) {
-            // if we're here, then we're using our options cache.  so, we'll
-            // merge the options in our parameter into the cache so that we
-            // have a record of what we selected.  we don't replace the cache
-            // with $options because that might destroy other data that we
-            // didn't select this time.
-            
-            $this->optionsCache = array_merge($this->optionsCache, $options);
-        }
     }
     
     /**
@@ -328,16 +304,16 @@ trait OptionsManagementTrait
      *
      * @return string
      */
-    protected function getSnapshotName(): string
+    protected function getOptionSnapshotName(): string
     {
-        if ($this->snapshotName !== null) {
+        if ($this->optionSnapshotName !== null) {
             
             // if we've already done the work below, we don't need to do it
             // again.  sure, we're only saving fractions of seconds but maybe
             // every little bit counts, and for a big array of options, the
             // join and hashing operation below could be expensive.
             
-            return $this->snapshotName;
+            return $this->optionSnapshotName;
         }
     
         // to try and make a automatic and repeatably generated option name,
@@ -354,7 +330,7 @@ trait OptionsManagementTrait
         // field.  but, we'll follow the rules and make sure that out option
         // name is no longer than the codex-specified limit.
         
-        return ($this->snapshotName = substr($snapshotName, 0, 64));
+        return ($this->optionSnapshotName = substr($snapshotName, 0, 64));
     }
     
     /**
@@ -459,8 +435,7 @@ trait OptionsManagementTrait
         // in the individual options as well so that the snapshot records
         // matches.
         
-        $this->maybeCacheOptions($values);
-        $snapshotName = $this->getSnapshotName();
+        $snapshotName = $this->getOptionSnapshotName();
         $this->maybeCacheOption($snapshotName, $values);
         $this->updateAllOptions($values, $transform);
         
