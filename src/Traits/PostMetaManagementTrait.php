@@ -64,7 +64,12 @@ trait PostMetaManagementTrait
         if ($this->isPostMetaValid($postMeta, defined('WP_DEBUG') && WP_DEBUG)) {
             $fullPostMetaName = $this->getFullPostMetaName($postMeta);
             $value = $this->retrievePostMeta($postId, $fullPostMetaName, $default, $single);
-            $value = $transform && $this->hasPostMetaTransformer()
+            
+            // now, if we can transform and if our value isn't empty, we pass
+            // it through our transformer.  we skip empties so that we don't
+            // conflict with transformer method parameter type hints.
+            
+            $value = $this->canTransformPostMeta($transform) && !empty($value)
                 ? $this->transformer->transformFromStorage($postMeta, $value)
                 : $value;
         }
@@ -277,19 +282,19 @@ trait PostMetaManagementTrait
     }
     
     /**
-     * hasTransformer
+     * canTransformPostMeta
      *
-     * Returns true if this object has a transformer property that implements
-     * the StorageTransformerInterface interface.  Name is oddly specific so
-     * that it doesn't conflict with method of similar purpose in the
-     * OptionsManagementTrait should both this one and that one be used by the
-     * same object.
+     * Returns true if it we both desire to transform an option value and if we
+     * can do so, i.e. if we have an option transformer.
+     *
+     * @param bool $transform
      *
      * @return bool
      */
-    protected function hasPostMetaTransformer (): bool
+    protected function canTransformPostMeta (bool $transform): bool
     {
-        return property_exists($this, "transformer")
+        return $transform
+            && property_exists($this, "transformer")
             && $this->transformer instanceof StorageTransformerInterface;
     }
     
@@ -375,15 +380,19 @@ trait PostMetaManagementTrait
         // for these post meta.
         
         $snapshot = $this->retrievePostMeta($postId, $snapshotName, []);
-        if ($transform && $this->hasPostMetaTransformer()) {
+        if ($this->canTransformPostMeta($transform)) {
             
             // as long as we want to transform and have a transformer, we'll go
             // for it.  notice that the $value variable within our loop is a
             // reference. thus, when we're done, we will have actually
-            // transformed the array we return below.
+            // transformed the array we return below.  like elsewhere, we skip
+            // empties to avoid conflicts with transformer method parameter
+            // type hints.
             
             foreach ($snapshot as $postMeta => &$value) {
-                $value = $this->transformer->transformFromStorage($postMeta, $value);
+                if (!empty($value)) {
+                    $value = $this->transformer->transformFromStorage($postMeta, $value);
+                }
             }
         }
         
@@ -421,7 +430,13 @@ trait PostMetaManagementTrait
         // that it does with respect to the WP_DEBUG constant.
     
         if ($this->isPostMetaValid($postMeta, defined('WP_DEBUG') && WP_DEBUG)) {
-            $value = $transform && $this->hasPostMetaTransformer()
+            
+            // if we can transform and we have a non-empty value, we pass it
+            // through our transformer here and let that object do what it
+            // needs to do.  we skip empties so that we don't conflict with
+            // transformer method parameter type hints.
+            
+            $value = $this->canTransformPostMeta($transform) && !empty($value)
                 ? $this->transformer->transformForStorage($postMeta, $value)
                 : $value;
             
@@ -507,15 +522,17 @@ trait PostMetaManagementTrait
         $snapshotName = $this->getPostMetaSnapshotName();
         $this->maybeCachePostMeta($postId, $snapshotName, $values);
         $this->updateAllPostMeta($postId, $values, $transform);
-        
-        if ($transform && $this->hasPostMetaTransformer()) {
+        if ($this->canTransformPostMeta($transform)) {
             
-            // if we want to transform and have a transformer, we'll go for it.
-            // note that $value is a reference, so the changes we make within
-            // the loop will remain when it completes.
+            // if we can transform, we'll go for it.  note that $value is a
+            // reference, so the changes we make within the loop will remain
+            // when it completes.  like elsewhere, we skip empties to avoid
+            // conflicting with transformer method parameter type hints.
             
             foreach ($values as $postMeta => &$value) {
-                $value = $this->transformer->transformForStorage($postMeta, $value);
+                if (!empty($value)) {
+                    $value = $this->transformer->transformForStorage($postMeta, $value);
+                }
             }
         }
         

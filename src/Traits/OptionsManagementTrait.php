@@ -47,7 +47,7 @@ trait OptionsManagementTrait
      * @return mixed
      * @throws HandlerException
      */
-    public function getOption(string $option, $default = '', bool $transform = true)
+    public function getOption (string $option, $default = '', bool $transform = true)
     {
         if ($this->isOptionCached($option)) {
             return $this->getCachedOption($option);
@@ -61,15 +61,20 @@ trait OptionsManagementTrait
         if ($this->isOptionValid($option, defined('WP_DEBUG') && WP_DEBUG)) {
             $fullOptionName = $this->getOptionNamePrefix() . $option;
             $value = $this->retrieveOption($fullOptionName, $default);
-            $value = $transform && $this->hasOptionTransformer()
-              ? $this->transformer->transformFromStorage($option, $value)
-              : $value;
+            
+            // as long as we can transform and our value isn't empty, we'll
+            // pass it through our transformer.  we skip empty values to avoid
+            // getting tripped up by transformer method parameter type hints.
+            
+            $value = $this->canTransformOptions($transform) && !empty($value)
+                ? $this->transformer->transformFromStorage($option, $value)
+                : $value;
         }
         
         // here, if we didn't set $value in our if-block, we'll do so here with
         // the null coalescing operator.  then, if we're using the cache we
         // want to remember it for next time.
-    
+        
         $value = $value ?? $default;
         $this->maybeCacheOption($option, $value);
         return $value;
@@ -85,7 +90,7 @@ trait OptionsManagementTrait
      *
      * @return bool
      */
-    protected function isOptionCached(string $option)
+    protected function isOptionCached (string $option)
     {
         return $this->useOptionsCache && isset($this->optionsCache[$option]);
     }
@@ -101,7 +106,7 @@ trait OptionsManagementTrait
      *
      * @return mixed
      */
-    protected function getCachedOption(string $option)
+    protected function getCachedOption (string $option)
     {
         return $this->optionsCache[$option] ?? null;
     }
@@ -119,14 +124,14 @@ trait OptionsManagementTrait
      * @return bool
      * @throws HandlerException
      */
-    protected function isOptionValid(string $option, bool $throw = true): bool
+    protected function isOptionValid (string $option, bool $throw = true): bool
     {
         $isValid = in_array($option, $this->getValidOptionNames());
         
         if (!$isValid && $throw) {
             throw new HandlerException(
-              'Unknown option:' . $option,
-              HandlerException::UNKNOWN_OPTION
+                'Unknown option:' . $option,
+                HandlerException::UNKNOWN_OPTION
             );
         }
         
@@ -158,7 +163,7 @@ trait OptionsManagementTrait
      *
      * @return array
      */
-    abstract protected function getOptionNames(): array;
+    abstract protected function getOptionNames (): array;
     
     /**
      * getOptionNamePrefix
@@ -170,7 +175,7 @@ trait OptionsManagementTrait
      *
      * @return string
      */
-    public function getOptionNamePrefix(): string
+    public function getOptionNamePrefix (): string
     {
         return '';
     }
@@ -192,20 +197,20 @@ trait OptionsManagementTrait
     }
     
     /**
-     * hasOptionTransformer
+     * canTransformOptions
      *
-     * Returns true if this object has a transformer property that implements
-     * the StorageTransformerInterface interface.  Name is oddly specific so
-     * that it doesn't conflict with method of similar purpose in the
-     * PostMetaManagementTrait should both this one and that one be used by the
-     * same object.
+     * Returns true if it we both desire to transform an option value and if we
+     * can do so, i.e. if we have an option transformer.
+     *
+     * @param bool $transform
      *
      * @return bool
      */
-    protected function hasOptionTransformer(): bool
+    protected function canTransformOptions (bool $transform): bool
     {
-        return property_exists($this, "transformer")
-          && $this->transformer instanceof StorageTransformerInterface;
+        return $transform
+            && property_exists($this, "transformer")
+            && $this->transformer instanceof StorageTransformerInterface;
     }
     
     /**
@@ -218,7 +223,7 @@ trait OptionsManagementTrait
      *
      * @return void
      */
-    protected function maybeCacheOption(string $option, $value): void
+    protected function maybeCacheOption (string $option, $value): void
     {
         if ($this->useOptionsCache) {
             $this->optionsCache[$option] = $value;
@@ -236,7 +241,7 @@ trait OptionsManagementTrait
      * @return array
      * @throws HandlerException
      */
-    public function getAllOptions(bool $transform = true): array
+    public function getAllOptions (bool $transform = true): array
     {
         foreach ($this->getOptionNames() as $optionName) {
             // we don't have to worry about accessing the cache here because,
@@ -262,16 +267,16 @@ trait OptionsManagementTrait
      * provide if updateOptionsSnapshot has been used to store these options
      * in the database in this capacity.
      *
-     * @param bool   $transform
+     * @param bool $transform
      *
      * @return array
      */
-    public function getOptionsSnapshot(bool $transform = true): array
+    public function getOptionsSnapshot (bool $transform = true): array
     {
         // just like singular options that we might select above, we might have
         // an in-memory cache of our complete option set.  if so, we'll want to
         // use it to cut down on database queries.
-    
+        
         $snapshotName = $this->getOptionSnapshotName();
         if ($this->isOptionCached($snapshotName)) {
             return $this->getCachedOption($snapshotName);
@@ -284,14 +289,16 @@ trait OptionsManagementTrait
         // options.
         
         $snapshot = $this->retrieveOption($snapshotName, []);
-        if ($transform && $this->hasOptionTransformer()) {
-            // as long as we want to transform and have a transformer, we'll go
-            // for it.  notice that the $value variable within our loop is a
-            // reference. thus, when we're done, we will have actually
-            // transformed the array we return below.
+        if ($this->canTransformOptions($transform)) {
+            
+            // as elsewhere, even if we can transform values, we skip empties
+            // so that we don't conflict with transformer method parameter type
+            // hints.
             
             foreach ($snapshot as $option => &$value) {
-                $value = $this->transformer->transformFromStorage($option, $value);
+                if (!empty($value)) {
+                    $value = $this->transformer->transformFromStorage($option, $value);
+                }
             }
         }
         
@@ -307,7 +314,7 @@ trait OptionsManagementTrait
      *
      * @return string
      */
-    protected function getOptionSnapshotName(): string
+    protected function getOptionSnapshotName (): string
     {
         if ($this->optionSnapshotName !== null) {
             
@@ -318,13 +325,13 @@ trait OptionsManagementTrait
             
             return $this->optionSnapshotName;
         }
-    
+        
         // to try and make a automatic and repeatably generated option name,
         // we'll create the sha1 hash of our option names and add our prefix so
         // that a human will be able to see and recognize the hash as being
         // linked to the rest of this handler's data.  a programmer can always
         // override this as necessary.
-    
+        
         $hashedNames = sha1(join('', $this->getOptionNames()));
         $snapshotName = $this->getOptionNamePrefix() . $hashedNames;
         
@@ -349,7 +356,7 @@ trait OptionsManagementTrait
      * @return bool
      * @throws HandlerException
      */
-    public function updateOption(string $option, $value, bool $transform = true): bool
+    public function updateOption (string $option, $value, bool $transform = true): bool
     {
         // since we transform our $value before we cram it in the database,
         // it's easier for us to (maybe) add it to our cache first.  that way,
@@ -357,11 +364,15 @@ trait OptionsManagementTrait
         // remember to transform it before using it elsewhere.
         
         $this->maybeCacheOption($option, $value);
-        
         if ($this->isOptionValid($option)) {
-            $value = $transform && $this->hasOptionTransformer()
-              ? $this->transformer->transformForStorage($option, $value)
-              : $value;
+            
+            // if we can transform and our value isn't empty, we pass it
+            // through the transformer.  we skip empty values so that we don't
+            // get tripped up by transformer method parameter type hints.
+            
+            $value = $this->canTransformOptions($transform) && !empty($value)
+                ? $this->transformer->transformForStorage($option, $value)
+                : $value;
             
             $fullOptionName = $this->getOptionNamePrefix() . $option;
             return $this->storeOption($fullOptionName, $value);
@@ -399,7 +410,7 @@ trait OptionsManagementTrait
      * @return bool
      * @throws HandlerException
      */
-    public function updateAllOptions(array $values, bool $transform = true): bool
+    public function updateAllOptions (array $values, bool $transform = true): bool
     {
         $success = true;
         foreach ($values as $option => $value) {
@@ -423,13 +434,13 @@ trait OptionsManagementTrait
      * To reduce the number of database calls, this method saves all of this
      * handlers options in a single database entry.
      *
-     * @param array  $values
-     * @param bool   $transform
+     * @param array $values
+     * @param bool  $transform
      *
      * @return bool
      * @throws HandlerException
      */
-    public function updateOptionsSnapshot(array $values, bool $transform = true): bool
+    public function updateOptionsSnapshot (array $values, bool $transform = true): bool
     {
         // since we're about to transform our values for storage, it's easier
         // for us to maybe store them in the cache first, then transform, then
@@ -442,14 +453,18 @@ trait OptionsManagementTrait
         $this->maybeCacheOption($snapshotName, $values);
         $this->updateAllOptions($values, $transform);
         
-        if ($transform && $this->hasOptionTransformer()) {
+        if ($this->canTransformOptions($transform)) {
             
             // if we want to transform and have a transformer, we'll go for it.
             // note that $value is a reference, so the changes we make within
-            // the loop will remain when it completes.
+            // the loop will remain when it completes.  like elsewhere, we skip
+            // empty values so they don't conflict with transformer method
+            // parameter type hints.
             
             foreach ($values as $option => &$value) {
-                $value = $this->transformer->transformForStorage($option, $value);
+                if (!empty($value)) {
+                    $value = $this->transformer->transformForStorage($option, $value);
+                }
             }
         }
         
@@ -470,7 +485,7 @@ trait OptionsManagementTrait
      * @return bool
      * @throws HandlerException
      */
-    public function optionValueMatches(string $option, $value, bool $transform = true): bool
+    public function optionValueMatches (string $option, $value, bool $transform = true): bool
     {
         // we don't want our handler to transform the value of $field as it
         // comes out of the database.  doing so would likely mean that it would
