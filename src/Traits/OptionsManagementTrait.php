@@ -61,7 +61,7 @@ trait OptionsManagementTrait
         if ($this->isOptionValid($option, defined('WP_DEBUG') && WP_DEBUG)) {
             $fullOptionName = $this->getOptionNamePrefix() . $option;
             $value = $this->retrieveOption($fullOptionName, $default);
-            $value = $transform && $this->hasTransformer()
+            $value = $transform && $this->hasOptionTransformer()
               ? $this->transformer->transformFromStorage($option, $value)
               : $value;
         }
@@ -192,14 +192,17 @@ trait OptionsManagementTrait
     }
     
     /**
-     * hasTransformer
+     * hasOptionTransformer
      *
      * Returns true if this object has a transformer property that implements
-     * the StorageTransformerInterface interface.
+     * the StorageTransformerInterface interface.  Name is oddly specific so
+     * that it doesn't conflict with method of similar purpose in the
+     * PostMetaManagementTrait should both this one and that one be used by the
+     * same object.
      *
      * @return bool
      */
-    protected function hasTransformer(): bool
+    protected function hasOptionTransformer(): bool
     {
         return property_exists($this, "transformer")
           && $this->transformer instanceof StorageTransformerInterface;
@@ -281,7 +284,7 @@ trait OptionsManagementTrait
         // options.
         
         $snapshot = $this->retrieveOption($snapshotName, []);
-        if ($transform && $this->hasTransformer()) {
+        if ($transform && $this->hasOptionTransformer()) {
             // as long as we want to transform and have a transformer, we'll go
             // for it.  notice that the $value variable within our loop is a
             // reference. thus, when we're done, we will have actually
@@ -356,7 +359,7 @@ trait OptionsManagementTrait
         $this->maybeCacheOption($option, $value);
         
         if ($this->isOptionValid($option)) {
-            $value = $transform && $this->hasTransformer()
+            $value = $transform && $this->hasOptionTransformer()
               ? $this->transformer->transformForStorage($option, $value)
               : $value;
             
@@ -439,7 +442,7 @@ trait OptionsManagementTrait
         $this->maybeCacheOption($snapshotName, $values);
         $this->updateAllOptions($values, $transform);
         
-        if ($transform && $this->hasTransformer()) {
+        if ($transform && $this->hasOptionTransformer()) {
             
             // if we want to transform and have a transformer, we'll go for it.
             // note that $value is a reference, so the changes we make within

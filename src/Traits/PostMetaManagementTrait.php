@@ -64,7 +64,7 @@ trait PostMetaManagementTrait
         if ($this->isPostMetaValid($postMeta, defined('WP_DEBUG') && WP_DEBUG)) {
             $fullPostMetaName = $this->getFullPostMetaName($postMeta);
             $value = $this->retrievePostMeta($postId, $fullPostMetaName, $default, $single);
-            $value = $transform && $this->hasTransformer()
+            $value = $transform && $this->hasPostMetaTransformer()
                 ? $this->transformer->transformFromStorage($postMeta, $value)
                 : $value;
         }
@@ -280,11 +280,14 @@ trait PostMetaManagementTrait
      * hasTransformer
      *
      * Returns true if this object has a transformer property that implements
-     * the StorageTransformerInterface interface.
+     * the StorageTransformerInterface interface.  Name is oddly specific so
+     * that it doesn't conflict with method of similar purpose in the
+     * OptionsManagementTrait should both this one and that one be used by the
+     * same object.
      *
      * @return bool
      */
-    protected function hasTransformer (): bool
+    protected function hasPostMetaTransformer (): bool
     {
         return property_exists($this, "transformer")
             && $this->transformer instanceof StorageTransformerInterface;
@@ -372,7 +375,7 @@ trait PostMetaManagementTrait
         // for these post meta.
         
         $snapshot = $this->retrievePostMeta($postId, $snapshotName, []);
-        if ($transform && $this->hasTransformer()) {
+        if ($transform && $this->hasPostMetaTransformer()) {
             
             // as long as we want to transform and have a transformer, we'll go
             // for it.  notice that the $value variable within our loop is a
@@ -418,7 +421,7 @@ trait PostMetaManagementTrait
         // that it does with respect to the WP_DEBUG constant.
     
         if ($this->isPostMetaValid($postMeta, defined('WP_DEBUG') && WP_DEBUG)) {
-            $value = $transform && $this->hasTransformer()
+            $value = $transform && $this->hasPostMetaTransformer()
                 ? $this->transformer->transformForStorage($postMeta, $value)
                 : $value;
             
@@ -505,7 +508,7 @@ trait PostMetaManagementTrait
         $this->maybeCachePostMeta($postId, $snapshotName, $values);
         $this->updateAllPostMeta($postId, $values, $transform);
         
-        if ($transform && $this->hasTransformer()) {
+        if ($transform && $this->hasPostMetaTransformer()) {
             
             // if we want to transform and have a transformer, we'll go for it.
             // note that $value is a reference, so the changes we make within
