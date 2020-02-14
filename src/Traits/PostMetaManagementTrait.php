@@ -77,7 +77,7 @@ trait PostMetaManagementTrait
         // here, if we didn't set $value in our if-block, we'll do so here with
         // the null coalescing operator.  then, if we're using the cache we
         // want to remember it for next time.
-    
+        
         $value = $value ?? $default;
         $this->maybeCachePostMeta($postId, $postMeta, $value);
         return $value;
@@ -198,7 +198,7 @@ trait PostMetaManagementTrait
         // override this if necessary.
         
         $hashedNames = sha1(join('', $this->getPostMetaNames()));
-        $snapshotName = $this->getPostMetaNamePrefix() . $hashedNames;
+        $snapshotName = $this->getFullPostMetaName($hashedNames);
         
         // for option names, the codex tells us not to exceed 64 characters for
         // option names (even though the column has a type of VARCHAR(191)).
@@ -244,13 +244,12 @@ trait PostMetaManagementTrait
         // about:  hidden meta.  in WP core, if a post meta name starts with an
         // underscore, it's hidden from the admin editors, i.e. it can only be
         // managed in code.  if $postMeta starts with an underscore, we want
-        // to make sure that the full post meta name does as well.  our regular
-        // expression matches a leading underscore followed by anything.  then,
-        // it crams our prefix in between whatever is matched by that pattern.
-        // thus name becomes {$prefix}name and _sort becomes _{$prefix}sort.
+        // to make sure that the full post meta name does as well.
         
-        $replacement = '$1' . $this->getPostMetaNamePrefix() . '$2';
-        return preg_replace('/^(_?)(.+)/', $replacement, $postMeta);
+        $postMeta = trim($postMeta);
+        return substr($postMeta, 0, 1) === '_'
+            ? '_' . $this->getPostMetaNamePrefix() . substr($postMeta, 1)
+            : $this->getPostMetaNamePrefix() . $postMeta;
     }
     
     /**
@@ -423,12 +422,12 @@ trait PostMetaManagementTrait
         // remember to un-transform it before using it elsewhere.
         
         $this->maybeCachePostMeta($postId, $postMeta, $value);
-    
+        
         // it's still hard to make a trait know about the methods that are
         // available in the classes in which it might be used.  so, we won't
         // use the isDebug method here, we'll just execute the same command
         // that it does with respect to the WP_DEBUG constant.
-    
+        
         if ($this->isPostMetaValid($postMeta, defined('WP_DEBUG') && WP_DEBUG)) {
             
             // if we can transform and we have a non-empty value, we pass it
@@ -440,7 +439,7 @@ trait PostMetaManagementTrait
                 ? $this->transformer->transformForStorage($postMeta, $value)
                 : $value;
             
-            $fullPostMetaName = $this->getPostMetaNamePrefix() . $postMeta;
+            $fullPostMetaName = $this->getFullPostMetaName($postMeta);
             return $this->storePostMeta($postId, $fullPostMetaName, $value, $prevValue);
         }
         
@@ -518,7 +517,7 @@ trait PostMetaManagementTrait
         // post meta in the cache as well.  finally, we update this information
         // in the individual post meta as well so that the snapshot records
         // matches.
-    
+        
         $snapshotName = $this->getPostMetaSnapshotName();
         $this->maybeCachePostMeta($postId, $snapshotName, $values);
         $this->updateAllPostMeta($postId, $values, $transform);
