@@ -142,31 +142,4 @@ interface HandlerInterface
      * @return void
      */
     public static function catcher (Throwable $thrown): void;
-    
-    /**
-     * findAutoloader
-     *
-     * Looks for the Composer autoloader file starting from Dash's preferred
-     * location and then in locations of decreasing likelihood until it finds
-     * one.  Throws a HandlerException if the $throw flag is set if it can't
-     * find one.
-     *
-     * @param bool $throw
-     *
-     * @return string
-     */
-    public static function findAutoloader (bool $throw = true): string;
-    
-    /**
-     * includeAutoloader
-     *
-     * This method includes composer's autoloader starting from my preferred
-     * location for it and then moving through progressively less common
-     * locations until it tries to include one local to a plugin or theme.
-     *
-     * @param bool $required
-     *
-     * @return void
-     */
-    public static function requireAutoloader (bool $required = true): void;
 }
