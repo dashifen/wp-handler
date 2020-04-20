@@ -46,4 +46,19 @@ trait NetworkOptionsManagementTrait
     {
         return update_site_option($option, $value);
     }
+    
+    /**
+     * deleteOption
+     *
+     * Overrides the single-site based method of the OptionsManagement trait
+     * so that this trait deletes network options instead.
+     *
+     * @param string $option
+     *
+     * @return bool
+     */
+    protected function removeOption (string $option): bool
+    {
+        return delete_site_option($option);
+    }
 }

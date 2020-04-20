@@ -90,7 +90,7 @@ trait OptionsManagementTrait
      *
      * @return bool
      */
-    protected function isOptionCached (string $option)
+    protected function isOptionCached (string $option): bool
     {
         return $this->useOptionsCache && isset($this->optionsCache[$option]);
     }
@@ -495,5 +495,68 @@ trait OptionsManagementTrait
         // transformations.
         
         return $this->getOption($option, '', $transform) === $value;
+    }
+    
+    /**
+     * deleteOptions
+     *
+     * If our option parameter specifies a valid option for this object, then
+     * we delete it.
+     *
+     * @param string $option
+     *
+     * @return bool|null
+     * @throws HandlerException
+     */
+    public function deleteOption (string $option): ?bool
+    {
+        // as in getOption above, it's hard to rely on other object methods
+        // within Traits even if we're pretty sure they're going to have them.
+        // so, instead of accessing the isDebug method of our handlers/agents,
+        // we'll simply do it's expected work here re: determining the value
+        // of the throw argument for isOptionValid
+        
+        if ($this->isOptionValid($option, defined('WP_DEBUG') && WP_DEBUG)) {
+            $this->maybeDeleteCachedOption($option);
+            return $this->removeOption($option);
+        }
+        
+        // if our option wasn't valid, then we definitely didn't remove
+        // anything from the database, but we want to separate this from a
+        // failure to delete a valid one.  so, we return null which would
+        // evaluate to false if used in a conditional statement anyway.
+        
+        return null;
+    }
+    
+    /**
+     * maybeDeleteCachedOption
+     *
+     * If we're using the object option value cache, unset the $option index
+     * of it to delete it from that cache.
+     *
+     * @param string $option
+     */
+    protected function maybeDeleteCachedOption (string $option): void
+    {
+        if ($this->isOptionCached($option)) {
+            unset($this->optionsCache[$option]);
+        }
+    }
+    
+    /**
+     * removeOption
+     *
+     * Deletes an option from the database.  It's separated from its
+     * surrounding context so that we can alter this method, e.g. for deleting
+     * network options.
+     *
+     * @param string $option
+     *
+     * @return bool
+     */
+    protected function removeOption (string $option): bool
+    {
+        return delete_option($option);
     }
 }

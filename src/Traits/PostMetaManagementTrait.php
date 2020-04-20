@@ -79,7 +79,7 @@ trait PostMetaManagementTrait
         // want to remember it for next time.
         
         $value = $value ?? $default;
-        $this->maybeCachePostMeta($postId, $postMeta, $value);
+        $this->maybeCachePostMeta($postId, $postMeta, $value, $single);
         return $value;
     }
     
@@ -305,13 +305,27 @@ trait PostMetaManagementTrait
      * @param int    $postId
      * @param string $postMeta
      * @param mixed  $value
+     * @param bool   $single
      *
      * @return void
      */
-    protected function maybeCachePostMeta (int $postId, string $postMeta, $value): void
+    protected function maybeCachePostMeta (int $postId, string $postMeta, $value, bool $single = true): void
     {
         if ($this->usePostMetaCache) {
-            $this->postMetaCache[$postId][$postMeta] = $value;
+            if ($single) {
+                
+                // if we're storing a single post meta value, we put it
+                // directly into our cache at this ID/key pair.
+                
+                $this->postMetaCache[$postId][$postMeta] = $value;
+            } else {
+                
+                // otherwise, we put an array at the pair, and put this value
+                // in it.  that way, if there were earlier values maintained
+                // at this ID/key pair, then we don't obliterate them.
+                
+                $this->postMetaCache[$postId][$postMeta][] = $value;
+            }
         }
     }
     
@@ -562,5 +576,97 @@ trait PostMetaManagementTrait
         // transformations.
         
         return $this->getPostMeta($postMeta, '', $transform) === $value;
+    }
+    
+    /**
+     * deleteMetaValue
+     *
+     * Deletes a post meta value from the database.
+     *
+     * @param int    $postId
+     * @param string $postMeta
+     * @param mixed $postMetaValue
+     *
+     * @return bool|null
+     * @throws HandlerException
+     */
+    public function deleteMetaValue (int $postId, string $postMeta, $postMetaValue = ''): ?bool
+    {
+        if ($this->isPostMetaValid($postMeta, defined('WP_DEBUG') && WP_DEBUG)) {
+            
+            // if our post meta is valid, i.e. it's managed by this plugin,
+            // then we'll delete it.  maybe we delete it from the cache as
+            // well.
+            
+            $this->maybeDeleteCachedPostMeta($postId, $postMeta);
+            return $this->removePostMeta($postId, $postMeta, $postMetaValue);
+        }
+        
+        // if our post meta wasn't valid, then we didn't do anything.  we could
+        // return false, but we want to separate this result from a failure to
+        // delete if we can.  so, we return null which evaluates to false in
+        // conditional operations anyway.
+        
+        return null;
+    }
+    
+    /**
+     * maybeDeleteCachedPostMeta
+     *
+     * Removes a cached post meta value from the cache if necessary.
+     *
+     * @param int    $postId
+     * @param string $postMeta
+     * @param mixed $postMetaValue
+     *
+     * @return void
+     */
+    protected function maybeDeleteCachedPostMeta (int $postId, string $postMeta, $postMetaValue = ''): void
+    {
+        if ($this->isPostMetaCached($postId, $postMeta)) {
+            if (empty($postMetaValue)) {
+                
+                // if our value is empty, that means we want to get rid of the
+                // entire post meta key from the database.  therefore, we also
+                // get rid of it from our cache.
+                
+                unset($this->postMetaCache[$postId][$postMeta]);
+            } else {
+    
+                // if it wasn't empty, then we want to find and remove just
+                // that value.  if the value can't be found at or within this
+                // ID/key pair, then we do nothing.
+    
+                if (!is_array($this->postMetaCache[$postId][$postMeta])) {
+                    if ($this->postMetaCache[$postId][$postMeta] === $postMetaValue) {
+                        unset($this->postMetaCache[$postId][$postMeta]);
+                    }
+                } else {
+                    foreach ($this->postMetaCache[$postId][$postMeta] as $i => $value) {
+                        if ($value === $postMetaValue) {
+                            unset($this->postMetaCache[$postId][$postMeta][$i]);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    /**
+     * removePostMeta
+     *
+     * Removes a post meta value from the database.  Separated from its
+     * surrounding context in case we ever need to update this behavior
+     * directly (e.g. if we make a user meta management trait).
+     *
+     * @param int    $postId
+     * @param string $postMeta
+     * @param mixed $postMetaValue
+     *
+     * @return bool
+     */
+    protected function removePostMeta (int $postId, string $postMeta, $postMetaValue = ''): bool
+    {
+        return delete_post_meta($postId, $postMeta, $postMetaValue);
     }
 }
