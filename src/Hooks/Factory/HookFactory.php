@@ -30,7 +30,8 @@ class HookFactory implements HookFactoryInterface
         // the purpose of this function is to provide a single place where
         // HookInterface implementations are constructed.  our default factory
         // produces either MethodHooks or ClosureHooks based on the type of
-        // $callback.
+        // $callback.  we don't type-check our $callback parameter to be sure
+        // it's a Closure here because the ClosureHook will do that for us.
         
         return is_string($callback)
           ? new MethodHook($hook, $object, $callback, $priority, $argumentCount)

@@ -15,14 +15,14 @@ interface HookFactoryInterface
      *
      * @param string           $hook
      * @param HandlerInterface $object
-     * @param string           $method
+     * @param string|Closure   $callback
      * @param int              $priority
      * @param int              $argumentCount
      *
      * @return HookInterface
      * @throws HookException
      */
-    public function produceHook(string $hook, HandlerInterface $object, string $method, int $priority = 10, int $argumentCount = 1): HookInterface;
+    public function produceHook(string $hook, HandlerInterface $object, $callback, int $priority = 10, int $argumentCount = 1): HookInterface;
     
     /**
      * produceHookIndex
@@ -31,10 +31,10 @@ interface HookFactoryInterface
      *
      * @param string           $hook
      * @param HandlerInterface $object
-     * @param string           $method
+     * @param string|Closure   $callback
      * @param int              $priority
      *
      * @return string
      */
-    public function produceHookIndex(string $hook, HandlerInterface $object, string $method, int $priority): string;
+    public function produceHookIndex(string $hook, HandlerInterface $object, $callback, int $priority): string;
 }
