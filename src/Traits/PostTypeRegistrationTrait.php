@@ -1,0 +1,52 @@
+<?php
+
+namespace Dashifen\WPHandler\Traits;
+
+trait PostTypeRegistrationTrait
+{
+  /**
+   * getPostTypeLabels
+   *
+   * Based on the $labels array constructed via the Post Type generator at
+   * https://generatewp.com/post-type, this method returns an array of post
+   * type labels based on the singular and plural parameters.
+   *
+   * @param string $singular
+   * @param string $plural
+   * @param string $textDomain
+   *
+   * @return array
+   */
+  protected function getPostTypeLabels(string $singular, string $plural, string $textDomain = 'default'): array
+  {
+    return [
+      'name'                  => _x($plural, $singular . ' General Name', $textDomain),
+      'singular_name'         => _x($singular, $singular . ' Singular Name', $textDomain),
+      'menu_name'             => __($plural, $textDomain),
+      'name_admin_bar'        => __($singular, $textDomain),
+      'archives'              => __($singular . ' Archives', $textDomain),
+      'attributes'            => __($singular . ' Attributes', $textDomain),
+      'parent_item_colon'     => __('Parent ' . $singular . ':', $textDomain),
+      'all_items'             => __('All ' . $plural, $textDomain),
+      'add_new_item'          => __('Add New ' . $singular, $textDomain),
+      'add_new'               => __('Add New', $textDomain),
+      'new_item'              => __('New ' . $singular, $textDomain),
+      'edit_item'             => __('Edit ' . $singular, $textDomain),
+      'update_item'           => __('Update ' . $singular, $textDomain),
+      'view_item'             => __('View ' . $singular, $textDomain),
+      'view_items'            => __('View ' . $plural, $textDomain),
+      'search_items'          => __('Search ' . $singular, $textDomain),
+      'not_found'             => __('Not found', $textDomain),
+      'not_found_in_trash'    => __('Not found in Trash', $textDomain),
+      'featured_image'        => __('Featured Image', $textDomain),
+      'set_featured_image'    => __('Set featured image', $textDomain),
+      'remove_featured_image' => __('Remove featured image', $textDomain),
+      'use_featured_image'    => __('Use as featured image', $textDomain),
+      'insert_into_item'      => __('Add to ' . $singular, $textDomain),
+      'uploaded_to_this_item' => __('Uploaded to this ' . $singular, $textDomain),
+      'items_list'            => __($plural . ' list', $textDomain),
+      'items_list_navigation' => __($plural . ' list navigation', $textDomain),
+      'filter_items_list'     => __('Filter ' . $plural . ' list', $textDomain),
+    ];
+  }
+}
