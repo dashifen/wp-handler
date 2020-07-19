@@ -19,6 +19,16 @@ trait PostTypeRegistrationTrait
    */
   protected function getPostTypeLabels(string $singular, string $plural, string $textDomain = 'default'): array
   {
+    // rather than add more parameters to this method, we're going to provide
+    // a filter for the "featured image" label.  this is because the default
+    // tends to be acceptable, but in a case when it's not, then we can use
+    // this filter to alter it.
+    
+    $thumbnailLabel = apply_filters(
+      'post-type-registration-thumbnail-label',
+      'featured image'
+    );
+    
     return [
       'name'                  => _x($plural, $singular . ' General Name', $textDomain),
       'singular_name'         => _x($singular, $singular . ' Singular Name', $textDomain),
@@ -38,10 +48,10 @@ trait PostTypeRegistrationTrait
       'search_items'          => __('Search ' . $singular, $textDomain),
       'not_found'             => __('Not found', $textDomain),
       'not_found_in_trash'    => __('Not found in Trash', $textDomain),
-      'featured_image'        => __('Featured Image', $textDomain),
-      'set_featured_image'    => __('Set featured image', $textDomain),
-      'remove_featured_image' => __('Remove featured image', $textDomain),
-      'use_featured_image'    => __('Use as featured image', $textDomain),
+      'featured_image'        => __(ucwords($thumbnailLabel), $textDomain),
+      'set_featured_image'    => __('Set ' . $thumbnailLabel, $textDomain),
+      'remove_featured_image' => __('Remove ' . $thumbnailLabel, $textDomain),
+      'use_featured_image'    => __('Use as ' . $thumbnailLabel, $textDomain),
       'insert_into_item'      => __('Add to ' . $singular, $textDomain),
       'uploaded_to_this_item' => __('Uploaded to this ' . $singular, $textDomain),
       'items_list'            => __($plural . ' list', $textDomain),
