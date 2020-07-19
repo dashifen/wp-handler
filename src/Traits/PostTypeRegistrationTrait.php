@@ -26,7 +26,8 @@ trait PostTypeRegistrationTrait
     
     $thumbnailLabel = apply_filters(
       'post-type-registration-thumbnail-label',
-      'featured image'
+      'featured image',
+      $singular
     );
     
     return [
