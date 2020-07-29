@@ -4,24 +4,24 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "cb09c1a7412f751f5f0a245edaeb640b",
+    "content-hash": "4c2ca197da81a441dfe0ae6391e72be4",
     "packages": [
         {
             "name": "dashifen/collection",
-            "version": "1.0.0",
+            "version": "2.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/dashifen/collection.git",
-                "reference": "03ba9bddc0ce0cae3e6e38148ae83f18b1c53a02"
+                "reference": "9aad3915d47ae4e29e44aae0a900a0619f40a357"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/dashifen/collection/zipball/03ba9bddc0ce0cae3e6e38148ae83f18b1c53a02",
-                "reference": "03ba9bddc0ce0cae3e6e38148ae83f18b1c53a02",
+                "url": "https://api.github.com/repos/dashifen/collection/zipball/9aad3915d47ae4e29e44aae0a900a0619f40a357",
+                "reference": "9aad3915d47ae4e29e44aae0a900a0619f40a357",
                 "shasum": ""
             },
             "require": {
-                "php": ">=7.1"
+                "php": ">=7.4"
             },
             "type": "project",
             "autoload": {
@@ -41,7 +41,7 @@
                 }
             ],
             "description": "An abstract object from which concrete collections can be built.",
-            "time": "2020-01-11T11:15:44+00:00"
+            "time": "2020-07-29T15:00:49+00:00"
         },
         {
             "name": "dashifen/exception",
@@ -83,16 +83,16 @@
         },
         {
             "name": "dashifen/repository",
-            "version": "2.0.0",
+            "version": "2.0.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/dashifen/repository.git",
-                "reference": "c61d9065bf4e9ecfdcd3f6df1987d53a14952d95"
+                "reference": "2d3e0d1b9b96908c0aeed3a730123bd26eb9f344"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/dashifen/repository/zipball/c61d9065bf4e9ecfdcd3f6df1987d53a14952d95",
-                "reference": "c61d9065bf4e9ecfdcd3f6df1987d53a14952d95",
+                "url": "https://api.github.com/repos/dashifen/repository/zipball/2d3e0d1b9b96908c0aeed3a730123bd26eb9f344",
+                "reference": "2d3e0d1b9b96908c0aeed3a730123bd26eb9f344",
                 "shasum": ""
             },
             "require": {
@@ -118,23 +118,24 @@
                 }
             ],
             "description": "An object with read-only protected properties from which other objects can be extened.",
-            "time": "2020-01-23T20:23:25+00:00"
+            "time": "2020-01-24T18:43:36+00:00"
         },
         {
             "name": "dashifen/transformer",
-            "version": "2.1.0",
+            "version": "2.2.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/dashifen/transformer.git",
-                "reference": "5dc37a3cccd45531b17526063c34acfe8a14fa25"
+                "reference": "95202e9740b145c0fb94821115dd049c1a0a2c34"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/dashifen/transformer/zipball/5dc37a3cccd45531b17526063c34acfe8a14fa25",
-                "reference": "5dc37a3cccd45531b17526063c34acfe8a14fa25",
+                "url": "https://api.github.com/repos/dashifen/transformer/zipball/95202e9740b145c0fb94821115dd049c1a0a2c34",
+                "reference": "95202e9740b145c0fb94821115dd049c1a0a2c34",
                 "shasum": ""
             },
             "require": {
+                "dashifen/exception": "^1.2",
                 "php": ">=7.3"
             },
             "type": "project",
@@ -150,11 +151,12 @@
             "authors": [
                 {
                     "name": "David Dashifen Kees",
-                    "email": "dashifen@dashifen.com"
+                    "email": "dashifen@dashifen.com",
+                    "role": "developer"
                 }
             ],
             "description": "An interface and abstract class useful for the production of objects which transform data.",
-            "time": "2020-01-21T20:03:03+00:00"
+            "time": "2020-03-11T14:56:21+00:00"
         }
     ],
     "packages-dev": [],
@@ -164,7 +166,8 @@
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
-        "php": ">=7.3"
+        "php": ">=7.4"
     },
-    "platform-dev": []
+    "platform-dev": [],
+    "plugin-api-version": "1.1.0"
 }
