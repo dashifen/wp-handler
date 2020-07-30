@@ -19,57 +19,54 @@ use Dashifen\WPHandler\Handlers\Plugins\PluginHandlerInterface;
  */
 abstract class AbstractPluginAgent extends AbstractPluginHandler implements AgentInterface
 {
-    /**
-     * @var PluginHandlerInterface
-     */
-    protected $handler;
+  protected PluginHandlerInterface $handler;
+  
+  /**
+   * AbstractPluginService constructor.
+   *
+   * @param PluginHandlerInterface $handler
+   *
+   * @throws HandlerException
+   */
+  public function __construct(PluginHandlerInterface $handler)
+  {
+    // agents are meant to help their handler.  thus, we assume that any
+    // agent that's in use by a handler uses the same type of hook object
+    // as the handler.  in other words, we can get the handler's hook
+    // factory and just use that here, too.  similarly, we assume that
+    // they'll use the same type of hook collection, so we can pass the
+    // handlers collection factory over to them as well.
     
-    /**
-     * AbstractPluginService constructor.
-     *
-     * @param PluginHandlerInterface $handler
-     *
-     * @throws HandlerException
-     */
-    public function __construct(PluginHandlerInterface $handler)
-    {
-        // agents are meant to help their handler.  thus, we assume that any
-        // agent that's in use by a handler uses the same type of hook object
-        // as the handler.  in other words, we can get the handler's hook
-        // factory and just use that here, too.  similarly, we assume that
-        // they'll use the same type of hook collection, so we can pass the
-        // handlers collection factory over to them as well.
-        
-        parent::__construct(
-          $handler->getHookFactory(),
-          $handler->getHookCollectionFactory()
-        );
-        
-        $this->handler = $handler;
-    }
+    parent::__construct(
+      $handler->getHookFactory(),
+      $handler->getHookCollectionFactory()
+    );
     
-    /**
-     * getPluginDir
-     *
-     * Returns the path to the directory containing this Service's handler.
-     *
-     * @return string
-     */
-    public function getPluginDir(): string
-    {
-        return $this->handler->getPluginDir();
-    }
-    
-    /**
-     * getPluginUrl
-     *
-     * Returns the path to the URL for the directory containing this
-     * Service's handler.
-     *
-     * @return string
-     */
-    public function getPluginUrl(): string
-    {
-        return $this->handler->getPluginUrl();
-    }
+    $this->handler = $handler;
+  }
+  
+  /**
+   * getPluginDir
+   *
+   * Returns the path to the directory containing this Service's handler.
+   *
+   * @return string
+   */
+  public function getPluginDir(): string
+  {
+    return $this->handler->getPluginDir();
+  }
+  
+  /**
+   * getPluginUrl
+   *
+   * Returns the path to the URL for the directory containing this
+   * Service's handler.
+   *
+   * @return string
+   */
+  public function getPluginUrl(): string
+  {
+    return $this->handler->getPluginUrl();
+  }
 }

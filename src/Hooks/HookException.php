@@ -11,6 +11,6 @@ use Dashifen\Exception\Exception;
  */
 class HookException extends Exception
 {
-    public const FAILURE_TO_CONSTRUCT = 1;
-    public const INVALID_ARGUMENT_COUNT = 2;
+  public const FAILURE_TO_CONSTRUCT = 1;
+  public const INVALID_ARGUMENT_COUNT = 2;
 }

@@ -18,10 +18,10 @@
   "minimum-stability": "dev",
   "prefer-stable": true,
   "require": {
+    "php": ">=7.4",
     "dashifen/collection": "^2",
     "dashifen/exception": "^1",
-    "dashifen/repository": "^2",
-    "dashifen/transformer": "^2",
-    "php": ">=7.4"
+    "dashifen/repository": "^3",
+    "dashifen/transformer": "^2"
   }
 }

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "4c2ca197da81a441dfe0ae6391e72be4",
+    "content-hash": "a61645ac018290e690a4ef6c36b074fc",
     "packages": [
         {
             "name": "dashifen/collection",
@@ -83,22 +83,22 @@
         },
         {
             "name": "dashifen/repository",
-            "version": "2.0.4",
+            "version": "3.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/dashifen/repository.git",
-                "reference": "2d3e0d1b9b96908c0aeed3a730123bd26eb9f344"
+                "reference": "83ce68039cc5c0cae1c35c3da80d9d3e23b57d37"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/dashifen/repository/zipball/2d3e0d1b9b96908c0aeed3a730123bd26eb9f344",
-                "reference": "2d3e0d1b9b96908c0aeed3a730123bd26eb9f344",
+                "url": "https://api.github.com/repos/dashifen/repository/zipball/83ce68039cc5c0cae1c35c3da80d9d3e23b57d37",
+                "reference": "83ce68039cc5c0cae1c35c3da80d9d3e23b57d37",
                 "shasum": ""
             },
             "require": {
                 "dashifen/exception": "^1",
                 "ext-json": "*",
-                "php": ">=7.3"
+                "php": ">=7.4"
             },
             "type": "library",
             "autoload": {
@@ -118,7 +118,7 @@
                 }
             ],
             "description": "An object with read-only protected properties from which other objects can be extened.",
-            "time": "2020-01-24T18:43:36+00:00"
+            "time": "2020-07-29T15:21:59+00:00"
         },
         {
             "name": "dashifen/transformer",
