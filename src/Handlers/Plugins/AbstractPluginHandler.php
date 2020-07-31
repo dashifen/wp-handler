@@ -26,7 +26,7 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
 {
   protected string $pluginDir = "";
   protected string $pluginUrl = "";
-  protected string $pluginFilename = "";
+  protected ?string $pluginFilename = "";
   private string $pluginId = "";
   
   /**
