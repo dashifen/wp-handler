@@ -5,9 +5,9 @@
 namespace Dashifen\WPHandler\Handlers;
 
 use Closure;
-use Throwable;
 use ReflectionClass;
 use ReflectionException;
+use Dashifen\WPDebugging\WPDebuggingTrait;
 use Dashifen\WPHandler\Hooks\HookException;
 use Dashifen\WPHandler\Hooks\Factory\HookFactory;
 use Dashifen\WPHandler\Hooks\Factory\HookFactoryInterface;
@@ -20,6 +20,8 @@ use Dashifen\WPHandler\Agents\Collection\Factory\AgentCollectionFactoryInterface
 
 abstract class AbstractHandler implements HandlerInterface
 {
+  use WPDebuggingTrait;
+  
   protected HookFactoryInterface $hookFactory;
   protected HookCollectionInterface $hookCollection;
   protected HookCollectionFactoryInterface $hookCollectionFactory;
@@ -511,88 +513,5 @@ abstract class AbstractHandler implements HandlerInterface
   {
     $this->removeHookFromCollection($hook, $method, $priority);
     return remove_filter($hook, [$this, $method], $priority);
-  }
-  
-  /**
-   * debug
-   *
-   * Given stuff, print information about it and then die() if the $die flag is
-   * set.  Typically, this only works when the isDebug() method returns true,
-   * but the $force parameter will override this behavior.
-   *
-   * @param mixed $stuff
-   * @param bool  $die
-   * @param bool  $force
-   *
-   * @return void
-   */
-  public static function debug($stuff, bool $die = false, bool $force = false): void
-  {
-    if (self::isDebug() || $force) {
-      $message = "<pre>" . print_r($stuff, true) . "</pre>";
-      
-      if (!$die) {
-        echo $message;
-        return;
-      }
-      
-      die($message);
-    }
-  }
-  
-  /**
-   * isDebug
-   *
-   * Returns true when WP_DEBUG exists and is set.
-   *
-   * @return bool
-   */
-  public static function isDebug(): bool
-  {
-    return defined("WP_DEBUG") && WP_DEBUG;
-  }
-  
-  /**
-   * writeLog
-   *
-   * Calling this method should write $data to the WordPress debug.log file.
-   *
-   * @param mixed $data
-   *
-   * @return void
-   */
-  public static function writeLog($data): void
-  {
-    // source:  https://www.elegantthemes.com/blog/tips-tricks/using-the-wordpress-debug-log
-    // accessed:  2018-07-09
-    
-    if (!function_exists("write_log")) {
-      function write_log($log)
-      {
-        if (is_array($log) || is_object($log)) {
-          error_log(print_r($log, true));
-        } else {
-          error_log($log);
-        }
-      }
-    }
-    
-    write_log($data);
-  }
-  
-  /**
-   * catcher
-   *
-   * This serves as a general-purpose Exception handler which displays
-   * the caught object when we're debugging and writes it to the log when
-   * we're not.
-   *
-   * @param Throwable $thrown
-   *
-   * @return void
-   */
-  public static function catcher(Throwable $thrown): void
-  {
-    self::isDebug() ? self::debug($thrown, true) : self::writeLog($thrown);
   }
 }
