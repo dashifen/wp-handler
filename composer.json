@@ -1,6 +1,7 @@
 {
   "name": "dashifen/wp-handler",
   "description": "An object to define handlers for various WordPress action and filter hooks using protected methods. ",
+  "minimum-stability": "stable",
   "type": "project",
   "license": "MIT",
   "authors": [
@@ -15,8 +16,6 @@
       "Dashifen\\WPHandler\\": "src"
     }
   },
-  "minimum-stability": "dev",
-  "prefer-stable": true,
   "require": {
     "php": ">=7.4",
     "dashifen/collection": "^2",
