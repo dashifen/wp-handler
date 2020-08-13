@@ -88,60 +88,95 @@ abstract class AbstractThemeHandler extends AbstractHandler implements ThemeHand
    */
   protected function enqueue(string $file, array $dependencies = [], $finalArg = null, string $url = "", string $dir = ""): string
   {
-    $fileInfo = pathinfo($file);
-    $isScript = ($fileInfo["extension"] ?? "") === "js";
+    // remote assets (e.g. Google fonts) may begin with an HTTP protocol
+    // string.  we'll remove that to force browsers to load remote assets using
+    // the same protocol as the rest of the page.
     
-    // if either of our url or dir parameters are empty, we'll want to
-    // set them to the url and dir properties of this object.  this is the
-    // default behavior, but our AbstractPluginHandler sends us other
-    // strings.  then, we make sure that each of these has a trailing
-    // slash.
-    
-    if (empty($url)) {
-      $url = $this->getStylesheetUrl();
+    $file = preg_replace("/^https?:/", "", $file);
+    if (substr($file, 0, 2) === "//") {
+      
+      // if our $file begins with // then it's remote.  therefore, we'll pass
+      // control over to the method below which specifically handles remote
+      // assets differently than we handle local assets below.
+      
+      return $this->enqueueRemote($file, $dependencies, $finalArg);
     }
     
-    if (empty($dir)) {
-      $dir = $this->getStylesheetDir();
-    }
+    // now that we know we're loading a local asset, we can start to identify
+    // the values that we're going to pass to either wp_enqueue_script or
+    // wp_enqueue_style based on the type of this asset as follows.
     
-    $url = trailingslashit($url);
-    $dir = trailingslashit($dir);
-    
-    // the $function variable will be used as a variable function.  we
-    // want to set it to either the WP function that enqueues scripts or
-    // the one for styles.  then, we can call that function below using
-    // $function().
-    
+    $asset = pathinfo($file, PATHINFO_FILENAME);
+    $isScript = pathinfo($file, PATHINFO_EXTENSION) === 'js';
     $function = $isScript ? "wp_enqueue_script" : "wp_enqueue_style";
     
+    // if either (or both) of our url or dir parameters is empty, we set it to
+    // the stylesheets url or dir as appropriate.  we also make sure that these
+    // end in a slash.
+    
+    $url = trailingslashit(empty($url) ? $this->getStylesheetUrl() : $url);
+    $dir = trailingslashit(empty($dir) ? $this->getStylesheetDir() : $dir);
+    
     if (is_null($finalArg)) {
-      // the final argument for our $function is either a Boolean or
-      // a string for scripts and styles respectively.  if it's null
-      // at the moment, we'll default it to the following.  otherwise,
-      // we assume the calling scope knows what it's doing.
+      
+      // the final argument for our $function is either a Boolean or a string
+      // for scripts and styles respectively.  if it's null at the moment,
+      // we'll default it to the following.  otherwise, we assume the calling
+      // scope knows what it's doing.
       
       $finalArg = $isScript ? true : "all";
     }
     
-    // if the asset we're enqueuing begins with "//" then it's a remote
-    // asset.  we don't want to prefix it with our local URL and directory
-    // values.  first, we replace the protocol designation just to be
-    // sure it's not present for our test.
+    // and, now we can enqueue.  we call our $function and pass it a bunch of
+    // stuff.  note that we specify the FQDN for the local asset by prefixing
+    // the filename with the URL.  we also use the last modified timestamp of
+    // the file as our "version" which should force browser to clear their
+    // cache of these assets when the file changes.
     
-    $file = preg_replace("/^https?:/", "", $file);
-    $isRemote = substr($file, 0, 2) === "//";
+    $function($asset, ($url . $file), $dependencies, filemtime($dir . $file), $finalArg);
+    return $asset;
+  }
+  
+  /**
+   * enqueueRemote
+   *
+   * Returns the name of the asset used by WordPress to manage queued
+   * dependencies.
+   *
+   * @param string     $file
+   * @param array      $dependencies
+   * @param mixed|null $finalArg
+   *
+   * @return string
+   */
+  private function enqueueRemote(string $file, array $dependencies, $finalArg = null): string
+  {
+    // enqueuing a remote asset is a little easier than the local stuff we
+    // handled above.  because it can be hard to impossible to accurately
+    // identify the filename of a remote asset with pathinfo, we'll just hash
+    // $file and use that as our asset's name.  similarly, getting the
+    // extension with pathinfo doesn't work well, so we'll just look for
+    // the extension ourselves.
     
-    // the include is either the $file itself or that prefixed by our
-    // URL property.  but, for the version of that file, we use the last
-    // modified timestamp for local files and this year and month for
-    // remote ones.  that should force browsers to update their cache
-    // at least once per month for remote assets.
+    $asset = md5($file);
+    $isScript = strpos($file, '.js') !== false;
+    $function = $isScript ? "wp_enqueue_script" : "wp_enqueue_style";
+    if (is_null($finalArg)) {
+      
+      // the final argument for our $function is either a Boolean or a string
+      // for scripts and styles respectively.  if it's null at the moment,
+      // we'll default it to the following.  otherwise, we assume the calling
+      // scope knows what it's doing.
+      
+      $finalArg = $isScript ? true : "all";
+    }
     
-    $include = !$isRemote ? ($url . $file) : $file;
-    $version = !$isRemote ? filemtime($dir . $file) : date("Ym");
-    $function($fileInfo["filename"], $include, $dependencies, $version, $finalArg);
+    // and that's it.  we can call our function passing it the values we've
+    // identified.  for local assets we use the last modified timestamp of the
+    // file as a "version" but here we just use the year and month so that
+    // browsers will update their caches periodically but not too often.
     
-    return $fileInfo["filename"];
+    $function($asset, $file, $dependencies, date('Ym'), $finalArg);
+    return $asset;
   }
 }
