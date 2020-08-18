@@ -170,7 +170,7 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
         // actual filename.  to build a string that is <dir>/<filename>
         // we break up $file by the directory separator, slice off the
         // last two items, and then join them with an forward slash.
-        //  after we set our property, we're done.
+        // we do all this and return it to our calling scope.
         
         $pathParts = explode(DIRECTORY_SEPARATOR, $file);
         $filenameParts = array_slice($pathParts, -2);
@@ -198,20 +198,18 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
    */
   private function isPluginFile(string $file): bool
   {
-    // here we read the first 8KB of our file.  why 8KB?  because that's
-    // what the core get_file_data function does.  why don't we use that
-    // one?  because it doesn't seem to be included, yet.
+    // just in case the core get_plugin_data function has not yet been loaded,
+    // and it probably hasn't, then we include it here.  once we have it at our
+    // disposal, we run it using our parameter.  if $file represents a plugin
+    // file, then it'll have a Name in it; we can't rely on other fields since
+    // it's the only required "field" in the plugin header.  so, if we have a
+    // non-empty name, this must be our plugin file.
     
-    $fp = fopen($file, 'r');
-    $data = fread($fp, 1024 * 8);
-    fclose($fp);
+    if (!function_exists('get_plugin_data')) {
+      require_once ABSPATH . 'wp-admin/includes/plugin.php';
+    }
     
-    // now, to determine if this is the plugin definition file, we look for
-    // the "Plugin Name:" string what we've read.  this is required by
-    // WordPress in order for our plugin to be a plugin; the other plugin
-    // header "tags" aren't.
-    
-    return strpos($data, 'Plugin Name:') !== false;
+    return (get_plugin_data($file, false)['Name'] ?? '') !== '';
   }
   
   /**
@@ -264,8 +262,8 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
     
     $slashLoc = strpos($this->pluginFilename, '/');
     $directory = substr($this->pluginFilename, 0, $slashLoc);
-    $this->pluginDir = WP_PLUGIN_DIR . '/' . $directory;
-    $this->pluginUrl = WP_PLUGIN_URL . '/' . $directory;
+    $this->pluginDir = wp_normalize_path(WP_PLUGIN_DIR . '/' . $directory);
+    $this->pluginUrl = wp_normalize_path(WP_PLUGIN_URL . '/' . $directory);
     
     // we'll remove the HTTP protocol from our URL so that assets enqueued
     // by this object are included into the DOM using the same protocol as
@@ -539,6 +537,7 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
              ]
       );
     } catch (RepositoryException $e) {
+      
       // rather than throw our general RepositoryException, we'll
       // "convert" it into a MenuItemException which is a little most
       // specific for our purposes here.
