@@ -262,15 +262,48 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
     
     $slashLoc = strpos($this->pluginFilename, '/');
     $directory = substr($this->pluginFilename, 0, $slashLoc);
-    $this->pluginDir = wp_normalize_path(WP_PLUGIN_DIR . '/' . $directory);
-    $this->pluginUrl = wp_normalize_path(WP_PLUGIN_URL . '/' . $directory);
+    
+    // MU and non-MU plugins are in different folders.  in order to provide
+    // handlers for both, we use the following methods to get the WP folders
+    // in which these two types of plugins reside.  then, we extend this object
+    // to create an AbstractMustUsePluginHandler that overrides them for MU
+    // plugins to use.
+    
+    $this->pluginDir = wp_normalize_path($this->getWPPluginDir() . '/' . $directory);
+    $this->pluginUrl = wp_normalize_path($this->getWPPluginUrl() . '/' . $directory);
     
     // we'll remove the HTTP protocol from our URL so that assets enqueued
     // by this object are included into the DOM using the same protocol as
     // the original HTTP request.  this avoids any mixed HTTP vs. HTTPS
     // warnings that a browser might have otherwise thrown.
     
-    $this->pluginUrl = preg_replace('/^https?:/', '', $this->pluginUrl);
+    $this->pluginUrl = (string) preg_replace('/^https?:/', '', $this->pluginUrl);
+  }
+  
+  /**
+   * getWPPluginDir
+   *
+   * Returns the path to the WP plugin directory using the WP_PLUGIN_DIR
+   * constant.
+   *
+   * @return string
+   */
+  protected function getWPPluginDir(): string
+  {
+    return WP_PLUGIN_DIR;
+  }
+  
+  /**
+   * getWPPluginUrl
+   *
+   * Returns the URL for the WP plugin directory using the WP_PLUGIN_URL
+   * constant.
+   *
+   * @return string
+   */
+  protected function getWPPluginUrl(): string
+  {
+    return WP_PLUGIN_URL;
   }
   
   /**
