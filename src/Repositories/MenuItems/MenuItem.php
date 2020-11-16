@@ -197,16 +197,27 @@ class MenuItem extends AbstractRepository implements MenuItemInterface
   public function setPageTitle(string $pageTitle): void
   {
     $this->pageTitle = $pageTitle;
-    $this->setMenuTitle($pageTitle);
     
-    // for our menu slug, we replace all adjacent sets of whitespace
-    // non-word characters, and underscores to a dash and lowercase the
-    // entire string.  then, we just make sure to remove a dash at the end
-    // of the string more for aesthetics than anything else.
+    // to homogenize the page title, menu title, and menu slug, if the latter
+    // two have not yet been set, we'll set them here.  but, if they're not
+    // empty, we assume that the scope using this object knows what it's doing
+    // and leave them alone.
     
-    $menuSlug = preg_replace("/[\s\W_]+/", "-", strtolower($pageTitle));
-    $menuSlug = preg_replace("/-$/", "", $menuSlug);
-    $this->setMenuSlug($menuSlug);
+    if (empty($this->menuTitle)) {
+      $this->setMenuTitle($pageTitle);
+    }
+    
+    if (empty($this->menuSlug)) {
+  
+      // for our menu slug, we replace all adjacent sets of whitespace
+      // non-word characters, and underscores to a dash and lowercase the
+      // entire string.  then, we just make sure to remove a dash at the end
+      // of the string more for aesthetics than anything else.
+  
+      $menuSlug = preg_replace("/[\s\W_]+/", "-", strtolower($pageTitle));
+      $menuSlug = preg_replace("/-$/", "", $menuSlug);
+      $this->setMenuSlug($menuSlug);
+    }
   }
   
   /**
