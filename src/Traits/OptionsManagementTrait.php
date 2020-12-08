@@ -2,6 +2,7 @@
 
 namespace Dashifen\WPHandler\Traits;
 
+use Dashifen\Transformer\TransformerException;
 use Dashifen\WPHandler\Handlers\HandlerException;
 use Dashifen\Transformer\StorageTransformer\StorageTransformerInterface;
 
@@ -35,6 +36,7 @@ trait OptionsManagementTrait
    *
    * @return mixed
    * @throws HandlerException
+   * @throws TransformerException
    */
   public function getOption(string $option, $default = '', bool $transform = true)
   {
@@ -229,6 +231,7 @@ trait OptionsManagementTrait
    *
    * @return array
    * @throws HandlerException
+   * @throws TransformerException
    */
   public function getAllOptions(bool $transform = true): array
   {
@@ -259,6 +262,7 @@ trait OptionsManagementTrait
    * @param bool $transform
    *
    * @return array
+   * @throws TransformerException
    */
   public function getOptionsSnapshot(bool $transform = true): array
   {
@@ -344,6 +348,7 @@ trait OptionsManagementTrait
    *
    * @return bool
    * @throws HandlerException
+   * @throws TransformerException
    */
   public function updateOption(string $option, $value, bool $transform = true): bool
   {
@@ -398,6 +403,7 @@ trait OptionsManagementTrait
    *
    * @return bool
    * @throws HandlerException
+   * @throws TransformerException
    */
   public function updateAllOptions(array $values, bool $transform = true): bool
   {
@@ -428,6 +434,7 @@ trait OptionsManagementTrait
    *
    * @return bool
    * @throws HandlerException
+   * @throws TransformerException
    */
   public function updateOptionsSnapshot(array $values, bool $transform = true): bool
   {
@@ -473,6 +480,7 @@ trait OptionsManagementTrait
    *
    * @return bool
    * @throws HandlerException
+   * @throws TransformerException
    */
   public function optionValueMatches(string $option, $value, bool $transform = true): bool
   {
@@ -507,7 +515,8 @@ trait OptionsManagementTrait
     
     if ($this->isOptionValid($option, defined('WP_DEBUG') && WP_DEBUG)) {
       $this->maybeDeleteCachedOption($option);
-      return $this->removeOption($option);
+      $fullOptionName = $this->getOptionNamePrefix() . $option;
+      return $this->removeOption($fullOptionName);
     }
     
     // if our option wasn't valid, then we definitely didn't remove
