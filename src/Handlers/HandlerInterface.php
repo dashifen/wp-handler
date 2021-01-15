@@ -115,7 +115,7 @@ interface HandlerInterface
    *
    * Calling this method should write $data to the WordPress debug.log file.
    *
-   * @param mixed $data
+   * @param $data
    *
    * @return void
    */
