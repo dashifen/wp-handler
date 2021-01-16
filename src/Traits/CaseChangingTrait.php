@@ -30,10 +30,7 @@ trait CaseChangingTrait
     // following a hyphen.  then, our callback function capitalizes it.
     
     $pattern = "/-([a-z])/";
-    $function = function (array $matches): string {
-      return strtoupper($matches[1]);
-    };
-    
+    $function = fn ($matches) => strtoupper($matches[1]);
     return preg_replace_callback($pattern, $function, $kebabCase);
   }
   
@@ -87,18 +84,11 @@ trait CaseChangingTrait
     // followed by a capital one to the same two lowercase characters
     // separated by a dash.  a regular expression can identify where we
     // want to make our replacement, and a callback function can handle
-    // the rest.
+    // the rest by joining the lower case letter with a dash and the newly
+    // lower case capital letter.
     
     $pattern = '/([a-z])([A-Z])/';
-    $function = function (array $matches): string {
-      
-      // $matches[1] is the first letter matched, the lowercase one.
-      // $matches[2] is the capitalized one.  so, we strtolower the
-      // second one and mash them all together again separated by a dash.
-      
-      return $matches[1] . '-' . strtolower($matches[2]);
-    };
-    
+    $function = fn ($matches) => $matches[1] . '-' . strtolower($matches[2]);
     return preg_replace_callback($pattern, $function, $camelCase);
   }
   
@@ -114,15 +104,15 @@ trait CaseChangingTrait
    */
   protected function camelToStudlyCase(string $camelCase): string
   {
-    return $this->kebabToStudlyCase($this->camelToKebabCase($camelCase));
+    return ucfirst($camelCase);
   }
   
   /**
    * camelToReadableCase
    *
    * Converts a camel case string to a more human readable case.  Thus,
-   * camelCase becomes Camel Case, with capitalization controlled by the
-   * second parameter.
+   * camelCase becomes Camel Case or camel case, with capitalization controlled
+   * by the second parameter.
    *
    * @param string $camelCase
    * @param bool   $capitalize
@@ -131,6 +121,71 @@ trait CaseChangingTrait
    */
   protected function camelToReadableCase(string $camelCase, bool $capitalize = true): string
   {
-    return $this->kebabToReadableCase($this->camelToKebabCase($camelCase), $capitalize);
+    return $this->kebabToReadableCase(
+      $this->camelToKebabCase($camelCase),
+      $capitalize
+    );
+  }
+  
+  /**
+   * studlyToKebabCase
+   *
+   * Converts a StudlyCaps string to a kebab-case one.  Thus, StudlyCaps would
+   * become studly-caps instead.
+   *
+   * @param string $studlyCase
+   *
+   * @return string
+   */
+  protected function studlyToKebabCase(string $studlyCase): string
+  {
+    // first we convert StudlyCase to camelCase and then we can convert from
+    // camelCase to kebab-case.  all of this work is performed by other methods
+    // of this trait as follows.
+    
+    return $this->camelToKebabCase($this->studlyToCamelCase($studlyCase));
+  }
+  
+  /**
+   * studlyCaseToCamelCase
+   *
+   * Given a StudlyCase string, converts it to camelCase.
+   *
+   * @param string $studlyCase
+   *
+   * @return string
+   */
+  protected function studlyToCamelCase(string $studlyCase): string
+  {
+    // camelCase is the same as StudlyCase except the first character is lower
+    // case in the former and capitalized in the latter.  so, to go from studly
+    // to camel, we need to lower case the first letter of our parameter.  PHP
+    // has a function for that:
+    
+    return lcfirst($studlyCase);
+  }
+  
+  /**
+   * studlyToReadableCase
+   *
+   * Turns a StudlyCaps string into a more human readable format allowing for
+   * both "Studly Caps" and "studly caps" based on the Boolean value of the
+   * second parameter.
+   *
+   * @param string $studlyCase
+   * @param bool   $capitalize
+   *
+   * @return string
+   */
+  protected function studlyToReadableCase(string $studlyCase, bool $capitalize = true): string
+  {
+    // first, we switch to camelCase and then from camelCase to our more
+    // readable case both using other methods of this trait.  the
+    // capitalization of our final case is based on the second parameter.
+    
+    return $this->camelToReadableCase(
+      $this->studlyToCamelCase($studlyCase),
+      $capitalize
+    );
   }
 }
