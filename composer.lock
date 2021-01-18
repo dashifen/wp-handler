@@ -41,20 +41,24 @@
                 }
             ],
             "description": "An abstract object from which concrete collections can be built.",
+            "support": {
+                "issues": "https://github.com/dashifen/collection/issues",
+                "source": "https://github.com/dashifen/collection/tree/2.0.0"
+            },
             "time": "2020-07-29T15:00:49+00:00"
         },
         {
             "name": "dashifen/debugging",
-            "version": "1.0.0",
+            "version": "1.0.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/dashifen/debugging.git",
-                "reference": "2443dbf994351e94ffa36ea992b1a5b8b87250e8"
+                "reference": "6898e2ab451b4e6d8e3825d65223181c8351eaa2"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/dashifen/debugging/zipball/2443dbf994351e94ffa36ea992b1a5b8b87250e8",
-                "reference": "2443dbf994351e94ffa36ea992b1a5b8b87250e8",
+                "url": "https://api.github.com/repos/dashifen/debugging/zipball/6898e2ab451b4e6d8e3825d65223181c8351eaa2",
+                "reference": "6898e2ab451b4e6d8e3825d65223181c8351eaa2",
                 "shasum": ""
             },
             "type": "library",
@@ -75,7 +79,11 @@
                 }
             ],
             "description": "A PHP Trait that defines static methods used for on-screen debugging.",
-            "time": "2020-08-02T14:27:05+00:00"
+            "support": {
+                "issues": "https://github.com/dashifen/debugging/issues",
+                "source": "https://github.com/dashifen/debugging/tree/1.0.1"
+            },
+            "time": "2020-12-09T19:27:09+00:00"
         },
         {
             "name": "dashifen/exception",
@@ -113,6 +121,10 @@
                 }
             ],
             "description": "a base class for exceptions in Dashifen's other work",
+            "support": {
+                "issues": "https://github.com/dashifen/exception/issues",
+                "source": "https://github.com/dashifen/exception/tree/1.2.0"
+            },
             "time": "2019-12-12T14:26:49+00:00"
         },
         {
@@ -152,6 +164,10 @@
                 }
             ],
             "description": "An object with read-only protected properties from which other objects can be extened.",
+            "support": {
+                "issues": "https://github.com/dashifen/repository/issues",
+                "source": "https://github.com/dashifen/repository/tree/master"
+            },
             "time": "2020-07-29T15:21:59+00:00"
         },
         {
@@ -190,20 +206,24 @@
                 }
             ],
             "description": "An interface and abstract class useful for the production of objects which transform data.",
+            "support": {
+                "issues": "https://github.com/dashifen/transformer/issues",
+                "source": "https://github.com/dashifen/transformer/tree/2.2.0"
+            },
             "time": "2020-03-11T14:56:21+00:00"
         },
         {
             "name": "dashifen/wp-debugging",
-            "version": "1.0.0",
+            "version": "1.0.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/dashifen/wp-debugging.git",
-                "reference": "ace122de19a558bf2596d809986b70359a4d7026"
+                "reference": "aa461ad9c36283466bd120660ff7a7c68eb521b0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/dashifen/wp-debugging/zipball/ace122de19a558bf2596d809986b70359a4d7026",
-                "reference": "ace122de19a558bf2596d809986b70359a4d7026",
+                "url": "https://api.github.com/repos/dashifen/wp-debugging/zipball/aa461ad9c36283466bd120660ff7a7c68eb521b0",
+                "reference": "aa461ad9c36283466bd120660ff7a7c68eb521b0",
                 "shasum": ""
             },
             "require": {
@@ -227,7 +247,11 @@
                 }
             ],
             "description": "A PHP trait that can be used by other objects for on-screen debugging within a WordPress environment.",
-            "time": "2020-08-02T15:02:40+00:00"
+            "support": {
+                "issues": "https://github.com/dashifen/wp-debugging/issues",
+                "source": "https://github.com/dashifen/wp-debugging/tree/1.0.1"
+            },
+            "time": "2020-12-09T19:29:51+00:00"
         }
     ],
     "packages-dev": [],
@@ -240,5 +264,5 @@
         "php": ">=7.4"
     },
     "platform-dev": [],
-    "plugin-api-version": "1.1.0"
+    "plugin-api-version": "2.0.0"
 }

@@ -354,10 +354,11 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
    * @param string|bool|null $finalArg
    * @param string           $url
    * @param string           $dir
+   * @param bool             $register
    *
    * @return string
    */
-  protected function enqueue(string $file, array $dependencies = [], $finalArg = null, string $url = "", string $dir = ""): string
+  protected function enqueue(string $file, array $dependencies = [], $finalArg = null, string $url = "", string $dir = "", bool $register = false): string
   {
     // our parent's enqueue function enqueues things that are in the
     // stylesheet's directory.  but that won't work for plugins.  we'll set
@@ -372,7 +373,7 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
       $dir = $this->getPluginDir();
     }
     
-    return parent::enqueue($file, $dependencies, $finalArg, $url, $dir);
+    return parent::enqueue($file, $dependencies, $finalArg, $url, $dir, $register);
   }
   
   /**
@@ -491,7 +492,7 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
    * @throws HandlerException
    * @throws MenuItemException
    */
-  final public function wpAddMenuPage(string $pageTitle, string $menuTitle, string $capability, string $menuSlug, string $method, string $iconUrl = "", ?int $position = null)
+  final public function wpAddMenuPage(string $pageTitle, string $menuTitle, string $capability, string $menuSlug, string $method, string $iconUrl = "", ?int $position = null): string
   {
     try {
       $menuItem = new MenuItem(

@@ -71,6 +71,30 @@ abstract class AbstractThemeHandler extends AbstractHandler implements ThemeHand
   }
   
   /**
+   * register
+   *
+   * Registers either a script or a style for later use.
+   *
+   * @param string $file
+   * @param array  $dependencies
+   * @param null   $finalArg
+   * @param string $url
+   * @param string $dir
+   *
+   * @return string
+   */
+  protected function register(string $file, array $dependencies = [], $finalArg = null, string $url = "", string $dir = ""): string
+  {
+    // the work of registering an asset is the same as enqueuing one except
+    // for the function we call at the end.  thus, we can call our enqueue
+    // method but we pass the Boolean true flag as the final parameter that
+    // will cause it to execute either wp_register_style or wp_register_script
+    // instead of the similarly named enqueue functions.
+    
+    return $this->enqueue($file, $dependencies, $finalArg, $url, $dir, true);
+  }
+  
+  /**
    * enqueue
    *
    * Adds a script or style to the DOM and returns the name by which
@@ -83,11 +107,11 @@ abstract class AbstractThemeHandler extends AbstractHandler implements ThemeHand
    * @param string|bool|null $finalArg
    * @param string           $url
    * @param string           $dir
+   * @param bool             $register
    *
    * @return string
    */
-  protected function enqueue(string $file, array $dependencies = [], $finalArg = null, string $url = "", string $dir = ""): string
-  {
+  protected function enqueue(string $file, array $dependencies = [], $finalArg = null, string $url = "", string $dir = "", bool $register = false): string  {
     // remote assets (e.g. Google fonts) may begin with an HTTP protocol
     // string.  we'll remove that to force browsers to load remote assets using
     // the same protocol as the rest of the page.
@@ -102,13 +126,18 @@ abstract class AbstractThemeHandler extends AbstractHandler implements ThemeHand
       return $this->enqueueRemote($file, $dependencies, $finalArg);
     }
     
-    // now that we know we're loading a local asset, we can start to identify
-    // the values that we're going to pass to either wp_enqueue_script or
-    // wp_enqueue_style based on the type of this asset as follows.
-    
     $asset = pathinfo($file, PATHINFO_FILENAME);
+    
+    // now that we know what we're working with, we need to determine what
+    // we're here to do.  first:  we see if this is a script or a style based
+    // on the extension of our file.  then, we determine our action based on
+    // the state of the $register parameter and construct the function we call
+    // below using that action and our file type.
+    
     $isScript = pathinfo($file, PATHINFO_EXTENSION) === 'js';
-    $function = $isScript ? "wp_enqueue_script" : "wp_enqueue_style";
+    $action = $register ? 'register' : 'enqueue';
+    $type = $isScript ? 'script' : 'style';
+    $function = sprintf('wp_%s_%s', $action, $type);
     
     // if either (or both) of our url or dir parameters is empty, we set it to
     // the stylesheets url or dir as appropriate.  we also make sure that these
