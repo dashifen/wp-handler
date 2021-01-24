@@ -56,7 +56,21 @@ trait ActionAndNonceTrait
       $prefix = $this->studlyToKebabCase($className);
     }
     
-    return sprintf('%s-%s', $prefix, $action ?? 'save');
+    return sprintf('%s-%s', $prefix, $action ?? $this->getDefaultAction());
+  }
+  
+  /**
+   * getDefaultAction
+   *
+   * Returns the name of the default action for our getAction method.
+   * Typically, this is "save," but users of this Trait can override this as
+   * necessary.
+   *
+   * @return string
+   */
+  protected function getDefaultAction(): string
+  {
+    return 'save';
   }
   
   /**
@@ -65,11 +79,11 @@ trait ActionAndNonceTrait
    * Returns true if the action and nonce contained within our $_REQUEST are
    * valid.  on invalid data, wp_die is called.
    *
-   * @param string $action
+   * @param string|null $action
    *
    * @return bool
    */
-  protected function isValidActionAndNonce(string $action): bool
+  protected function isValidActionAndNonce(?string $action = null): bool
   {
     return $this->isValidAction($action, true);
   }
@@ -81,13 +95,14 @@ trait ActionAndNonceTrait
    * when necessary, a nonce contained within the $_REQUEST.  method always
    * returns true because wp_die is called what either are invalid.
    *
-   * @param string $action
-   * @param bool   $checkNonce
+   * @param string|null $action
+   * @param bool        $checkNonce
    *
    * @return bool
    */
-  protected function isValidAction(string $action, bool $checkNonce = false): bool
+  protected function isValidAction(?string $action = null, bool $checkNonce = false): bool
   {
+    $action ??= $this->getDefaultAction();
     $capability = $this->getCapabilityForAction($action);
     if (!current_user_can($capability)) {
       
