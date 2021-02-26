@@ -21,7 +21,7 @@ trait ActionAndNonceTrait
    */
   protected function getNonce(?string $action = null): string
   {
-    return $this->getAction($action) . '-nonce';
+    return wp_create_nonce($this->getAction($action));
   }
   
   /**
