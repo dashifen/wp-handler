@@ -139,9 +139,8 @@ trait ActionAndNonceTrait
     }
     
     if ($checkNonce) {
-      $action = $this->getAction($action);
       $nonce = $this->getNonceName($action);
-      if (!wp_verify_nonce($_REQUEST[$nonce] ?? '', $action)) {
+      if (!wp_verify_nonce($_REQUEST[$nonce] ?? '', $this->getAction($action))) {
         
         // if our action and nonce don't match, then we can call the core
         // wp_nonce_ays (are you sure) function to display an error message.
