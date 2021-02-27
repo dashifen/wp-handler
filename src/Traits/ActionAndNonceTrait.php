@@ -28,8 +28,8 @@ trait ActionAndNonceTrait
    * getNonceName
    *
    * Given the name of an action, gets a unique name for a nonce based on that
-   * action.  Lacking an action, returns _wpnonce, the default name for all WP
-   * nonces.
+   * action.  Lacking an action, returns one based on the default action
+   * returned by getDefaultAction below.
    *
    * @param string|null $action
    *
@@ -37,9 +37,7 @@ trait ActionAndNonceTrait
    */
   protected function getNonceName(?string $action = null): string
   {
-    return $action !== null
-      ? $this->getAction($action) . '-nonce'
-      : '_wpnonce';
+    return $this->getAction($action) . '-nonce';
   }
   
   /**
