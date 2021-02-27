@@ -25,6 +25,24 @@ trait ActionAndNonceTrait
   }
   
   /**
+   * getNonceName
+   *
+   * Given the name of an action, gets a unique name for a nonce based on that
+   * action.  Lacking an action, returns _wpnonce, the default name for all WP
+   * nonces.
+   *
+   * @param string|null $action
+   *
+   * @return string
+   */
+  protected function getNonceName(?string $action = null): string
+  {
+    return $action !== null
+      ? $this->getAction($action) . '-nonce'
+      : '_wpnonce';
+  }
+  
+  /**
    * getAction
    *
    * Returns a string naming the action an on screen form is used to perform.
@@ -117,8 +135,8 @@ trait ActionAndNonceTrait
     }
     
     if ($checkNonce) {
-      $nonce = $this->getNonce($action);
       $action = $this->getAction($action);
+      $nonce = $this->getNonceName($action);
       if (!wp_verify_nonce($_REQUEST[$nonce] ?? '', $action)) {
         
         // if our action and nonce don't match, then we can call the core
