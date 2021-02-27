@@ -61,17 +61,21 @@ trait ActionAndNonceTrait
       // which is used for all sorts of things.  one thing we an use it for
       // is a prefix for our actions if it exists.
       
-      $reflection = new ReflectionClassConstant($this, 'SLUG');
-      $prefix = $reflection->getValue();
+      $slugConstant = new ReflectionClassConstant($this, 'SLUG');
+      $prefix = $slugConstant->getValue();
     } catch (Exception $e) {
       
       // if the constant doesn't exist, we'll use a kebab case version of
-      // our class name.  classes are typically in StudlyCaps so we've used
-      // the CaseChangingTrait to convert those to kebab case.
+      // our class name or that class's handler (if it exists).  classes are
+      // typically in StudlyCaps so we've used the CaseChangingTrait to convert
+      // those to kebab case.
       
-      $classNameArray = explode('\\', get_class($this));
-      $className = array_pop($classNameArray);
-      $prefix = $this->studlyToKebabCase($className);
+      $namespacedClassName = property_exists($this, 'handler')
+        ? get_class($this->handler)
+        : get_class($this);
+      
+      $classNameArray = explode('\\', $namespacedClassName);
+      $prefix = $this->studlyToKebabCase(array_pop($classNameArray));
     }
     
     return sprintf('%s-%s', $prefix, $action ?? $this->getDefaultAction());
@@ -168,7 +172,8 @@ trait ActionAndNonceTrait
    * @return string
    * @noinspection PhpUnusedParameterInspection
    */
-  protected function getCapabilityForAction(string $action): string {
+  protected function getCapabilityForAction(string $action): string
+  {
     return 'manage_options';
   }
 }
