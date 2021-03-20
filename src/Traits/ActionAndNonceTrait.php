@@ -9,6 +9,13 @@ trait ActionAndNonceTrait
 {
   use CaseChangingTrait;
   
+  // legitimately, this should be true, but some older plugins using this
+  // Trait might die a terrible death if we set this flag.  so, we'll play it
+  // safe and leave them optional unless the user of this Trait sets it
+  // personally.
+  
+  private bool $requireNonces = false;
+  
   /**
    * getNonce
    *
@@ -116,6 +123,62 @@ trait ActionAndNonceTrait
   }
   
   /**
+   * userCan
+   *
+   * The newer, preferred way to check a user's action and, when available,
+   * nonce in order to determine that they're authorized to perform a specific
+   * action.  It replaces both isValidAction and isValidActionAndNonce.
+   *
+   * @param string|null $action
+   *
+   * @return bool
+   */
+  protected function userCan(?string $action = null): bool
+  {
+    $action ??= $this->getDefaultAction();
+    if (!current_user_can($this->getCapabilityForAction($action))) {
+      
+      // the default title and message can be found in the core
+      // wp-admin/options.php file.  we add our own filters to make it possible
+      // to contextualize either or both of them and then we call wp_die.  the
+      // core process also dies, so we'll just follow their lead.
+      
+      $title = apply_filters('wp-handler-invalid-action-title', 'You need a higher level of permission.');
+      $message = apply_filters('wp-handler-invalid-action-message', 'Sorry, you are not allowed to manage options for this site.');
+      wp_die('<h1>' . $title . '</h1><p>' . $message . '</p>', 403);
+    }
+    
+    // now, if there is a nonce in the request that has name that matches our
+    // action, we want to test it.  if a nonce isn't found, we check the value
+    // of our requireNonces flag; if it's set then the lack of a nonce is an
+    // error.  if we found a nonce, we verify it.  if either of these criteria
+    // are not met, we'll call the core function that handles nonce problems.
+    
+    $nonce = $this->getNonceName($action);
+    $nonceFound = isset($_REQUEST[$nonce]);
+    $nonceNeeded = !$nonceFound && $this->requireNonces;
+    $nonceInvalid = $nonceFound && !wp_verify_nonce($_REQUEST[$nonce],
+        $this->getAction($action));
+    
+    if ($nonceNeeded || $nonceInvalid) {
+      
+      // if our action and nonce don't match, then we can call the core
+      // wp_nonce_ays (are you sure) function to display an error message.
+      // this function the calls wp_die internally, so if we're in here, the
+      // execution of this request halts and a response is sent to the
+      // visitor.
+      
+      wp_nonce_ays($action);
+    }
+    
+    // since both failure cases above call wp_die, if we're here, then we can
+    // simply return true.  any other situation has already been handled.
+    
+    return true;
+  }
+  
+  
+  /**
    * isValidActionAndNonce
    *
    * Returns true if the action and nonce contained within our $_REQUEST are
@@ -127,7 +190,12 @@ trait ActionAndNonceTrait
    */
   protected function isValidActionAndNonce(?string $action = null): bool
   {
-    return $this->isValidAction($action, true);
+    trigger_error(
+      'The isValidActionAndNonce method is deprecated; use userCan instead.',
+      E_USER_DEPRECATED
+    );
+    
+    return $this->userCan($action);
   }
   
   /**
@@ -141,41 +209,16 @@ trait ActionAndNonceTrait
    * @param bool        $checkNonce
    *
    * @return bool
+   * @noinspection PhpUnusedParameterInspection
    */
   protected function isValidAction(?string $action = null, bool $checkNonce = false): bool
   {
-    $action ??= $this->getDefaultAction();
-    $capability = $this->getCapabilityForAction($action);
-    if (!current_user_can($capability)) {
-      
-      // the default title and message can be found in the WP 5.6
-      // wp-admin/options.php file.  we add our own filters to make it possible
-      // to contextualize either or both of them and then we call wp_die.  the
-      // core process also dies, so we'll just follow their lead.
-      
-      $title = apply_filters('wp-handler-invalid-action-title', 'You need a higher level of permission.');
-      $message = apply_filters('wp-handler-invalid-action-message', 'Sorry, you are not allowed to manage options for this site.');
-      wp_die('<h1>' . $title . '</h1><p>' . $message . '</p>', 403);
-    }
+    trigger_error(
+      'The isValidAction method is deprecated; use userCan instead.',
+      E_USER_DEPRECATED
+    );
     
-    if ($checkNonce) {
-      $nonce = $this->getNonceName($action);
-      if (!wp_verify_nonce($_REQUEST[$nonce] ?? '', $this->getAction($action))) {
-        
-        // if our action and nonce don't match, then we can call the core
-        // wp_nonce_ays (are you sure) function to display an error message.
-        // this function the calls wp_die internally, so if we're in here, the
-        // execution of this request halts and a response is sent to the
-        // visitor.
-        
-        wp_nonce_ays($action);
-      }
-    }
-    
-    // since both failure cases above call wp_die, if we're here, then we can
-    // simply return true.  any other situation has already been handled.
-    
-    return true;
+    return $this->userCan($action);
   }
   
   /**
