@@ -64,19 +64,41 @@ trait ActionAndNonceTrait
     } catch (Exception $e) {
       
       // if the constant doesn't exist, we'll use a kebab case version of
-      // our class name or that class's handler (if it exists).  classes are
-      // typically in StudlyCaps so we've used the CaseChangingTrait to convert
-      // those to kebab case.
+      // our class name or that class's handler (if it exists).  then, we see
+      // if the class we found has a visible SLUG constant and, if so, we use
+      // it.  if not, we'll just use the classname to produce a classname.
       
       $namespacedClassName = property_exists($this, 'handler')
         ? get_class($this->handler)
         : get_class($this);
       
-      $classNameArray = explode('\\', $namespacedClassName);
-      $prefix = $this->studlyToKebabCase(array_pop($classNameArray));
+      $prefix = $namespacedClassName::SLUG
+        ?? $this->getActionPrefixFromClassName($namespacedClassName);
     }
     
     return sprintf('%s-%s', $prefix, $action ?? $this->getDefaultAction());
+  }
+  
+  /**
+   * getActionPrefixFromClassName
+   *
+   * Extracted from the prior method and made into its own so that it can be
+   * overridden by those who use this trait as needed, this method returns a
+   * prefix for our actions based on a given namespaced classname.
+   *
+   * @param string $className
+   *
+   * @return string
+   */
+  protected function getActionPrefixFromClassName(string $className): string
+  {
+    // $className is expected to be a fully namespaced class name.  so, we'll
+    // explode it into it's parts, grab the last one, and then, since the PHP
+    // styles suggest that class names be in StudlyCaps, we'll conver those to
+    // kebab case.
+    
+    $class = array_reverse(explode('\\', $className))[0];
+    return $this->studlyToKebabCase($class);
   }
   
   /**
