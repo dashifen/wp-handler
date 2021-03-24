@@ -312,11 +312,20 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
    * Returns the WP-style plugin filename which is <dir>/<file> for the file
    * in which the WP plugin header is located.
    *
+   * @param bool $withoutDir
+   *
    * @return string
    */
-  public function getPluginFilename(): string
+  public function getPluginFilename(bool $withoutDir = false): string
   {
-    return $this->pluginFilename;
+    // as noted above, our plugin filename property is in the format of
+    // <dir>/<file>.  that's the way WordPress identifies plugins, so that's
+    // the default return value of this method.  however, if the without dir
+    // flag is set, we chop off the directory part and just return <file>.
+    
+    return $withoutDir
+      ? substr($this->pluginFilename, strpos($this->pluginFilename, '/') + 1)
+      : $this->pluginFilename;
   }
   
   /**
@@ -497,14 +506,14 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
     try {
       $menuItem = new MenuItem(
         $this, [
-               "pageTitle"  => $pageTitle,
-               "menuTitle"  => $menuTitle,
-               "capability" => $capability,
-               "menuSlug"   => $menuSlug,
-               "method"     => $method,
-               "iconUrl"    => $iconUrl,
-               "position"   => $position,
-             ]
+          "pageTitle"  => $pageTitle,
+          "menuTitle"  => $menuTitle,
+          "capability" => $capability,
+          "menuSlug"   => $menuSlug,
+          "method"     => $method,
+          "iconUrl"    => $iconUrl,
+          "position"   => $position,
+        ]
       );
     } catch (RepositoryException $e) {
       // rather than throw our general RepositoryException, we'll
@@ -563,12 +572,12 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
     try {
       $submenuItem = new SubmenuItem(
         $this, [
-               "parentSlug" => $parentSlug,
-               "pageTitle"  => $pageTitle,
-               "menuTitle"  => $menuTitle,
-               "capability" => $capability,
-               "menuSlug"   => $menuSlug,
-             ]
+          "parentSlug" => $parentSlug,
+          "pageTitle"  => $pageTitle,
+          "menuTitle"  => $menuTitle,
+          "capability" => $capability,
+          "menuSlug"   => $menuSlug,
+        ]
       );
     } catch (RepositoryException $e) {
       

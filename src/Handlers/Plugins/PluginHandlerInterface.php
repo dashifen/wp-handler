@@ -24,9 +24,11 @@ interface PluginHandlerInterface extends ThemeHandlerInterface
    * Returns the WP-style plugin filename which is <dir>/<file> for the file
    * in which the WP plugin header is located.
    *
+   * @param bool $withoutDir
+   *
    * @return string
    */
-  public function getPluginFilename(): string;
+  public function getPluginFilename(bool $withoutDir = false): string;
   
   /**
    * getPluginDir
