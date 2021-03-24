@@ -31,6 +31,17 @@ interface PluginHandlerInterface extends ThemeHandlerInterface
   public function getPluginFilename(bool $withoutDir = false): string;
   
   /**
+   * getPluginFilenameWithoutDirectory
+   *
+   * A convenience method that calls getPluginFilename and passes it a true
+   * flag.  This helps make code utilizing this object a little more self-
+   * explanatory.
+   *
+   * @return string
+   */
+  public function getPluginFilenameWithoutDirectory(): string;
+  
+  /**
    * getPluginDir
    *
    * Returns the path to the directory containing this plugin.
