@@ -9,6 +9,7 @@ use Dashifen\Repository\Repository;
  *
  * @property-read bool  $valid
  * @property-read array $problems
+ * @property-read array $data
  *
  * @package Dashifen\Abbreviator\Repositories
  */
@@ -16,6 +17,7 @@ class PostValidity extends Repository
 {
   protected bool $valid = false;
   protected array $problems = [];
+  protected array $data = [];
   
   public function __construct(array $data = [])
   {
@@ -65,5 +67,19 @@ class PostValidity extends Repository
   protected function setProblems(array $problems): void
   {
     $this->problems = $problems;
+  }
+  
+  /**
+   * setData
+   *
+   * Sets the data property.
+   *
+   * @param array $data
+   *
+   * @return void
+   */
+  protected function setData(array $data): void
+  {
+    $this->data = $data;
   }
 }
