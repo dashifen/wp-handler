@@ -7,17 +7,58 @@
     "content-hash": "41a6020e245446766170bca2a27c9733",
     "packages": [
         {
-            "name": "dashifen/collection",
-            "version": "2.0.0",
+            "name": "dashifen/case-changing-trait",
+            "version": "1.0.1",
             "source": {
                 "type": "git",
-                "url": "https://github.com/dashifen/collection.git",
-                "reference": "9aad3915d47ae4e29e44aae0a900a0619f40a357"
+                "url": "https://github.com/dashifen/case-changing-trait.git",
+                "reference": "950e54a87a77f0fc960ad4c2d3e43e4cde04e144"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/dashifen/collection/zipball/9aad3915d47ae4e29e44aae0a900a0619f40a357",
-                "reference": "9aad3915d47ae4e29e44aae0a900a0619f40a357",
+                "url": "https://api.github.com/repos/dashifen/case-changing-trait/zipball/950e54a87a77f0fc960ad4c2d3e43e4cde04e144",
+                "reference": "950e54a87a77f0fc960ad4c2d3e43e4cde04e144",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">= 7.4"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Dashifen\\CaseChangingTrait\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "David Dashifen Kees",
+                    "email": "dashifen@dashifen.com",
+                    "role": "developer"
+                }
+            ],
+            "description": "A PHP trait that converts between common programming character cases.",
+            "support": {
+                "issues": "https://github.com/dashifen/case-changing-trait/issues",
+                "source": "https://github.com/dashifen/case-changing-trait/tree/1.0.1"
+            },
+            "time": "2021-04-07T12:54:46+00:00"
+        },
+        {
+            "name": "dashifen/collection",
+            "version": "2.0.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/dashifen/collection.git",
+                "reference": "b73a627dc0bec89619dbaa080c3a6a92808bb484"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/dashifen/collection/zipball/b73a627dc0bec89619dbaa080c3a6a92808bb484",
+                "reference": "b73a627dc0bec89619dbaa080c3a6a92808bb484",
                 "shasum": ""
             },
             "require": {
@@ -43,9 +84,9 @@
             "description": "An abstract object from which concrete collections can be built.",
             "support": {
                 "issues": "https://github.com/dashifen/collection/issues",
-                "source": "https://github.com/dashifen/collection/tree/2.0.0"
+                "source": "https://github.com/dashifen/collection/tree/2.0.2"
             },
-            "time": "2020-07-29T15:00:49+00:00"
+            "time": "2021-01-27T02:44:23+00:00"
         },
         {
             "name": "dashifen/debugging",
@@ -129,19 +170,20 @@
         },
         {
             "name": "dashifen/repository",
-            "version": "3.0.0",
+            "version": "3.1.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/dashifen/repository.git",
-                "reference": "83ce68039cc5c0cae1c35c3da80d9d3e23b57d37"
+                "reference": "c97283d46bfc6a3b3c77ed453f2f4d09585fc869"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/dashifen/repository/zipball/83ce68039cc5c0cae1c35c3da80d9d3e23b57d37",
-                "reference": "83ce68039cc5c0cae1c35c3da80d9d3e23b57d37",
+                "url": "https://api.github.com/repos/dashifen/repository/zipball/c97283d46bfc6a3b3c77ed453f2f4d09585fc869",
+                "reference": "c97283d46bfc6a3b3c77ed453f2f4d09585fc869",
                 "shasum": ""
             },
             "require": {
+                "dashifen/case-changing-trait": "^1",
                 "dashifen/exception": "^1",
                 "ext-json": "*",
                 "php": ">=7.4"
@@ -166,9 +208,9 @@
             "description": "An object with read-only protected properties from which other objects can be extened.",
             "support": {
                 "issues": "https://github.com/dashifen/repository/issues",
-                "source": "https://github.com/dashifen/repository/tree/master"
+                "source": "https://github.com/dashifen/repository/tree/3.1.0"
             },
-            "time": "2020-07-29T15:21:59+00:00"
+            "time": "2021-04-07T13:05:06+00:00"
         },
         {
             "name": "dashifen/transformer",
