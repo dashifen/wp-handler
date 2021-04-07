@@ -11,7 +11,7 @@ use Dashifen\Repository\Repository;
  * @property-read array $problems
  * @property-read array $data
  *
- * @package Dashifen\Abbreviator\Repositories
+ * @package Dashifen\WPHandler\Repositories
  */
 class PostValidity extends Repository
 {
