@@ -91,6 +91,12 @@ Like a breath of fresh air, isn't it?  The `enqueue` method is smart enough to k
 
 Note: assets enqueued by our handler functions pass the last modified date of the asset file as the fourth parameter to the WordPress enqueue functions.  We hope that this is useful for cache busting purposes as new versions of CSS or JS files will necessarily have new modification dates.  
 
+# Version 11
+
+Version 11 will support PHP 8.  Other expected changes are as follows:
+
+1. removal of the CaseChangingTrait from within this package's namespace
+
 # Provenance
 
 I wrote this object to use at work with [Engage](https://enga.ge) in Alexandria, VA.  They've given me permission to make a copy of it and alter it for my own purposes, which is this repo.  Their copy, which is the initial commit into this repo, is their own and I think neither of us guarantee that, after some time passes, that they'll be interchangeable.
