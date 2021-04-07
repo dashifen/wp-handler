@@ -4,6 +4,7 @@ namespace Dashifen\WPHandler\Traits;
 
 use Exception;
 use ReflectionClassConstant;
+use Dashifen\CaseChangingTrait\CaseChangingTrait;
 
 trait ActionAndNonceTrait
 {
