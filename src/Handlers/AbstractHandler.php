@@ -58,23 +58,7 @@ abstract class AbstractHandler implements HandlerInterface
     $hookCollectionFactory = $hookCollectionFactory ?? new HookCollectionFactory();
     $this->hookCollection = $hookCollectionFactory->produceHookCollection();
     $this->hookCollectionFactory = $hookCollectionFactory;
-    
-    try {
-      // within this class and it's extensions, we often need to know about our
-      // methods or the location of our definition files.  the easiest (only?)
-      // way to do this is with Reflection.  newer versions of PHP make them
-      // much faster, but we still don't want to reflect over and over again.
-      // so, we'll do reflect now and keep a reference to it in our properties.
-      
-      $this->handlerReflection = new ReflectionClass($this);
-    } catch (ReflectionException $e) {
-      // since we're reflecting $this and, therefore, the class should already
-      // be in memory, we should never get here.  but, if we do, it's pretty
-      // much a total failure to thrive.  we'll raise an error and hope the
-      // programmer can take it from here.
-      
-      trigger_error('Unable to reflect ' . static::class, E_USER_ERROR);
-    }
+    $this->handlerReflection = new ReflectionClass($this);
   }
   
   /**
