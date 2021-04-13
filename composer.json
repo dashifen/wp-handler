@@ -23,5 +23,8 @@
     "dashifen/repository": "^3",
     "dashifen/transformer": "^2",
     "dashifen/wp-debugging": "^1"
+  },
+  "require-dev": {
+    "wp-cli/wp-cli": "^2.4"
   }
 }
