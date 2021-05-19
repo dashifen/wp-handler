@@ -5,6 +5,7 @@ namespace Dashifen\WPHandler\Traits;
 use WP_CLI;
 use Exception;
 use Dashifen\WPHandler\Commands\CommandInterface;
+use Dashifen\WPHandler\Handlers\HandlerException;
 use Dashifen\WPHandler\Commands\Collection\CommandCollection;
 use Dashifen\WPHandler\Commands\Collection\CommandCollectionInterface;
 
@@ -12,7 +13,7 @@ trait CommandLineTrait
 {
   protected CommandCollectionInterface $commands;
   
-  public function setCommandCollection(?CommandCollectionInterface $commands = null): void
+  protected function setCommandCollection(?CommandCollectionInterface $commands = null): void
   {
     $this->commands = $commands ?? new CommandCollection();
   }
@@ -24,7 +25,7 @@ trait CommandLineTrait
    *
    * @param CommandInterface $command
    */
-  public function registerCommand(CommandInterface $command): void
+  protected function registerCommand(CommandInterface $command): void
   {
     if (!isset($this->commands)) {
       
@@ -47,13 +48,20 @@ trait CommandLineTrait
    * one is intended to add our commands to the WP CLI and should be called
    * from the aforementioned initialize method.
    *
-   * @throws Exception
+   * @throws HandlerException
    */
   protected function initializeCommands(): void
   {
     foreach ($this->commands as $command) {
-      WP_CLI::add_command($command->name, $command->getCallable(),
-        $command->getDescription());
+      try {
+        WP_CLI::add_command(
+          $command->name,
+          $command->getCallable(),
+          $command->getDescription()
+        );
+      } catch (Exception $e) {
+        throw new HandlerException($e->getMessage(), $e->getCode(), $e);
+      }
     }
   }
 }
