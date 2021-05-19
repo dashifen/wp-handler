@@ -12,7 +12,7 @@ trait CommandLineTrait
 {
   protected CommandCollectionInterface $commands;
   
-  protected function setCommandCollection(?CommandCollectionInterface $commands = null): void
+  public function setCommandCollection(?CommandCollectionInterface $commands = null): void
   {
     $this->commands = $commands ?? new CommandCollection();
   }
@@ -24,7 +24,7 @@ trait CommandLineTrait
    *
    * @param CommandInterface $command
    */
-  protected function registerCommand(CommandInterface $command): void
+  public function registerCommand(CommandInterface $command): void
   {
     if (!isset($this->commands)) {
       
