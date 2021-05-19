@@ -157,8 +157,8 @@ abstract class AbstractHandler implements HandlerInterface
   /**
    * initialize
    *
-   * Uses addAction() and addFilter() to connect WordPress to the methods
-   * of this object's child which are intended to be protected.
+   * Uses addAction and/or addFilter to attach protected methods of this object
+   * to the ecosystem of WordPress action and filter hooks.
    *
    * @return void
    */
