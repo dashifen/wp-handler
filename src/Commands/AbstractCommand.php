@@ -36,19 +36,13 @@ abstract class AbstractCommand extends AbstractAgent implements CommandInterface
   /**
    * initialize
    *
-   * Uses addAction and/or addFilter to attach protected methods of this object
-   * to the ecosystem of WordPress action and filter hooks.
+   * Sets the initial state of the properties that define this command and,
+   * rarely, uses addAction and/or addFilter to attach protected methods of
+   * this object to the ecosystem of WordPress action and filter hooks.
    *
    * @return void
    */
-  public function initialize(): void
-  {
-    // it's likely that commands won't need this method all that much since
-    // they're "initialized" via the WP_CLI::add_command method instead of this
-    // one.  therefore, we stub it here but extensions can always override the
-    // stub if they need to.
-  }
-  
+  abstract public function initialize(): void;
   
   /**
    * __get
