@@ -53,7 +53,10 @@ trait CommandLineTrait
   protected function initializeCommands(): void
   {
     foreach ($this->commands as $command) {
+      /** @var CommandInterface $command */
+      
       try {
+        $command->initialize();
         WP_CLI::add_command(
           $command->name,
           $command->getCallable(),
