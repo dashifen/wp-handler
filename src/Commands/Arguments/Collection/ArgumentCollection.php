@@ -5,7 +5,7 @@ namespace Dashifen\WPHandler\Commands\Arguments\Collection;
 use Dashifen\Collection\AbstractCollection;
 use Dashifen\WPHandler\Repositories\Arguments\ArgumentInterface;
 
-class ArgumentCollection extends AbstractCollection
+class ArgumentCollection extends AbstractCollection implements ArgumentCollectionInterface
 {
   /**
    * @var ArgumentInterface[]
