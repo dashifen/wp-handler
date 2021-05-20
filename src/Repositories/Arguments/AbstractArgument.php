@@ -5,7 +5,7 @@ namespace Dashifen\WPHandler\Repositories\Arguments;
 use Dashifen\Repository\Repository;
 use Dashifen\Repository\RepositoryException;
 
-abstract class AbstractArgument extends Repository
+abstract class AbstractArgument extends Repository implements ArgumentInterface
 {
   protected string $type;             // positional, assoc, or flag
   protected string $name;             // name of the argument this synopsis describes
