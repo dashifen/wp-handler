@@ -24,13 +24,15 @@ abstract class AbstractCommand extends AbstractAgent implements CommandInterface
   /**
    * AbstractPluginService constructor.
    *
+   * @param string                           $name
    * @param HandlerInterface                 $handler
    * @param ArgumentCollectionInterface|null $arguments
    */
-  public function __construct(HandlerInterface $handler, ?ArgumentCollectionInterface $arguments = null)
+  public function __construct(string $name, HandlerInterface $handler, ?ArgumentCollectionInterface $arguments = null)
   {
-    $this->arguments = $arguments ?? new ArgumentCollection();
     parent::__construct($handler);
+    $this->arguments = $arguments ?? new ArgumentCollection();
+    $this->setName($name);
   }
   
   /**
