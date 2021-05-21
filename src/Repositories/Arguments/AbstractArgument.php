@@ -2,10 +2,11 @@
 
 namespace Dashifen\WPHandler\Repositories\Arguments;
 
+use ArrayAccess;
 use Dashifen\Repository\Repository;
 use Dashifen\Repository\RepositoryException;
 
-abstract class AbstractArgument extends Repository implements ArgumentInterface
+abstract class AbstractArgument extends Repository implements ArgumentInterface, ArrayAccess
 {
   protected string $type;             // positional, assoc, or flag
   protected string $name;             // name of the argument this synopsis describes
@@ -171,5 +172,78 @@ abstract class AbstractArgument extends Repository implements ArgumentInterface
   protected function setOptional(bool $optional): void
   {
     $this->optional = $optional;
+  }
+  
+  /**
+   * offsetExists
+   *
+   * Returns true when $offset matches one of our properties.
+   *
+   * @param string $offset
+   *
+   * @return bool
+   */
+  public function offsetExists($offset): bool
+  {
+    return property_exists($this, $offset) && isset($this->offset);
+  }
+  
+  /**
+   * offsetGet
+   *
+   * Returns the value of one of our properties as identified by $offset.
+   *
+   * @param string $offset
+   *
+   * @return mixed|null
+   */
+  public function offsetGet($offset)
+  {
+    return $this->offsetExists($offset) ? $this->$offset : null;
+  }
+  
+  /**
+   * offsetSet
+   *
+   * This method is required as per the ArrayAccess interface, but we don't
+   * want to use it because it allows public access to our properties which is
+   * against the "rules" for a repository.  So, if someone tries to use it we
+   * throw an exception.  We also mark it final because we don't want anyone to
+   * just override it.
+   *
+   * @param string $offset
+   * @param mixed  $value
+   *
+   * @return void
+   * @throws ArgumentException
+   */
+  final public function offsetSet($offset, $value)
+  {
+    throw new ArgumentException(
+      'Attend to set ' . $offset . ' via ArrayAccess',
+      ArgumentException::ACCESS_VIOLATION
+    );
+  }
+  
+  /**
+   * offsetUnset
+   *
+   * This method is required as per the ArrayAccess interface, but we don't
+   * want to use it because it allows public access to our properties which is
+   * against the "rules" for a repository.  So, if someone tries to use it we
+   * throw an exception.  We also mark it final because we don't want anyone to
+   * just override it.
+   *
+   * @param string $offset
+   *
+   * @return void
+   * @throws ArgumentException
+   */
+  public function offsetUnset($offset)
+  {
+    throw new ArgumentException(
+      'Attend to unset ' . $offset . ' via ArrayAccess',
+      ArgumentException::ACCESS_VIOLATION
+    );
   }
 }
