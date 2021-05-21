@@ -121,8 +121,9 @@ trait CommandLineTrait
     
     // now, just in case we had an object name or slug that included capital
     // letters, we'll just pass it all through strtolower because none of the
-    // core WP CLI commands use them.
+    // core WP CLI commands use them.  we add a space to the namespace so that
+    // it doesn't run right into the command.
     
-    return strtolower($namespace);
+    return strtolower($namespace) . ' ';
   }
 }
