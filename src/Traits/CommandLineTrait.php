@@ -5,11 +5,8 @@ namespace Dashifen\WPHandler\Traits;
 use WP_CLI;
 use stdClass;
 use Exception;
-use ReflectionClass;
-use Dashifen\WPHandler\Agents\AgentInterface;
 use Dashifen\WPHandler\Commands\CommandInterface;
 use Dashifen\WPHandler\Handlers\HandlerException;
-use Dashifen\WPHandler\Handlers\HandlerInterface;
 use Dashifen\CaseChangingTrait\CaseChangingTrait;
 use Dashifen\WPHandler\Commands\Collection\CommandCollection;
 use Dashifen\WPHandler\Commands\Collection\CommandCollectionInterface;
@@ -32,22 +29,25 @@ trait CommandLineTrait
    * Registers the "top-level" command for the CLI; i.e. the information that
    * appears when you execute `wp help` on the command line.
    *
-   * @param string $name
-   * @param string $description
+   * @param string      $name
+   * @param string      $description
+   * @param string|null $className
    *
    * @return void
    * @throws Exception
    */
-  protected function registerCommand(string $name, string $description): void
+  protected function registerCommand(string $name, string $description, ?string $className = null): void
   {
-    // at this time, WP_CLI v2.5 requires that an object be passed to the
+    // at this time, WP_CLI v2.5 requires that an object name be passed to the
     // add_command method if you're going to use subcommands.  any other means
     // of registering a top-level command results in a fatal error when you add
     // a subcommand.  since our top-level commands don't need to do anything,
     // i.e. they exist only to print the `wp help` information, we can use a
-    // stdClass here just to make the rest of the system work better.
+    // stdClass here just to make the rest of the system work better.  but, we
+    // can specify a different object with the third parameter above if needed.
     
-    WP_CLI::add_command($name, stdClass::class, ['shortdesc' => $description]);
+    $className = $className ?? stdClass::class;
+    WP_CLI::add_command($name, $className, ['shortdesc' => $description]);
     $this->commandNamespace = $name;
   }
   
