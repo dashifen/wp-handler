@@ -65,7 +65,48 @@ abstract class AbstractCommand extends AbstractAgent implements CommandInterface
       );
     }
     
-    return $this->$property;
+    return $property === 'longDesc'
+      ? $this->getLongDesc()
+      : $this->$property;
+  }
+  
+  /**
+   * getLongDesc
+   *
+   * It's convenient to use HEREDOC syntax when initializing the long
+   * description of a command.  But, that results in a non-standard output
+   * format when someone runs the WP CLI help command for it.  This method
+   * tries to correct the format when it can.
+   *
+   * @link https://www.php.net/manual/en/language.types.string.php#language.types.string.syntax.heredoc
+   * @return string
+   */
+  protected function getLongDesc(): string
+  {
+    if (!preg_match('/\r\n|\n|\r/', $this->longDesc)) {
+      return $this->longDesc;
+    }
+    
+    $lines = preg_split('/\r\n|\n|\r/', $this->longDesc);
+    
+    // we want to remove any leading spaces from our long description.  but,
+    // there are some lines that we want indented two spaces in from the
+    // headings.  so, we're going to see what the indentation is on the first
+    // line and if it's not zero, we'll alter our description to remove that
+    // number of characters from the front of each line.  to get the
+    // indentation's length, we can subtract the left-trimmed version of our
+    // first line from it's full length.  for example, strlen('   Hello!'); is
+    // 9 but strlen('Hello!') is 6, so the following line would calculate the
+    // indentation as 3.
+    
+    $indentation = strlen($lines[0]) - strlen(ltrim($lines[0]));
+    
+    if ($indentation === 0) {
+      return $this->longDesc;
+    }
+    
+    array_walk($lines, fn(&$line) => $line = substr($line, $indentation));
+    return join(PHP_EOL, $lines);
   }
   
   /**
@@ -132,8 +173,8 @@ abstract class AbstractCommand extends AbstractAgent implements CommandInterface
       'before_invoke' => $this->beforeInvoke,
       'after_invoke'  => $this->afterInvoke,
       'shortdesc'     => $this->shortDesc,
-      'longdesc'      => $this->longDesc,
-      'synopsis'      => $this->arguments->getCollection(),
+      'longdesc'      => $this->getLongDesc(),
+      'synopsis'      => $this->arguments->getSynopsis(),
       'when'          => $this->when,
       'is_deferred'   => $this->isDeferred,
     ];
