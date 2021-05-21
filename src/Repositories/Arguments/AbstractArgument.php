@@ -14,7 +14,7 @@ abstract class AbstractArgument extends Repository implements ArgumentInterface,
   protected array $options = [];      // set of viable options (for type = assoc)
   protected string $default = '';     // default value for it (for type = assoc)
   protected bool $repeating = false;  // can it repeat?  (e.g. plugin install a b c)
-  protected bool $optional;           // is it optional  (i.e. type != positional)
+  protected bool $optional = true;    // is it optional  (i.e. type != positional)
   
   /**
    * AbstractSynopsis constructor.
