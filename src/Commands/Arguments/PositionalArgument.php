@@ -38,6 +38,7 @@ class PositionalArgument extends AbstractArgument
       'type'        => 'positional',
       'description' => $description,
       'repeating'   => $repeating,
+      'optional'    => false,
     ]);
   }
 }
