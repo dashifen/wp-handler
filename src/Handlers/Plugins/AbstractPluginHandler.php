@@ -24,6 +24,7 @@ use Dashifen\WPHandler\Hooks\Collection\Factory\HookCollectionFactoryInterface;
  */
 abstract class AbstractPluginHandler extends AbstractThemeHandler implements PluginHandlerInterface
 {
+  protected array $pluginData;
   protected string $pluginDir = "";
   protected string $pluginUrl = "";
   protected ?string $pluginFilename = "";
@@ -365,6 +366,33 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
   public function getPluginUrl(): string
   {
     return $this->pluginUrl;
+  }
+  
+  /**
+   * getPluginData
+   *
+   * Returns information about this plugin internally using the WP Core
+   * get_plugin_data function.
+   *
+   * @param string $datum
+   * @param string $default
+   *
+   * @return string
+   */
+  public function getPluginData(string $datum, string $default = ''): string
+  {
+    if (!isset($this->pluginData)) {
+      $this->pluginData = get_plugin_data($this->getWPPluginDir() . '/' . $this->getPluginFilename());
+    }
+    
+    // we'll see if $datum is in our plugin data directly.  but, the array
+    // likes capitalized indices and maybe the average human doesn't know that.
+    // so, if we can't find it right away, we try capitalizing it.  if we still
+    // can't find it, then we just return our default.
+  
+    return (string) ($this->pluginData[$datum]
+      ?? $this->pluginData[ucfirst($datum)]
+      ?? $default);
   }
   
   /**

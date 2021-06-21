@@ -31,5 +31,16 @@ interface ThemeHandlerInterface extends HandlerInterface
    */
   public function getStylesheetDir(): string;
   
-  
+  /**
+   * getThemeData
+   *
+   * Returns information about this theme as per the information retrievable
+   * by the wp_get_theme stuff.
+   *
+   * @param string $datum
+   * @param string $default
+   *
+   * @return string
+   */
+  public function getThemeData(string $datum, string $default = ''): string;
 }

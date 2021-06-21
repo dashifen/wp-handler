@@ -2,6 +2,7 @@
 
 namespace Dashifen\WPHandler\Handlers\Themes;
 
+use WP_Theme;
 use Dashifen\WPHandler\Handlers\AbstractHandler;
 use Dashifen\WPHandler\Hooks\Factory\HookFactoryInterface;
 use Dashifen\WPHandler\Hooks\Collection\Factory\HookCollectionFactoryInterface;
@@ -20,6 +21,7 @@ abstract class AbstractThemeHandler extends AbstractHandler implements ThemeHand
 {
   protected string $stylesheetDir;
   protected string $stylesheetUrl;
+  protected WP_Theme $themeData;
   
   /**
    * AbstractHandler constructor.
@@ -69,6 +71,39 @@ abstract class AbstractThemeHandler extends AbstractHandler implements ThemeHand
   {
     return $this->stylesheetDir;
   }
+  
+  /**
+   * getThemeData
+   *
+   * Returns information about this theme as per the information retrievable
+   * by the wp_get_theme stuff.
+   *
+   * @param string $datum
+   * @param string $default
+   *
+   * @return string
+   */
+  public function getThemeData(string $datum, string $default = ''): string
+  {
+    if (!isset($this->themeData)) {
+      $this->themeData = wp_get_theme();
+    }
+    
+    // sadly, the get method of the WP_Theme object returns false when it
+    // can't find the information requested.  additionally sad, the theme likes
+    // capitalized names for its information but the average human may not know
+    // that.  so, we'll try the exact $datum.  if that's false, we try to
+    // capitalize it and see what happens.
+    
+    $value = $this->themeData->get($datum);
+    
+    if ($value === false) {
+      $value = $this->themeData->get(ucfirst($datum));
+    }
+    
+    return $value === false ? $default : (string) $value;
+  }
+  
   
   /**
    * register

@@ -60,6 +60,19 @@ interface PluginHandlerInterface extends ThemeHandlerInterface
   public function getPluginUrl(): string;
   
   /**
+   * getPluginData
+   *
+   * Returns information about this plugin internally using the WP Core
+   * get_plugin_data function.
+   *
+   * @param string $datum
+   * @param string $default
+   *
+   * @return string
+   */
+  public function getPluginData(string $datum, string $default = ''): string;
+  
+  /**
    * registerActivationHook
    *
    * Hooks the method provided to the WordPress ecosystem so that the
