@@ -2,6 +2,7 @@
 
 namespace Dashifen\WPHandler\Traits;
 
+use Dashifen\Transformer\TransformerException;
 use Dashifen\WPHandler\Handlers\HandlerException;
 use Dashifen\Transformer\StorageTransformer\StorageTransformerInterface;
 
@@ -38,6 +39,7 @@ trait PostMetaManagementTrait
    *
    * @return mixed
    * @throws HandlerException
+   * @throws TransformerException
    */
   public function getPostMeta(int $postId, string $postMeta, $default = '', bool $single = true, bool $transform = true)
   {
@@ -83,7 +85,7 @@ trait PostMetaManagementTrait
    *
    * @return bool
    */
-  protected function isPostMetaCached(int $postId, string $postMeta)
+  protected function isPostMetaCached(int $postId, string $postMeta): bool
   {
     return $this->usePostMetaCache
       && isset($this->postMetaCache[$postId][$postMeta]);
@@ -228,14 +230,14 @@ trait PostMetaManagementTrait
    */
   protected function getFullPostMetaName(string $postMeta): string
   {
-    // for options, we simply added the prefix onto the front of the
-    // option's name.  but, for post meta, there's something else to think
-    // about:  hidden meta.  in WP core, if a post meta name starts with an
-    // underscore, it's hidden from the admin editors, i.e. it can only be
-    // managed in code.  if $postMeta starts with an underscore, we want
-    // to make sure that the full post meta name does as well.
-    
     $postMeta = trim($postMeta);
+    
+    // if the first character of our post meta name is an underscore, we make
+    // sure to move it to the beginning of the return value here.  this makes
+    // sure that this meta data remains hidden in the database even after we
+    // prefix it.  otherwise, we can just prefix the meta name without any
+    // additional rigamarole.
+    
     return substr($postMeta, 0, 1) === '_'
       ? '_' . $this->getPostMetaNamePrefix() . substr($postMeta, 1)
       : $this->getPostMetaNamePrefix() . $postMeta;
@@ -330,6 +332,7 @@ trait PostMetaManagementTrait
    *
    * @return array
    * @throws HandlerException
+   * @throws TransformerException
    */
   public function getAllPostMeta(int $postId, bool $single = true, bool $transform = true): array
   {
@@ -363,6 +366,7 @@ trait PostMetaManagementTrait
    * @param bool $transform
    *
    * @return array
+   * @throws TransformerException
    */
   public function getPostMetaSnapshot(int $postId, bool $transform = true): array
   {
@@ -416,6 +420,7 @@ trait PostMetaManagementTrait
    *
    * @return bool
    * @throws HandlerException
+   * @throws TransformerException
    */
   public function updatePostMeta(int $postId, string $postMeta, $value, $prevValue = '', bool $transform = true): bool
   {
@@ -480,6 +485,7 @@ trait PostMetaManagementTrait
    *
    * @return bool
    * @throws HandlerException
+   * @throws TransformerException
    */
   public function updateAllPostMeta(int $postId, array $values, bool $transform = true): bool
   {
@@ -511,6 +517,7 @@ trait PostMetaManagementTrait
    *
    * @return bool
    * @throws HandlerException
+   * @throws TransformerException
    */
   public function updatePostMetaSnapshot(int $postId, array $values, bool $transform = true): bool
   {
@@ -554,6 +561,7 @@ trait PostMetaManagementTrait
    *
    * @return bool
    * @throws HandlerException
+   * @throws TransformerException
    */
   public function postMetaValueMatches(string $postMeta, $value, bool $transform = true): bool
   {

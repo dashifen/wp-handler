@@ -50,7 +50,7 @@ trait OptionsManagementTrait
     // does.
     
     if ($this->isOptionValid($option, defined('WP_DEBUG') && WP_DEBUG)) {
-      $fullOptionName = $this->getOptionNamePrefix() . $option;
+      $fullOptionName = $this->getFullOptionName($option);
       $value = $this->retrieveOption($fullOptionName, $default);
       
       // as long as we can transform and our value isn't empty, we'll
@@ -100,6 +100,30 @@ trait OptionsManagementTrait
   protected function getCachedOption(string $option)
   {
     return $this->optionsCache[$option] ?? null;
+  }
+  
+  /**
+   * getFullOptionName
+   *
+   * Handles the prefixing of our $option parameter so that other methods of
+   * this trait don't have to.
+   *
+   * @param string $option
+   *
+   * @return string
+   */
+  protected function getFullOptionName(string $option): string
+  {
+    $option = trim($option);
+    
+    // if the first character of our option's name is an underscore, we move it
+    // to the beginning of the return value.  options aren't hidden in the same
+    // way as post meta, but this allows us to mark an option with a leading
+    // prefix if we need to for some reason.
+  
+    return substr($option, 0, 1) === '_'
+      ? '_' . $this->getOptionNamePrefix() . substr($option, 1)
+      : $this->getOptionNamePrefix() . $option;
   }
   
   /**
@@ -368,7 +392,7 @@ trait OptionsManagementTrait
         ? $this->transformer->transformForStorage($option, $value)
         : $value;
       
-      $fullOptionName = $this->getOptionNamePrefix() . $option;
+      $fullOptionName = $this->getFullOptionName($option);
       return $this->storeOption($fullOptionName, $value);
     }
     
@@ -515,7 +539,7 @@ trait OptionsManagementTrait
     
     if ($this->isOptionValid($option, defined('WP_DEBUG') && WP_DEBUG)) {
       $this->maybeDeleteCachedOption($option);
-      $fullOptionName = $this->getOptionNamePrefix() . $option;
+      $fullOptionName = $this->getFullOptionName($option);
       return $this->removeOption($fullOptionName);
     }
     
