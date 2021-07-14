@@ -11,7 +11,7 @@ abstract class AbstractArgument extends Repository implements ArgumentInterface,
   protected string $type;             // positional, assoc, or flag
   protected string $name;             // name of the argument this synopsis describes
   protected string $description = ''; // longer description of what the argument does
-  protected array $options = [];      // set of viable options (for type = assoc)
+  protected ?array $options = null;   // set of viable options (for type = assoc)
   protected string $default = '';     // default value for it (for type = assoc)
   protected bool $repeating = false;  // can it repeat?  (e.g. plugin install a b c)
   protected bool $optional = true;    // is it optional  (i.e. type != positional)
@@ -137,11 +137,11 @@ abstract class AbstractArgument extends Repository implements ArgumentInterface,
    *
    * Sets the options property.
    *
-   * @param array $options
+   * @param array|null $options
    *
    * @return void
    */
-  protected function setOptions(array $options): void
+  protected function setOptions(?array $options): void
   {
     $this->options = $options;
   }

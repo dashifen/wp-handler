@@ -7,6 +7,15 @@ use Dashifen\WPHandler\Repositories\Arguments\AbstractArgument;
 use Dashifen\WPHandler\Repositories\Arguments\ArgumentException;
 
 /**
+ * Class AssociativeArgument<?php
+
+namespace Dashifen\WPHandler\Commands\Arguments;
+
+use Dashifen\Repository\RepositoryException;
+use Dashifen\WPHandler\Repositories\Arguments\AbstractArgument;
+use Dashifen\WPHandler\Repositories\Arguments\ArgumentException;
+
+/**
  * Class AssociativeArgument
  *
  * @property-read string $type
@@ -25,34 +34,28 @@ class AssociativeArgument extends AbstractArgument
    * AssociativeArgument constructor.
    *
    * @param string $name
-   * @param array  $options
    * @param string $description
    * @param string $default
+   * @param ?array $options
    * @param bool   $repeating
    *
    * @throws RepositoryException
    * @throws ArgumentException
    */
-  public function __construct(string $name, array $options, string $description = '', string $default = '', bool $repeating = false)
+  public function __construct(string $name, string $description = '', string $default = '', ?array $options = null, bool $repeating = false)
   {
     parent::__construct([
       'name'        => $name,
       'type'        => 'assoc',
       'description' => $description,
-      'options'     => $options,
-      
-      // the default is allowed to be empty (as the parameter is defined above)
-      // because we make the opinionated choice to use the first option in the
-      // required options array as the default unless a dev specifies something
-      // else.
-      
-      'default'     => $default,
+      'options'     => $options,     // null options means all values are valid
+      'default'     => $default,     // default will be come first option as needed
       
       // honestly, we're not sure if WP even allows repeating associative
       // arguments, but nothing in the docs say that they can't repeat, so
       // we'll allow it.
       
-      'repeating'   => $repeating,
+      'repeating' => $repeating,
     ]);
   }
 }
