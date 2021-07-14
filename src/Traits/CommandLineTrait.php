@@ -15,7 +15,6 @@ trait CommandLineTrait
 {
   use CaseChangingTrait;
   
-  protected string $commandNamespace = '';
   protected CommandCollectionInterface $commands;
   
   protected function setCommandCollection(?CommandCollectionInterface $commands = null): void
@@ -48,7 +47,6 @@ trait CommandLineTrait
     
     $className = $className ?? stdClass::class;
     WP_CLI::add_command($name, $className, ['shortdesc' => $description]);
-    $this->commandNamespace = $name;
   }
   
   /**
@@ -57,6 +55,8 @@ trait CommandLineTrait
    * Adds a subcommand agent to our collection of them.
    *
    * @param CommandInterface $command
+   *
+   * @return void
    */
   protected function registerSubcommand(CommandInterface $command): void
   {
@@ -85,17 +85,13 @@ trait CommandLineTrait
    */
   protected function initializeCommands(): void
   {
-    $commandNamespace = !empty($this->commandNamespace)
-      ? $this->commandNamespace . ' '
-      : '';
-    
     foreach ($this->commands as $command) {
       /** @var CommandInterface $command */
       
       try {
         $command->initialize();
         WP_CLI::add_command(
-          $commandNamespace . $command->name,
+          "$command->namespace $command->name",
           $command->getCallable(),
           $command->getDescription()
         );

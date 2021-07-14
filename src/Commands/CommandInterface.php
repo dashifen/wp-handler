@@ -12,6 +12,7 @@ use Dashifen\WPHandler\Commands\Arguments\Collection\ArgumentCollectionInterface
  *
  * @property string                      $name
  * @property string                      $slug
+ * @property string                      $namespace
  * @property string                      $shortDesc
  * @property ?Closure                    $beforeInvoke
  * @property ?Closure                    $afterInvoke

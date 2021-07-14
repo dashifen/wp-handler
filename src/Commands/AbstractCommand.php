@@ -13,6 +13,7 @@ abstract class AbstractCommand extends AbstractAgent implements CommandInterface
 {
   protected string $name;
   protected string $slug;
+  protected string $namespace;
   protected string $shortDesc;
   protected ?Closure $beforeInvoke = null;
   protected ?Closure $afterInvoke = null;
@@ -25,14 +26,18 @@ abstract class AbstractCommand extends AbstractAgent implements CommandInterface
    * AbstractPluginService constructor.
    *
    * @param string                           $name
+   * @param string                           $namespace
    * @param HandlerInterface                 $handler
    * @param ArgumentCollectionInterface|null $arguments
+   *
+   * @throws CommandException
    */
-  public function __construct(string $name, HandlerInterface $handler, ?ArgumentCollectionInterface $arguments = null)
+  public function __construct(string $name, string $namespace, HandlerInterface $handler, ?ArgumentCollectionInterface $arguments = null)
   {
-    parent::__construct($handler);
-    $this->arguments = $arguments ?? new ArgumentCollection();
     $this->setName($name);
+    $this->setNamespace($namespace);
+    $this->arguments = $arguments ?? new ArgumentCollection();
+    parent::__construct($handler);
   }
   
   /**
@@ -195,6 +200,39 @@ abstract class AbstractCommand extends AbstractAgent implements CommandInterface
   {
     $this->slug = sanitize_title($name);
     $this->name = $name;
+  }
+  
+  /**
+   * setNamespace
+   *
+   * Sets the namespace after confirming that it's valid.
+   *
+   * @param string $namespace
+   *
+   * @throws CommandException
+   */
+  public function setNamespace(string $namespace): void
+  {
+    if ($namespace !== sanitize_title($namespace)) {
+      throw new CommandException(
+        'Invalid namespace: ' . $namespace,
+        CommandException::INVALID_VALUE
+      );
+    }
+    
+    $this->namespace = $namespace;
+  }
+  
+  /**
+   * getNamespace
+   *
+   * Returns this command's namespace or null.
+   *
+   * @return string|null
+   */
+  public function getNamespace(): ?string
+  {
+    return $this->namespace ?? null;
   }
   
   /**
