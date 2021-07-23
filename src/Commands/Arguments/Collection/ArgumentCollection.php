@@ -10,7 +10,7 @@ class ArgumentCollection extends AbstractCollection implements ArgumentCollectio
   /**
    * @var ArgumentInterface[]
    */
-  protected array $collection;
+  protected array $collection = [];
   
   /**
    * getCollection

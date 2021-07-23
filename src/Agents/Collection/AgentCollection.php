@@ -15,7 +15,7 @@ class AgentCollection extends AbstractCollection implements AgentCollectionInter
   /**
    * @var AgentInterface[]
    */
-  protected array $collection;
+  protected array $collection = [];
   
   /**
    * getCollection

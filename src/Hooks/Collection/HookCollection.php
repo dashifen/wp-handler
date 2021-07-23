@@ -15,7 +15,7 @@ class HookCollection extends AbstractCollection implements HookCollectionInterfa
   /**
    * @var HookInterface[]
    */
-  protected array $collection;
+  protected array $collection = [];
   
   /**
    * getCollection

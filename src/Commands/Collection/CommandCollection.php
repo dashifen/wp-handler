@@ -10,7 +10,7 @@ class CommandCollection extends AbstractCollection implements CommandCollectionI
   /**
    * @var CommandInterface[]
    */
-  protected array $collection;
+  protected array $collection = [];
   
   /**
    * getCollection
