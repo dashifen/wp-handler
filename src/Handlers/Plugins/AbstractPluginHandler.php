@@ -855,6 +855,24 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
   }
   
   /**
+   * addNetworkSitesPage
+   *
+   * A wrapper for the WordPress core function of similar name that registers
+   * the callback function as a Hook.
+   *
+   * @param SubmenuItem $submenuItem
+   *
+   * @return string
+   * @throws MenuItemException
+   * @throws HandlerException
+   */
+  final public function addNetworkSitesPage(SubmenuItem $submenuItem): string
+  {
+    $submenuItem->setParentSlug("sites.php");
+    return $this->addSubmenuPage($submenuItem);
+  }
+  
+  /**
    * addNetworkSettingsPage
    *
    * A wrapper for the WordPress core function of similar name that registers
