@@ -205,21 +205,14 @@ abstract class AbstractCommand extends AbstractAgent implements CommandInterface
   /**
    * setNamespace
    *
-   * Sets the namespace after confirming that it's valid.
+   * Sets the namespace property.
    *
    * @param string $namespace
    *
-   * @throws CommandException
+   * @return void
    */
   public function setNamespace(string $namespace): void
   {
-    if ($namespace !== sanitize_title($namespace)) {
-      throw new CommandException(
-        'Invalid namespace: ' . $namespace,
-        CommandException::INVALID_VALUE
-      );
-    }
-    
     $this->namespace = $namespace;
   }
   
