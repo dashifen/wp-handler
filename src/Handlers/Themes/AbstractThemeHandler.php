@@ -4,6 +4,7 @@ namespace Dashifen\WPHandler\Handlers\Themes;
 
 use WP_Theme;
 use Dashifen\WPHandler\Handlers\AbstractHandler;
+use Dashifen\WPHandler\Handlers\HandlerException;
 use Dashifen\WPHandler\Hooks\Factory\HookFactoryInterface;
 use Dashifen\WPHandler\Hooks\Collection\Factory\HookCollectionFactoryInterface;
 
@@ -242,5 +243,34 @@ abstract class AbstractThemeHandler extends AbstractHandler implements ThemeHand
     
     $function($asset, $file, $dependencies, date('Ym'), $finalArg);
     return $asset;
+  }
+  
+  /**
+   * parentEnqueue
+   *
+   * Enqueues an asset from within a parent theme's folder.  Throws an
+   * exception if this is not a child theme.
+   *
+   * @param string $file
+   * @param array  $dependencies
+   * @param null   $finalArg
+   * @param bool   $register
+   *
+   * @return string
+   * @throws HandlerException
+   */
+  protected function enqueueParent(string $file, array $dependencies = [], $finalArg = null, bool $register = false): string
+  {
+    if (!is_child_theme()) {
+      throw new HandlerException($this->getThemeData('name') . ' is not a child theme.',
+        HandlerException::NOT_A_CHILD);
+    }
+    
+    // now that we've confirmed this is a child theme, all we need to do is
+    // call the enqueue method above and specify the URI and folder for its
+    // parent, the template, so that we override the defaults in that method.
+    
+    return $this->enqueue($file, $dependencies, $finalArg,
+      get_template_directory_uri(), get_template_directory(), $register);
   }
 }
