@@ -40,6 +40,10 @@ trait TaxonomyRegistrationTrait
       'no_terms'                   => __('No ' . $plural, $textDomain),
       'items_list'                 => __($plural . ' list', $textDomain),
       'items_list_navigation'      => __($plural . ' list navigation', $textDomain),
+      'filter_by_item'             => __('Filter by ' . $singular, $textDomain),
+      'back_to_items'              => __('Back to ' . $plural, $textDomain),
+      'item_link'                  => __($singular . ' Link', $textDomain),
+      'item_link_description'      => __('A link to a ' . $singular, $textDomain),
     ];
   }
 }
