@@ -337,14 +337,18 @@ trait PostMetaManagementTrait
   public function getAllPostMeta(int $postId, bool $single = true, bool $transform = true): array
   {
     foreach ($this->getPostMetaNames() as $postMetaName) {
-      $fullPostMetaName = $this->getFullPostMetaName($postMetaName);
-      $postMeta[$postMetaName] = $this->getPostMeta($postId, $fullPostMetaName, '', $single, $transform);
+      
+      // we don't have to worry about accessing the cache here because,
+      // if we're using it, the getPostMeta method will use it
+      // internally.
+      
+      $postMeta[$postMetaName] = $this->getPostMeta($postId, $postMetaName, '', $single, $transform);
     }
     
-    // just in case someone calls this function on a handler that doesn't have
-    // any post meta to retrieve, we'll need to use the null coalescing
-    // operator to ensure that we return an empty array in the event that
-    // $postMeta is not defined in the above loop.
+    // just in case someone calls this function on a handler that doesn't
+    // have any post meta to retrieve, we'll need to use the null
+    // coalescing operator to ensure that we return an empty array in the
+    // event that $postMeta is not defined in the above loop.
     
     return $postMeta ?? [];
   }
