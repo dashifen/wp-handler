@@ -503,7 +503,7 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
    * @throws MenuItemException
    * @throws HandlerException
    */
-  final private function hookMenuItem(MenuItem $menuItem): string
+  private function hookMenuItem(MenuItem $menuItem): string
   {
     if (!$menuItem->isComplete()) {
       throw new MenuItemException(
