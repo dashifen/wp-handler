@@ -18,4 +18,5 @@ class HandlerException extends Exception
   public const OPTION_TOO_LONG = 5;
   public const INVALID_CALLBACK = 6;
   public const NOT_A_CHILD = 7;
+  public const UNKNOWN_AGENT = 8;
 }
