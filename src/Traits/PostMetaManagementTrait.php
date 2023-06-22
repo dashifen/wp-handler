@@ -587,7 +587,7 @@ trait PostMetaManagementTrait
    * @return bool|null
    * @throws HandlerException
    */
-  public function deleteMetaValue(int $postId, string $postMeta, $postMetaValue = ''): ?bool
+  public function deletePostMeta(int $postId, string $postMeta, $postMetaValue = ''): ?bool
   {
     if ($this->isPostMetaValid($postMeta, defined('WP_DEBUG') && WP_DEBUG)) {
       
@@ -665,5 +665,60 @@ trait PostMetaManagementTrait
   protected function removePostMeta(int $postId, string $postMeta, $postMetaValue = ''): bool
   {
     return delete_post_meta($postId, $postMeta, $postMetaValue);
+  }
+  
+  /**
+   * addPostMeta
+   *
+   * Typically, we can use updatePostMeta to put information in the database.
+   * But, that doesn't allow us to add multiple values to the same post meta
+   * key.  This method allows that capability using a familiar WordPress name.
+   *
+   * @param int    $postId
+   * @param string $postMeta
+   * @param mixed  $postMetaValue
+   * @param bool   $unique
+   *
+   * @return bool
+   * @throws HandlerException
+   */
+  public function addPostMeta(int $postId, string $postMeta, $postMetaValue = '', bool $unique = false): bool
+  {
+    $success = false;
+
+    // as long as the specified post meta is one that we're willing to work
+    // with, we'll create a record for it in the database and maybe add it to
+    // the cache.
+    
+    if ($this->isPostMetaValid($postMeta, defined('WP_DEBUG') && WP_DEBUG)) {
+      $success = $this->createPostMeta($postId, $postMeta, $postMetaValue, $unique);
+      $this->maybeCachePostMeta($postId, $postMeta, $postMetaValue, $unique);
+    }
+    
+    return $success;
+  }
+  
+  /**
+   * createPostMeta
+   *
+   * Calls the core add_post_meta function to store information in the
+   * database.  Separated from other methods in case this behavior needs to be
+   * overwritten elsewhere.
+   *
+   * @param int    $postId
+   * @param string $postMeta
+   * @param string $postMetaValue
+   * @param bool   $unique
+   *
+   * @return bool
+   */
+  protected function createPostMeta(int $postId, string $postMeta, string $postMetaValue, bool $unique): bool
+  {
+    // the add_post_meta function in core returns the meta ID it creates on
+    // success and false otherwise.  since the IDs will always be truth-y, we
+    // can simply cast the return value as a boolean to always return true
+    // for success instead of the number.
+    
+    return (bool) add_post_meta($postId, $postMeta, $postMetaValue, $unique);
   }
 }
