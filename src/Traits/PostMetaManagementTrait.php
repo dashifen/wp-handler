@@ -596,7 +596,8 @@ trait PostMetaManagementTrait
       // well.
       
       $this->maybeDeleteCachedPostMeta($postId, $postMeta);
-      return $this->removePostMeta($postId, $postMeta, $postMetaValue);
+      $fullPostMetaName = $this->getFullPostMetaName($postMeta);
+      return $this->removePostMeta($postId, $fullPostMetaName, $postMetaValue);
     }
     
     // if our post meta wasn't valid, then we didn't do anything.  we could
@@ -691,7 +692,8 @@ trait PostMetaManagementTrait
     // the cache.
     
     if ($this->isPostMetaValid($postMeta, defined('WP_DEBUG') && WP_DEBUG)) {
-      $success = $this->createPostMeta($postId, $postMeta, $postMetaValue, $unique);
+      $fullPostMetaName = $this->getFullPostMetaName($postMeta);
+      $success = $this->createPostMeta($postId, $fullPostMetaName, $postMetaValue, $unique);
       $this->maybeCachePostMeta($postId, $postMeta, $postMetaValue, $unique);
     }
     
