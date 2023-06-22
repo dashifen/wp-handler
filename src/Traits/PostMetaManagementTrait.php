@@ -182,7 +182,7 @@ trait PostMetaManagementTrait
       return $this->postMetaSnapshotName;
     }
     
-    // to try and make a automatic and repeatably generated post meta name,
+    // to try and make an automatic and repeatably generated post meta name,
     // we'll create the sha1 hash of our post meta names and add our prefix
     // so that a human will be able to see and recognize the hash as being
     // linked to the rest of this handler's data.  a programmer can always
@@ -234,7 +234,7 @@ trait PostMetaManagementTrait
     
     // if the first character of our post meta name is an underscore, we make
     // sure to move it to the beginning of the return value here.  this makes
-    // sure that this meta data remains hidden in the database even after we
+    // sure that this metadata remains hidden in the database even after we
     // prefix it.  otherwise, we can just prefix the meta name without any
     // additional rigamarole.
     
@@ -247,7 +247,7 @@ trait PostMetaManagementTrait
    * retrievePostMeta
    *
    * Retrieves a post meta value from the database.  Separated from its
-   * surrounding scope so we can override this, e.g. for term meta.
+   * surrounding scope allowing us to override this, e.g. for term meta.
    *
    * @param int    $postId
    * @param string $postMeta
@@ -426,7 +426,7 @@ trait PostMetaManagementTrait
   {
     // since we transform our $value before we cram it in the database,
     // it's easier for us to (maybe) add it to our cache first.  that way,
-    // we have the value the visitor sent us in memory and we don't have to
+    // we have the value the visitor sent us in memory, and we don't have to
     // remember to un-transform it before using it elsewhere.
     
     $this->maybeCachePostMeta($postId, $postMeta, $value);
@@ -438,7 +438,7 @@ trait PostMetaManagementTrait
     
     if ($this->isPostMetaValid($postMeta, defined('WP_DEBUG') && WP_DEBUG)) {
       
-      // if we can transform and we have a non-empty value, we pass it
+      // if we can transform, and we have a non-empty value, we pass it
       // through our transformer here and let that object do what it
       // needs to do.  we skip empties so that we don't conflict with
       // transformer method parameter type hints.
