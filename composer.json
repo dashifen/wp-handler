@@ -17,8 +17,8 @@
     }
   },
   "require": {
-    "php": ">=7.4",
-    "dashifen/collection": "^2",
+    "php": ">=8.2",
+    "dashifen/collection": "^3",
     "dashifen/exception": "^1",
     "dashifen/repository": "^3",
     "dashifen/transformer": "^2",
