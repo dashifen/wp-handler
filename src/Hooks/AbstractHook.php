@@ -31,7 +31,7 @@ abstract class AbstractHook extends Repository implements HookInterface
    *
    * @return HookException
    */
-  protected function convertException(RepositoryException $exception, int $code)
+  protected function convertException(RepositoryException $exception, int $code): HookException
   {
     return new HookException($exception->getMessage(), $code, $exception);
   }

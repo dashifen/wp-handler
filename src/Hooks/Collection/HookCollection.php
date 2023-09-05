@@ -73,13 +73,13 @@ class HookCollection extends AbstractCollection implements HookCollectionInterfa
    * because we can't alter the method's signature, we can't type hint $index
    * here.  So, we'll rely on the phpDocBlock to help our IDEs out instead.
    *
-   * @param string $index
+   * @param string $offset
    *
    * @return HookInterface|null
    */
-  public function offsetGet($index): ?HookInterface
+  public function offsetGet($offset): ?HookInterface
   {
-    return parent::offsetGet($index);
+    return parent::offsetGet($offset);
   }
   
   /**
@@ -89,13 +89,13 @@ class HookCollection extends AbstractCollection implements HookCollectionInterfa
    * we can't alter the method's signature, we can't type hint the parameters
    * here.  So, we'll rely on the phpDocBlock to help our IDEs out instead.
    *
-   * @param string        $index
+   * @param string        $offset
    * @param HookInterface $value
    *
    * @return void
    * @throws HookCollectionException
    */
-  public function offsetSet($index, $value)
+  public function offsetSet($offset, $value): void
   {
     if (!($value instanceof HookInterface)) {
       throw new HookCollectionException(
@@ -104,6 +104,6 @@ class HookCollection extends AbstractCollection implements HookCollectionInterfa
       );
     }
     
-    parent::offsetSet($index, $value);
+    parent::offsetSet($offset, $value);
   }
 }

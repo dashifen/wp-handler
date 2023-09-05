@@ -72,13 +72,13 @@ class AgentCollection extends AbstractCollection implements AgentCollectionInter
    * we can't alter the method's signature, so we can't type hint $index
    * here.  Instead, we let the phpDocBlock handle that for our IDEs.
    *
-   * @param string $index
+   * @param string $offset
    *
    * @return AgentInterface|null
    */
-  public function offsetGet($index): AgentInterface
+  public function offsetGet($offset): AgentInterface
   {
-    return parent::offsetGet($index);
+    return parent::offsetGet($offset);
   }
   
   /**
@@ -88,13 +88,13 @@ class AgentCollection extends AbstractCollection implements AgentCollectionInter
    * can't change the method's signature here, so we can't type hint our
    * parameters.  Instead, we let the phpDocBlock handle it for our IDEs.
    *
-   * @param string         $index
+   * @param string         $offset
    * @param AgentInterface $value
    *
    * @return void
    * @throws AgentCollectionException
    */
-  public function offsetSet($index, $value): void
+  public function offsetSet($offset, $value): void
   {
     if (!($value instanceof AgentInterface)) {
       throw new AgentCollectionException(
@@ -103,6 +103,6 @@ class AgentCollection extends AbstractCollection implements AgentCollectionInter
       );
     }
     
-    parent::offsetSet($index, $value);
+    parent::offsetSet($offset, $value);
   }
 }

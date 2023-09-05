@@ -102,11 +102,11 @@ trait ActionAndNonceTrait
   {
     // $className is expected to be a fully namespaced class name.  so, we'll
     // explode it into it's parts, grab the last one, and then, since the PHP
-    // styles suggest that class names be in StudlyCaps, we'll conver those to
+    // styles suggest that class names be in StudlyCaps, we'll convert those to
     // kebab case.
     
     $class = array_reverse(explode('\\', $className))[0];
-    return $this->studlyToKebabCase($class);
+    return $this->pascalToKebabCase($class);
   }
   
   /**

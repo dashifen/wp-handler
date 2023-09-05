@@ -29,8 +29,6 @@ abstract class AbstractCommand extends AbstractAgent implements CommandInterface
    * @param string                           $namespace
    * @param HandlerInterface                 $handler
    * @param ArgumentCollectionInterface|null $arguments
-   *
-   * @throws CommandException
    */
   public function __construct(string $name, string $namespace, HandlerInterface $handler, ?ArgumentCollectionInterface $arguments = null)
   {
