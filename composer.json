@@ -20,7 +20,7 @@
     "php": ">=8.2",
     "dashifen/collection": "^3",
     "dashifen/exception": "^1",
-    "dashifen/repository": "^3",
+    "dashifen/repository": "^4",
     "dashifen/transformer": "^2",
     "dashifen/wp-debugging": "^1"
   },
