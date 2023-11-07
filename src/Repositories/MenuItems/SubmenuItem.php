@@ -3,7 +3,7 @@
 namespace Dashifen\WPHandler\Repositories\MenuItems;
 
 use Dashifen\Repository\RepositoryException;
-use Dashifen\WPHandler\Handlers\Plugins\PluginHandlerInterface;
+use Dashifen\WPHandler\Handlers\HandlerInterface;
 
 /**
  * Class MenuItem
@@ -34,12 +34,12 @@ class SubmenuItem extends MenuItem
   /**
    * SubmenuItem constructor.
    *
-   * @param PluginHandlerInterface $handler
+   * @param HandlerInterface $handler
    * @param array                  $data
    *
    * @throws RepositoryException
    */
-  public function __construct(PluginHandlerInterface $handler, array $data = [])
+  public function __construct(HandlerInterface $handler, array $data = [])
   {
     parent::__construct($handler, $data);
   }
