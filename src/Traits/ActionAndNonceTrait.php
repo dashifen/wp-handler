@@ -80,8 +80,9 @@ trait ActionAndNonceTrait
         ? get_class($this->handler)
         : get_class($this);
       
-      $prefix = $namespacedClassName::SLUG
-        ?? $this->getActionPrefixFromClassName($namespacedClassName);
+      $prefix = !defined($namespacedClassName . '::SLUG')
+        ? $this->getActionPrefixFromClassName($namespacedClassName)
+        : $namespacedClassName::SLUG;
     }
     
     return sprintf('%s-%s', $prefix, $action ?? $this->getDefaultAction());
