@@ -16,12 +16,16 @@ trait FormattedDateTimeTrait
    *
    * @param int|null    $timestamp
    * @param string|null $timezone
+   * @param string|null $format
    *
    * @return string
    */
-  protected function getFormattedDate(?int $timestamp = null, ?string $timezone = null): string
+  protected function getFormattedDate(?int $timestamp = null, ?string $timezone = null, ?string $format = null): string
   {
-    return date(get_option('date_format'), $this->getTimestamp($timestamp, $timezone));
+    return date(
+      $format ?? get_option('date_format'),
+      $this->getTimestamp($timestamp, $timezone)
+    );
   }
   
   /**
@@ -109,12 +113,13 @@ trait FormattedDateTimeTrait
    *
    * @param int|null    $timestamp
    * @param string|null $timezone
+   * @param string|null $format
    *
    * @return string
    */
-  protected function getFormattedTime(?int $timestamp = null, ?string $timezone = null): string
+  protected function getFormattedTime(?int $timestamp = null, ?string $timezone = null, ?string $format = null): string
   {
-    return date(get_option('time_format'), $this->getTimestamp($timestamp, $timezone));
+    return date($format ?? get_option('time_format'), $this->getTimestamp($timestamp, $timezone));
   }
   
   /**
