@@ -20,7 +20,7 @@ abstract class AbstractArgument extends Repository implements ArgumentInterface,
    * AbstractSynopsis constructor.
    *
    * Passes the $data array up to our parent and then makes sure that the
-   * relationship between the default and options properties is appropriate..
+   * relationship between the default and options properties is appropriate.
    *
    * @param array $data
    *
@@ -39,9 +39,9 @@ abstract class AbstractArgument extends Repository implements ArgumentInterface,
       
       if (!$hasDefault && $hasOptions) {
         
-        // if we options but the programmer didn't specify a default value,
-        // we'll make the opinionated choice to use the first one as that
-        // value.  if they don't like it, then they should have told us
+        // if we have options, but the programmer didn't specify a default
+        // value, we'll make the opinionated choice to use the first one as
+        // that value.  if they don't like it, then they should have told us
         // otherwise!
         
         $this->default = $this->options[0];
@@ -197,7 +197,7 @@ abstract class AbstractArgument extends Repository implements ArgumentInterface,
    *
    * @return mixed|null
    */
-  public function offsetGet($offset)
+  public function offsetGet($offset): mixed
   {
     return $this->offsetExists($offset) ? $this->$offset : null;
   }
@@ -214,13 +214,13 @@ abstract class AbstractArgument extends Repository implements ArgumentInterface,
    * @param string $offset
    * @param mixed  $value
    *
-   * @return void
+   * @return never
    * @throws ArgumentException
    */
-  final public function offsetSet($offset, $value)
+  final public function offsetSet($offset, mixed $value): never
   {
     throw new ArgumentException(
-      'Attend to set ' . $offset . ' via ArrayAccess',
+      'Attempt to set ' . $offset . ' via ArrayAccess',
       ArgumentException::ACCESS_VIOLATION
     );
   }
@@ -236,13 +236,13 @@ abstract class AbstractArgument extends Repository implements ArgumentInterface,
    *
    * @param string $offset
    *
-   * @return void
+   * @return never
    * @throws ArgumentException
    */
-  public function offsetUnset($offset)
+  public function offsetUnset($offset): never
   {
     throw new ArgumentException(
-      'Attend to unset ' . $offset . ' via ArrayAccess',
+      'Attempt to unset ' . $offset . ' via ArrayAccess',
       ArgumentException::ACCESS_VIOLATION
     );
   }

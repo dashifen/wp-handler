@@ -91,17 +91,20 @@
         },
         {
             "name": "dashifen/debugging",
-            "version": "1.0.1",
+            "version": "1.0.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/dashifen/debugging.git",
-                "reference": "6898e2ab451b4e6d8e3825d65223181c8351eaa2"
+                "reference": "9a056f0eec793bef17aacf879e915e25c33fc952"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/dashifen/debugging/zipball/6898e2ab451b4e6d8e3825d65223181c8351eaa2",
-                "reference": "6898e2ab451b4e6d8e3825d65223181c8351eaa2",
+                "url": "https://api.github.com/repos/dashifen/debugging/zipball/9a056f0eec793bef17aacf879e915e25c33fc952",
+                "reference": "9a056f0eec793bef17aacf879e915e25c33fc952",
                 "shasum": ""
+            },
+            "require": {
+                "php": ">=8.0"
             },
             "type": "library",
             "autoload": {
@@ -123,9 +126,9 @@
             "description": "A PHP Trait that defines static methods used for on-screen debugging.",
             "support": {
                 "issues": "https://github.com/dashifen/debugging/issues",
-                "source": "https://github.com/dashifen/debugging/tree/1.0.1"
+                "source": "https://github.com/dashifen/debugging/tree/1.0.2"
             },
-            "time": "2020-12-09T19:27:09+00:00"
+            "time": "2024-01-08T14:24:44+00:00"
         },
         {
             "name": "dashifen/exception",
@@ -256,16 +259,16 @@
         },
         {
             "name": "dashifen/wp-debugging",
-            "version": "1.0.1",
+            "version": "1.0.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/dashifen/wp-debugging.git",
-                "reference": "aa461ad9c36283466bd120660ff7a7c68eb521b0"
+                "reference": "d4cc5c6d1736a8ac909c60cf866b564d0779e9bf"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/dashifen/wp-debugging/zipball/aa461ad9c36283466bd120660ff7a7c68eb521b0",
-                "reference": "aa461ad9c36283466bd120660ff7a7c68eb521b0",
+                "url": "https://api.github.com/repos/dashifen/wp-debugging/zipball/d4cc5c6d1736a8ac909c60cf866b564d0779e9bf",
+                "reference": "d4cc5c6d1736a8ac909c60cf866b564d0779e9bf",
                 "shasum": ""
             },
             "require": {
@@ -291,9 +294,9 @@
             "description": "A PHP trait that can be used by other objects for on-screen debugging within a WordPress environment.",
             "support": {
                 "issues": "https://github.com/dashifen/wp-debugging/issues",
-                "source": "https://github.com/dashifen/wp-debugging/tree/1.0.1"
+                "source": "https://github.com/dashifen/wp-debugging/tree/1.0.2"
             },
-            "time": "2020-12-09T19:29:51+00:00"
+            "time": "2023-09-19T18:25:25+00:00"
         }
     ],
     "packages-dev": [
@@ -349,23 +352,23 @@
         },
         {
             "name": "symfony/finder",
-            "version": "v6.3.3",
+            "version": "v7.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/finder.git",
-                "reference": "9915db259f67d21eefee768c1abcf1cc61b1fc9e"
+                "reference": "6e5688d69f7cfc4ed4a511e96007e06c2d34ce56"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/finder/zipball/9915db259f67d21eefee768c1abcf1cc61b1fc9e",
-                "reference": "9915db259f67d21eefee768c1abcf1cc61b1fc9e",
+                "url": "https://api.github.com/repos/symfony/finder/zipball/6e5688d69f7cfc4ed4a511e96007e06c2d34ce56",
+                "reference": "6e5688d69f7cfc4ed4a511e96007e06c2d34ce56",
                 "shasum": ""
             },
             "require": {
-                "php": ">=8.1"
+                "php": ">=8.2"
             },
             "require-dev": {
-                "symfony/filesystem": "^6.0"
+                "symfony/filesystem": "^6.4|^7.0"
             },
             "type": "library",
             "autoload": {
@@ -393,7 +396,7 @@
             "description": "Finds files and directories via an intuitive fluent interface",
             "homepage": "https://symfony.com",
             "support": {
-                "source": "https://github.com/symfony/finder/tree/v6.3.3"
+                "source": "https://github.com/symfony/finder/tree/v7.0.0"
             },
             "funding": [
                 {
@@ -409,7 +412,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2023-07-31T08:31:44+00:00"
+            "time": "2023-10-31T17:59:56+00:00"
         },
         {
             "name": "wp-cli/mustangostang-spyc",
@@ -464,16 +467,16 @@
         },
         {
             "name": "wp-cli/php-cli-tools",
-            "version": "v0.11.19",
+            "version": "v0.11.22",
             "source": {
                 "type": "git",
                 "url": "https://github.com/wp-cli/php-cli-tools.git",
-                "reference": "2d27f0db5c36f5aa0064abecddd6d05f28c4d001"
+                "reference": "a6bb94664ca36d0962f9c2ff25591c315a550c51"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/wp-cli/php-cli-tools/zipball/2d27f0db5c36f5aa0064abecddd6d05f28c4d001",
-                "reference": "2d27f0db5c36f5aa0064abecddd6d05f28c4d001",
+                "url": "https://api.github.com/repos/wp-cli/php-cli-tools/zipball/a6bb94664ca36d0962f9c2ff25591c315a550c51",
+                "reference": "a6bb94664ca36d0962f9c2ff25591c315a550c51",
                 "shasum": ""
             },
             "require": {
@@ -481,7 +484,7 @@
             },
             "require-dev": {
                 "roave/security-advisories": "dev-latest",
-                "wp-cli/wp-cli-tests": "^3.1.6"
+                "wp-cli/wp-cli-tests": "^4"
             },
             "type": "library",
             "extra": {
@@ -521,22 +524,22 @@
             ],
             "support": {
                 "issues": "https://github.com/wp-cli/php-cli-tools/issues",
-                "source": "https://github.com/wp-cli/php-cli-tools/tree/v0.11.19"
+                "source": "https://github.com/wp-cli/php-cli-tools/tree/v0.11.22"
             },
-            "time": "2023-07-21T11:37:15+00:00"
+            "time": "2023-12-03T19:25:05+00:00"
         },
         {
             "name": "wp-cli/wp-cli",
-            "version": "v2.8.1",
+            "version": "v2.10.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/wp-cli/wp-cli.git",
-                "reference": "5dd2340b9a01c3cfdbaf5e93a140759fdd190eee"
+                "reference": "a339dca576df73c31af4b4d8054efc2dab9a0685"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/wp-cli/wp-cli/zipball/5dd2340b9a01c3cfdbaf5e93a140759fdd190eee",
-                "reference": "5dd2340b9a01c3cfdbaf5e93a140759fdd190eee",
+                "url": "https://api.github.com/repos/wp-cli/wp-cli/zipball/a339dca576df73c31af4b4d8054efc2dab9a0685",
+                "reference": "a339dca576df73c31af4b4d8054efc2dab9a0685",
                 "shasum": ""
             },
             "require": {
@@ -553,7 +556,7 @@
                 "wp-cli/entity-command": "^1.2 || ^2",
                 "wp-cli/extension-command": "^1.1 || ^2",
                 "wp-cli/package-command": "^1 || ^2",
-                "wp-cli/wp-cli-tests": "^3.1.6"
+                "wp-cli/wp-cli-tests": "^4.0.1"
             },
             "suggest": {
                 "ext-readline": "Include for a better --prompt implementation",
@@ -566,7 +569,7 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-main": "2.9.x-dev"
+                    "dev-main": "2.10.x-dev"
                 }
             },
             "autoload": {
@@ -593,7 +596,7 @@
                 "issues": "https://github.com/wp-cli/wp-cli/issues",
                 "source": "https://github.com/wp-cli/wp-cli"
             },
-            "time": "2023-06-05T06:55:55+00:00"
+            "time": "2024-02-08T16:52:43+00:00"
         }
     ],
     "aliases": [],

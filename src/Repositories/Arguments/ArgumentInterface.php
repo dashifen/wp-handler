@@ -20,6 +20,6 @@ use Dashifen\Repository\RepositoryInterface;
 interface ArgumentInterface extends RepositoryInterface
 {
   // there's actually nothing to do here, but our ArgumentCollection works
-  // best with an interface rather than the abstract class so we made this for
+  // best with an interface rather than the abstract class, so we made this for
   // it.
 }
