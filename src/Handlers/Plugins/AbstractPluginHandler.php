@@ -210,7 +210,14 @@ abstract class AbstractPluginHandler extends AbstractThemeHandler implements Plu
       require_once ABSPATH . 'wp-admin/includes/plugin.php';
     }
     
-    return (get_plugin_data($file, false)['Name'] ?? '') !== '';
+    // with WP 6.7, the get_plugin_data function can be used prior to the init
+    // action, but if it is, it cannot use the i18n capabilities because it
+    // creates a warning.  so, we've added a second false argument to prevent
+    // this which turns off the translation capabilities.  since all we're
+    // testing here is the existence of a name, it doesn't matter what language
+    // it's in.
+    
+    return (get_plugin_data($file, false, false)['Name'] ?? '') !== '';
   }
   
   /**
