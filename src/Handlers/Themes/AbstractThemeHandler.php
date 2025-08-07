@@ -105,7 +105,39 @@ abstract class AbstractThemeHandler extends AbstractHandler implements ThemeHand
     return $value === false ? $default : (string) $value;
   }
   
+  /**
+   * Activates and deactivates required plugins as this theme is activated or
+   * deactivated.
+   *
+   * @param array $plugins
+   *
+   * @return void
+   * @throws HandlerException
+   */
+  protected function handlePluginDependencies(array $plugins): void
+  {
+    // the switch_theme action fires when theme A changes to theme B.  then,
+    // the after_switch_theme action is triggered when theme B loads for the
+    // first time.  so the first action that we create here turns off the
+    // required plugins for this theme if we're switching away from it.  the
+    // second one turns them on if we're switching to it.
+    
+    $this->addAction('switch_theme', fn() => deactivate_plugins($plugins));
+    $this->addAction('after_switch_theme', fn() => activate_plugins($plugins));
+  }
   
+  /**
+   * Deactivates incompatible plugins when this theme is activated.
+   *
+   * @param array $plugins
+   *
+   * @return void
+   * @throws HandlerException
+   */
+  protected function handlePluginIncompatibilities(array $plugins): void
+  {
+    $this->addAction('after_switch_theme', fn() => deactivate_plugins($plugins));
+  }
   /**
    * register
    *
