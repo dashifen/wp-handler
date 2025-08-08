@@ -156,12 +156,14 @@ abstract class AbstractThemeHandler extends AbstractHandler implements ThemeHand
     // method focused on dependencies.  this one focuses on incompatibilities
     // which means we don't need to quit, but we can't try to deactivate a
     // plugin that doesn't exist because Core may stop at that one and not
-    // deactivate other ones in the list.  so, let's fine the intersection
-    // between our list and the installed plugins and deactivate that one.
+    // deactivate other ones in the list.  so, let's find the intersection
+    // between our list and the installed plugins and deactivate only those.
     
-    $installedPlugins = array_keys(get_plugins());
-    $intersection = array_intersect($installedPlugins, $plugins);
-    $this->addAction('after_switch_theme', fn() => deactivate_plugins($intersection));
+    $this->addAction('after_switch_theme', function() use ($plugins) {
+      $installedPlugins = array_keys(get_plugins());
+      $intersection = array_intersect($installedPlugins, $plugins);
+      deactivate_plugins($intersection);
+    });
   }
   /**
    * register
