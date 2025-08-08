@@ -116,6 +116,22 @@ abstract class AbstractThemeHandler extends AbstractHandler implements ThemeHand
    */
   protected function handlePluginDependencies(array $plugins): void
   {
+    // before we do anything, let's make sure that the information in $plugins
+    // refers to plugins that are actually installed on this site.  we get the
+    // list of installed plugins, and then we can use array diff to see if
+    // there are any data in $plugins that aren't found in that list.  if so,
+    // we throw a HandlerException because this method is for dependencies, and
+    // we'll assume that if we're missing something on which we depend that a
+    // dev needs to fix that!
+    
+    $installedPlugins = array_keys(get_plugins());
+    $missingPlugins = array_diff($plugins, $installedPlugins);
+    if (($count = sizeof($missingPlugins)) > 0) {
+      $noun = $count === 1 ? 'Plugin' : 'Plugins';
+      $message = "$noun Not Found: " . join(', ', $missingPlugins);
+      throw new HandlerException($message, HandlerException::UNKNOWN_PLUGIN);
+    }
+    
     // the switch_theme action fires when theme A changes to theme B.  then,
     // the after_switch_theme action is triggered when theme B loads for the
     // first time.  so the first action that we create here turns off the
