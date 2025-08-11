@@ -105,7 +105,66 @@ abstract class AbstractThemeHandler extends AbstractHandler implements ThemeHand
     return $value === false ? $default : (string) $value;
   }
   
+  /**
+   * Activates and deactivates required plugins as this theme is activated or
+   * deactivated.
+   *
+   * @param array $plugins
+   *
+   * @return void
+   * @throws HandlerException
+   */
+  protected function handlePluginDependencies(array $plugins): void
+  {
+    // before we do anything, let's make sure that the information in $plugins
+    // refers to plugins that are actually installed on this site.  we get the
+    // list of installed plugins, and then we can use array diff to see if
+    // there are any data in $plugins that aren't found in that list.  if so,
+    // we throw a HandlerException because this method is for dependencies, and
+    // we'll assume that if we're missing something on which we depend that a
+    // dev needs to fix that!
+    
+    $installedPlugins = array_keys(get_plugins());
+    $missingPlugins = array_diff($plugins, $installedPlugins);
+    if (($count = sizeof($missingPlugins)) > 0) {
+      $noun = $count === 1 ? 'Plugin' : 'Plugins';
+      $message = "$noun Not Found: " . join(', ', $missingPlugins);
+      throw new HandlerException($message, HandlerException::UNKNOWN_PLUGIN);
+    }
+    
+    // the switch_theme action fires when theme A changes to theme B.  then,
+    // the after_switch_theme action is triggered when theme B loads for the
+    // first time.  so the first action that we create here turns off the
+    // required plugins for this theme if we're switching away from it.  the
+    // second one turns them on if we're switching to it.
+    
+    $this->addAction('switch_theme', fn() => deactivate_plugins($plugins));
+    $this->addAction('after_switch_theme', fn() => activate_plugins($plugins));
+  }
   
+  /**
+   * Deactivates incompatible plugins when this theme is activated.
+   *
+   * @param array $plugins
+   *
+   * @return void
+   * @throws HandlerException
+   */
+  protected function handlePluginIncompatibilities(array $plugins): void
+  {
+    // in the prior method, if we found missing plugins, we quit because that
+    // method focused on dependencies.  this one focuses on incompatibilities
+    // which means we don't need to quit, but we can't try to deactivate a
+    // plugin that doesn't exist because Core may stop at that one and not
+    // deactivate other ones in the list.  so, let's find the intersection
+    // between our list and the installed plugins and deactivate only those.
+    
+    $this->addAction('after_switch_theme', function() use ($plugins) {
+      $installedPlugins = array_keys(get_plugins());
+      $intersection = array_intersect($installedPlugins, $plugins);
+      deactivate_plugins($intersection);
+    });
+  }
   /**
    * register
    *
