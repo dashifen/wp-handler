@@ -277,15 +277,15 @@ abstract class AbstractHandler implements HandlerInterface
    *
    * Passes its arguments to add_action() and adds a Hook to our collection.
    *
-   * @param string         $hook
-   * @param string|Closure $callback
-   * @param int            $priority
-   * @param int            $arguments
+   * @param string          $hook
+   * @param string|callable $callback
+   * @param int             $priority
+   * @param int             $arguments
    *
    * @return string
    * @throws HandlerException
    */
-  protected function addAction(string $hook, $callback, int $priority = 10, int $arguments = 1): string
+  protected function addAction(string $hook, string|callable $callback, int $priority = 10, int $arguments = 1): string
   {
     if (!$this->isValidCallback($callback)) {
       throw new HandlerException(
@@ -296,11 +296,11 @@ abstract class AbstractHandler implements HandlerInterface
     
     $this->addHookToCollection($hook, $callback, $priority, $arguments);
     
-    // if $callback is a string, then we need to add our action to WP using
-    // the array syntax for method calls.  otherwise, we can just pass it
-    // over to add_action since it is, itself, callable.
+    // if $callback is not callable in its current form, then it must be a
+    // method of this object.  if it is callable, then we just pass it to
+    // add_action and call it a day.
     
-    return is_string($callback)
+    return !is_callable($callback)
       ? add_action($hook, [$this, $callback], $priority, $arguments)
       : add_action($hook, $callback, $priority, $arguments);
   }
@@ -310,23 +310,24 @@ abstract class AbstractHandler implements HandlerInterface
    *
    * Given a callback, returns true if it's valid, false otherwise.
    *
-   * @param string|Closure $callback
+   * @param string|callable $callback
    *
    * @return bool
    */
-  protected function isValidCallback($callback): bool
+  protected function isValidCallback(string|callable $callback): bool
   {
-    // if $callback is a Closure, we're fine.  it's the string case that's
-    // more difficult so we'll bug out before worrying about anything else
-    // here.
+    // if $callback is callable, we're fine, so we'll quit early before doing
+    // any more work in this case.
     
-    if ($callback instanceof Closure) {
+    if (is_callable($callback)) {
       return true;
     }
     
-    // now, if we're here, then $callback better be a string and, if so, it
-    // also has to be a non-private method of this object.  we can use our
-    // reflection to handle these tests.
+    // now, if we're here, then $callback is a string that doesn't reference a
+    // function already in scope (i.e. __return_false or other core functions).
+    // therefore, it must be a method of this class.  to check for that, we can
+    // use our reflection this object to ensure that (a) the method exists and
+    // (b) it's not private.
     
     try {
       if (!isset($this->reflectionMethods[$callback])) {
@@ -334,11 +335,11 @@ abstract class AbstractHandler implements HandlerInterface
       }
       
       return !$this->reflectionMethods[$callback]->isPrivate();
-    } catch (ReflectionException $e) {
+    } catch (ReflectionException) {
       
-      // the getMethod method throws an exception when the requested
-      // method doesn't exist.  if it doesn't exist, then it can't be a
-      // callback, so we can just return false here.
+      // getMethod throws an exception when the requested method doesn't exist.
+      // if it doesn't exist, then it can't be a callback, so we can just
+      // return false here.
       
       return false;
     }
@@ -349,31 +350,31 @@ abstract class AbstractHandler implements HandlerInterface
    *
    * Returns an exception message based on the type of $callback.
    *
-   * @param string|object $callback
+   * @param string|callable $callback
    *
    * @return string
    */
-  private function getInvalidCallbackMessage($callback): string
+  private function getInvalidCallbackMessage(string|callable $callback): string
   {
     // like the isValidCallback method above, this one uses the type of
     // $callback to return an exception message about it's invalidity.
     
     if (is_string($callback)) {
       
-      // if it's a string, then either (a) it wasn't a method of our
-      // object or (b) it was private.  we'll return a message based on
-      // which it was here.
+      // if it's a string, then either (a) it wasn't a method of our object,
+      // (b) it wasn't an in-scope function, or (c) it was a private method.
+      // we'll return a message based on which it was here.
       
       return $this->handlerReflection->hasMethod($callback)
         ? $callback . ' must be public or protected'
-        : 'Method not found: ' . $callback;
+        : 'Method or function not found: ' . $callback;
     }
     
     // if $callback wasn't a string, it must be an object, but that object
-    // must not have been a Closure or it would have been valid.  so, we'll
-    // simply request a method or Closure here.
+    // must not have been callable.  so, we'll simply request a method or
+    // closure here.
     
-    return 'Callbacks must be a handler method or Closure';
+    return 'Callbacks must be a handler method, function, or callable';
   }
   
   /**
@@ -381,15 +382,15 @@ abstract class AbstractHandler implements HandlerInterface
    *
    * Given data about a hook, produces one and add it to our collection.
    *
-   * @param string         $hook
-   * @param string|Closure $callback
-   * @param int            $priority
-   * @param int            $arguments
+   * @param string          $hook
+   * @param string|callable $callback
+   * @param int             $priority
+   * @param int             $arguments
    *
    * @return void
    * @throws HandlerException
    */
-  private function addHookToCollection(string $hook, $callback, int $priority, int $arguments): void
+  private function addHookToCollection(string $hook, string|callable $callback, int $priority, int $arguments): void
   {
     try {
       // to add a hook to our collection, we need the index it'll use therein
@@ -428,7 +429,10 @@ abstract class AbstractHandler implements HandlerInterface
   protected function removeAction(string $hook, string $method, int $priority = 10): bool
   {
     $this->removeHookFromCollection($hook, $method, $priority);
-    return remove_action($hook, [$this, $method], $priority);
+    
+    return !is_callable($method)
+      ? remove_action($hook, [$this, $method], $priority)
+      : remove_action($hook, $method, $priority);
   }
   
   /**
