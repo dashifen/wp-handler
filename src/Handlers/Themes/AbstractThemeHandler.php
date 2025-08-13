@@ -313,7 +313,7 @@ abstract class AbstractThemeHandler extends AbstractHandler implements ThemeHand
     // the extension ourselves.
     
     $asset = md5($file);
-    $isScript = str_contains($file, '.js');
+    $isScript = preg_match('/\.[cm]?js$/', $file);
     $function = $isScript ? "wp_enqueue_script" : "wp_enqueue_style";
     if (is_null($finalArg)) {
       
