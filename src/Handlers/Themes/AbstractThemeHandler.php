@@ -159,30 +159,36 @@ abstract class AbstractThemeHandler extends AbstractHandler implements ThemeHand
     // deactivate other ones in the list.  so, let's find the intersection
     // between our list and the installed plugins and deactivate only those.
     
-    $this->addAction('after_switch_theme', function() use ($plugins) {
+    $this->addAction('after_switch_theme', function () use ($plugins) {
       $installedPlugins = array_keys(get_plugins());
       $intersection = array_intersect($installedPlugins, $plugins);
       deactivate_plugins($intersection);
     });
   }
+  
   /**
    * register
    *
    * Registers either a script or a style for later use.
    *
-   * @param string $file
-   * @param array  $dependencies
-   * @param null   $finalArg
-   * @param string $url
-   * @param string $dir
+   * @param string           $file
+   * @param array            $dependencies
+   * @param string|bool|null $finalArg
+   * @param string           $url
+   * @param string           $dir
    *
    * @return string
    */
-  protected function register(string $file, array $dependencies = [], $finalArg = null, string $url = "", string $dir = ""): string
-  {
+  protected function register(
+    string $file,
+    array $dependencies = [],
+    string|bool|null $finalArg = null,
+    string $url = "",
+    string $dir = ""
+  ): string {
     // the work of registering an asset is the same as enqueuing one except
     // for the function we call at the end.  thus, we can call our enqueue
-    // method but we pass the Boolean true flag as the final parameter that
+    // method, but we pass the Boolean true flag as the final parameter that
     // will cause it to execute either wp_register_style or wp_register_script
     // instead of the similarly named enqueue functions.
     
@@ -206,13 +212,37 @@ abstract class AbstractThemeHandler extends AbstractHandler implements ThemeHand
    *
    * @return string
    */
-  protected function enqueue(string $file, array $dependencies = [], $finalArg = null, string $url = "", string $dir = "", bool $register = false): string  {
-    // remote assets (e.g. Google fonts) may begin with an HTTP protocol
-    // string.  we'll remove that to force browsers to load remote assets using
-    // the same protocol as the rest of the page.
+  protected function enqueue(
+    string $file,
+    array $dependencies = [],
+    string|bool|null $finalArg = null,
+    string $url = "",
+    string $dir = "",
+    bool $register = false
+  ): string {
+    foreach (['script', 'style'] as $type) {
+      [$is, $enqueue] = ['wp_' . $type . '_is', 'wp_enqueue_' . $type];
+      
+      // the above statement assigns core function names to our $is and
+      // $enqueue variables.  these will be wp_script_is and wp_enqueue_script
+      // or the similarly named style functions.  then, if the asset we're
+      // enqueueing has already been registered, all we need to do is call the
+      // enqueue function and return.
+      
+      if ($is($file, 'registered')) {
+        $enqueue($file);
+        return $file;
+      }
+    }
+    
+    // if we didn't return in the foreach loop above, then this asset has not
+    // yet been registered.  that means we do a bit more work here to get
+    // things ready.  first, remote assets (e.g. Google fonts) may begin with
+    // an HTTP protocol string.  we'll remove that to force browsers to load
+    // remote assets using the same protocol as the rest of the page.
     
     $file = preg_replace("/^https?:/", "", $file);
-    if (substr($file, 0, 2) === "//") {
+    if (str_starts_with($file, "//")) {
       
       // if our $file begins with // then it's remote.  therefore, we'll pass
       // control over to the method below which specifically handles remote
@@ -267,13 +297,13 @@ abstract class AbstractThemeHandler extends AbstractHandler implements ThemeHand
    * Returns the name of the asset used by WordPress to manage queued
    * dependencies.
    *
-   * @param string     $file
-   * @param array      $dependencies
-   * @param mixed|null $finalArg
+   * @param string           $file
+   * @param array            $dependencies
+   * @param string|bool|null $finalArg
    *
    * @return string
    */
-  private function enqueueRemote(string $file, array $dependencies, $finalArg = null): string
+  private function enqueueRemote(string $file, array $dependencies, string|bool|null $finalArg = null): string
   {
     // enqueuing a remote asset is a little easier than the local stuff we
     // handled above.  because it can be hard to impossible to accurately
@@ -283,7 +313,7 @@ abstract class AbstractThemeHandler extends AbstractHandler implements ThemeHand
     // the extension ourselves.
     
     $asset = md5($file);
-    $isScript = strpos($file, '.js') !== false;
+    $isScript = preg_match('/\.[cm]?js$/', $file);
     $function = $isScript ? "wp_enqueue_script" : "wp_enqueue_style";
     if (is_null($finalArg)) {
       
