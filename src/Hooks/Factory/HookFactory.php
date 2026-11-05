@@ -4,7 +4,7 @@ namespace Dashifen\WPHandler\Hooks\Factory;
 
 use Closure;
 use Dashifen\WPHandler\Hooks\MethodHook;
-use Dashifen\WPHandler\Hooks\ClosureHook;
+use Dashifen\WPHandler\Hooks\CallableHook;
 use Dashifen\WPHandler\Hooks\HookException;
 use Dashifen\WPHandler\Hooks\HookInterface;
 use Dashifen\WPHandler\Handlers\HandlerInterface;
@@ -18,14 +18,14 @@ class HookFactory implements HookFactoryInterface
    *
    * @param string           $hook
    * @param HandlerInterface $object
-   * @param string|Closure   $callback
+   * @param string|callable  $callback
    * @param int              $priority
    * @param int              $argumentCount
    *
    * @return HookInterface
    * @throws HookException
    */
-  public function produceHook(string $hook, HandlerInterface $object, $callback, int $priority = 10, int $argumentCount = 1): HookInterface
+  public function produceHook(string $hook, HandlerInterface $object, string|callable $callback, int $priority = 10, int $argumentCount = 1): HookInterface
   {
     // the purpose of this function is to provide a single place where
     // HookInterface implementations are constructed.  our default factory
@@ -35,7 +35,7 @@ class HookFactory implements HookFactoryInterface
     
     return is_string($callback)
       ? new MethodHook($hook, $object, $callback, $priority, $argumentCount)
-      : new ClosureHook($hook, $callback, $priority, $argumentCount);
+      : new CallableHook($hook, $callback, $priority, $argumentCount);
   }
   
   /**
@@ -45,16 +45,16 @@ class HookFactory implements HookFactoryInterface
    *
    * @param string           $hook
    * @param HandlerInterface $object
-   * @param string|Closure   $callback
+   * @param string|callable  $callback
    * @param int              $priority
    *
    * @return string
    */
-  public function produceHookIndex(string $hook, HandlerInterface $object, $callback, int $priority): string
+  public function produceHookIndex(string $hook, HandlerInterface $object, string|callable $callback, int $priority): string
   {
     // in the past, we just made a string out of our parameters and called it
     // the hook's index.  now that we're allowing Closures as callbacks, we
-    // we have to use spl_object_hash to create a string from the object.  then
+    // have to use spl_object_hash to create a string from the object.  then
     // we can produce an index with that string as if it were a method name.
     
     if ($callback instanceof Closure) {
