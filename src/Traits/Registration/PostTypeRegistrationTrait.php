@@ -1,6 +1,6 @@
 <?php
 
-namespace Dashifen\WPHandler\Traits\DataManagement\Registration;
+namespace Dashifen\WPHandler\Traits\Registration;
 
 trait PostTypeRegistrationTrait
 {
