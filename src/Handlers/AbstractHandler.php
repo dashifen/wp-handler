@@ -6,6 +6,8 @@ namespace Dashifen\WPHandler\Handlers;
 
 use Closure;
 use ReflectionClass;
+use ReflectionMethod;
+use ReflectionFunction;
 use ReflectionException;
 use Dashifen\WPDebugging\WPDebuggingTrait;
 use Dashifen\WPHandler\Hooks\HookException;
@@ -99,9 +101,10 @@ abstract class AbstractHandler implements HandlerInterface
       
       foreach ($this->hookCollection as $hook) {
         if ($hook->method === $method) {
+          
           // well, we just found a hook using this method, so the problem
           // must be that we're at the wrong action or priority.  let's see
-          // if which it is.
+          // which it is.
           
           if ($hook->hook !== $action) {
             throw new HandlerException(
@@ -265,7 +268,7 @@ abstract class AbstractHandler implements HandlerInterface
     // it's internal array.  then, we just call their initialize methods
     // in sequence.
     
-    if ($this->agentCollection instanceof AgentCollectionInterface) {
+    if (isset($this->agentCollection)) {
       foreach ($this->agentCollection as $agent) {
         $agent->initialize();
       }
@@ -287,9 +290,9 @@ abstract class AbstractHandler implements HandlerInterface
    */
   protected function addAction(string $hook, string|callable $callback, int $priority = 10, int $arguments = 1): string
   {
-    if (!$this->isValidCallback($callback)) {
+    if (!$this->isValidCallback($callback, $arguments)) {
       throw new HandlerException(
-        $this->getInvalidCallbackMessage($callback),
+        'Callback expects more arguments than ' . $arguments . '.',
         HandlerException::INVALID_CALLBACK
       );
     }
@@ -308,13 +311,17 @@ abstract class AbstractHandler implements HandlerInterface
   /**
    * isValidCallback
    *
-   * Given a callback, returns true if it's valid, false otherwise.
+   * Given a callback, returns true if it's callable and if the number
+   * of arguments we're going to pass it is greater than or equal to the
+   * number of its required parameters.
    *
    * @param string|callable $callback
+   * @param int             $arguments
    *
    * @return bool
+   * @throws HandlerException
    */
-  protected function isValidCallback(string|callable $callback): bool
+  protected function isValidCallback(string|callable $callback, int $arguments): bool
   {
     // if $callback is callable, we're fine, so we'll quit early before doing
     // any more work in this case.
@@ -323,58 +330,90 @@ abstract class AbstractHandler implements HandlerInterface
       return true;
     }
     
-    // now, if we're here, then $callback is a string that doesn't reference a
-    // function already in scope (i.e. __return_false or other core functions).
-    // therefore, it must be a method of this class.  to check for that, we can
-    // use our reflection this object to ensure that (a) the method exists and
-    // (b) it's not private.
+    try {
+      
+      // now, if we're here, then $callback is a string that doesn't reference a
+      // function already in scope (i.e. __return_false or other core functions).
+      // therefore, it must be a method of this class.  to check for that, we can
+      // use our reflection this object to ensure that (a) the method exists and
+      // (b) it's not private.
+      
+      $reflection = !($callback instanceof Closure)
+        ? $this->getReflectionMethod($callback)
+        : new ReflectionFunction($callback);
+      
+      // now that we've reflected either the $callback Closure or a method of
+      // this object, we need to confirm that $arguments is greater than or
+      // equal to the number of required parameters.  it's okay to exceed the
+      // requirement because we assume that means a dev wants to override a
+      // default value.
+      
+      return $arguments >= $reflection->getNumberOfRequiredParameters();
+    } catch (ReflectionException $e) {
+      
+      // if we're here, the exception must have been thrown from within the
+      // ReflectionFunction constructor.  any other ReflectionException is
+      // caught and "converted" into our own HandlerException.  these are
+      // caught elsewhere.
+      
+      throw new HandlerException(
+        'Invalid callback.',
+        HandlerException::INVALID_CALLBACK,
+        $e
+      );
+    }
+  }
+  
+  /**
+   * getReflectionMethod
+   *
+   * Returns a ReflectionMethod object for a non-private method within
+   * this object or throws an exception if the method doesn't exist or
+   * is private.
+   *
+   * @param string $callback
+   *
+   * @return ReflectionMethod
+   * @throws HandlerException
+   */
+  private function getReflectionMethod(string $callback): ReflectionMethod
+  {
+    // to try and save a bit of time, just in case this callback was already
+    // reflected, we've stored previously instantiated objects in memory.  if
+    // it's not already there, then we'll create it within the if-block and
+    // return it thereafter.
     
     try {
       if (!isset($this->reflectionMethods[$callback])) {
         $this->reflectionMethods[$callback] = $this->handlerReflection->getMethod($callback);
       }
       
-      return !$this->reflectionMethods[$callback]->isPrivate();
-    } catch (ReflectionException) {
+      // now that we know our ReflectionMethod is found within our property,
+      // we'll see if it's private.  if it is, we throw a HandlerException
+      // which will be handled elsewhere regarding that fact.
       
-      // getMethod throws an exception when the requested method doesn't exist.
-      // if it doesn't exist, then it can't be a callback, so we can just
-      // return false here.
+      if ($this->reflectionMethods[$callback]->isPrivate()) {
+        throw new HandlerException(
+          'Invalid callback: ' . $callback . ' is private.',
+          HandlerException::INVALID_CALLBACK,
+        );
+      }
       
-      return false;
-    }
-  }
-  
-  /**
-   * getInvalidCallbackMessage
-   *
-   * Returns an exception message based on the type of $callback.
-   *
-   * @param string|callable $callback
-   *
-   * @return string
-   */
-  private function getInvalidCallbackMessage(string|callable $callback): string
-  {
-    // like the isValidCallback method above, this one uses the type of
-    // $callback to return an exception message about it's invalidity.
-    
-    if (is_string($callback)) {
+    } catch (ReflectionException $e) {
       
-      // if it's a string, then either (a) it wasn't a method of our object,
-      // (b) it wasn't an in-scope function, or (c) it was a private method.
-      // we'll return a message based on which it was here.
+      // if we catch a ReflectionException, it will have been through from
+      // within the getMethod call above.  this indicates that $callback is not
+      // a method of our object, and we'll tell the calling scope about that
+      // fact by re-throwing one of our own exceptions here.
       
-      return $this->handlerReflection->hasMethod($callback)
-        ? $callback . ' must be public or protected'
-        : 'Method or function not found: ' . $callback;
+      throw new HandlerException(
+        'Invalid callback: unknown method, ' . $callback . '.',
+        HandlerException::INVALID_CALLBACK,
+        $e
+      );
     }
     
-    // if $callback wasn't a string, it must be an object, but that object
-    // must not have been callable.  so, we'll simply request a method or
-    // closure here.
-    
-    return 'Callbacks must be a handler method, function, or callable';
+    return $this->reflectionMethods[$callback];
   }
   
   /**
@@ -465,11 +504,14 @@ abstract class AbstractHandler implements HandlerInterface
    * @return string
    * @throws HandlerException
    */
-  protected function addFilter(string $hook, $callback, int $priority = 10, int $arguments = 1): string
-  {
-    if (!$this->isValidCallback($callback)) {
+  protected function addFilter(string $hook,
+    string|Closure $callback,
+    int $priority = 10,
+    int $arguments = 1
+  ): string {
+    if (!$this->isValidCallback($callback, $arguments)) {
       throw new HandlerException(
-        $this->getInvalidCallbackMessage($callback),
+        'Callback expects more arguments than ' . $arguments . '.',
         HandlerException::INVALID_CALLBACK
       );
     }
