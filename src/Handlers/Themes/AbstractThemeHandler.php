@@ -3,9 +3,13 @@
 namespace Dashifen\WPHandler\Handlers\Themes;
 
 use WP_Theme;
+use Dashifen\Repository\RepositoryException;
 use Dashifen\WPHandler\Handlers\AbstractHandler;
 use Dashifen\WPHandler\Handlers\HandlerException;
+use Dashifen\WPHandler\Repositories\MenuItems\MenuItem;
 use Dashifen\WPHandler\Hooks\Factory\HookFactoryInterface;
+use Dashifen\WPHandler\Repositories\MenuItems\SubmenuItem;
+use Dashifen\WPHandler\Repositories\MenuItems\MenuItemException;
 use Dashifen\WPHandler\Hooks\Collection\Factory\HookCollectionFactoryInterface;
 
 /**
@@ -105,25 +109,90 @@ abstract class AbstractThemeHandler extends AbstractHandler implements ThemeHand
     return $value === false ? $default : (string) $value;
   }
   
+  /**
+   * Activates and deactivates required plugins as this theme is activated or
+   * deactivated.
+   *
+   * @param array $plugins
+   *
+   * @return void
+   * @throws HandlerException
+   */
+  protected function handlePluginDependencies(array $plugins): void
+  {
+    // before we do anything, let's make sure that the information in $plugins
+    // refers to plugins that are actually installed on this site.  we get the
+    // list of installed plugins, and then we can use array diff to see if
+    // there are any data in $plugins that aren't found in that list.  if so,
+    // we throw a HandlerException because this method is for dependencies, and
+    // we'll assume that if we're missing something on which we depend that a
+    // dev needs to fix that!
+    
+    $installedPlugins = array_keys(get_plugins());
+    $missingPlugins = array_diff($plugins, $installedPlugins);
+    if (($count = sizeof($missingPlugins)) > 0) {
+      $noun = $count === 1 ? 'Plugin' : 'Plugins';
+      $message = "$noun Not Found: " . join(', ', $missingPlugins);
+      throw new HandlerException($message, HandlerException::UNKNOWN_PLUGIN);
+    }
+    
+    // the switch_theme action fires when theme A changes to theme B.  then,
+    // the after_switch_theme action is triggered when theme B loads for the
+    // first time.  so the first action that we create here turns off the
+    // required plugins for this theme if we're switching away from it.  the
+    // second one turns them on if we're switching to it.
+    
+    $this->addAction('switch_theme', fn() => deactivate_plugins($plugins));
+    $this->addAction('after_switch_theme', fn() => activate_plugins($plugins));
+  }
+  
+  /**
+   * Deactivates incompatible plugins when this theme is activated.
+   *
+   * @param array $plugins
+   *
+   * @return void
+   * @throws HandlerException
+   */
+  protected function handlePluginIncompatibilities(array $plugins): void
+  {
+    // in the prior method, if we found missing plugins, we quit because that
+    // method focused on dependencies.  this one focuses on incompatibilities
+    // which means we don't need to quit, but we can't try to deactivate a
+    // plugin that doesn't exist because Core may stop at that one and not
+    // deactivate other ones in the list.  so, let's find the intersection
+    // between our list and the installed plugins and deactivate only those.
+    
+    $this->addAction('after_switch_theme', function () use ($plugins) {
+      $installedPlugins = array_keys(get_plugins());
+      $intersection = array_intersect($installedPlugins, $plugins);
+      deactivate_plugins($intersection);
+    });
+  }
   
   /**
    * register
    *
    * Registers either a script or a style for later use.
    *
-   * @param string $file
-   * @param array  $dependencies
-   * @param null   $finalArg
-   * @param string $url
-   * @param string $dir
+   * @param string           $file
+   * @param array            $dependencies
+   * @param string|bool|null $finalArg
+   * @param string           $url
+   * @param string           $dir
    *
    * @return string
    */
-  protected function register(string $file, array $dependencies = [], $finalArg = null, string $url = "", string $dir = ""): string
-  {
+  protected function register(
+    string $file,
+    array $dependencies = [],
+    string|bool|null $finalArg = null,
+    string $url = "",
+    string $dir = ""
+  ): string {
     // the work of registering an asset is the same as enqueuing one except
     // for the function we call at the end.  thus, we can call our enqueue
-    // method but we pass the Boolean true flag as the final parameter that
+    // method, but we pass the Boolean true flag as the final parameter that
     // will cause it to execute either wp_register_style or wp_register_script
     // instead of the similarly named enqueue functions.
     
@@ -147,13 +216,37 @@ abstract class AbstractThemeHandler extends AbstractHandler implements ThemeHand
    *
    * @return string
    */
-  protected function enqueue(string $file, array $dependencies = [], $finalArg = null, string $url = "", string $dir = "", bool $register = false): string  {
-    // remote assets (e.g. Google fonts) may begin with an HTTP protocol
-    // string.  we'll remove that to force browsers to load remote assets using
-    // the same protocol as the rest of the page.
+  protected function enqueue(
+    string $file,
+    array $dependencies = [],
+    string|bool|null $finalArg = null,
+    string $url = "",
+    string $dir = "",
+    bool $register = false
+  ): string {
+    foreach (['script', 'style'] as $type) {
+      [$is, $enqueue] = ['wp_' . $type . '_is', 'wp_enqueue_' . $type];
+      
+      // the above statement assigns core function names to our $is and
+      // $enqueue variables.  these will be wp_script_is and wp_enqueue_script
+      // or the similarly named style functions.  then, if the asset we're
+      // enqueueing has already been registered, all we need to do is call the
+      // enqueue function and return.
+      
+      if ($is($file, 'registered')) {
+        $enqueue($file);
+        return $file;
+      }
+    }
+    
+    // if we didn't return in the foreach loop above, then this asset has not
+    // yet been registered.  that means we do a bit more work here to get
+    // things ready.  first, remote assets (e.g. Google fonts) may begin with
+    // an HTTP protocol string.  we'll remove that to force browsers to load
+    // remote assets using the same protocol as the rest of the page.
     
     $file = preg_replace("/^https?:/", "", $file);
-    if (substr($file, 0, 2) === "//") {
+    if (str_starts_with($file, "//")) {
       
       // if our $file begins with // then it's remote.  therefore, we'll pass
       // control over to the method below which specifically handles remote
@@ -208,13 +301,13 @@ abstract class AbstractThemeHandler extends AbstractHandler implements ThemeHand
    * Returns the name of the asset used by WordPress to manage queued
    * dependencies.
    *
-   * @param string     $file
-   * @param array      $dependencies
-   * @param mixed|null $finalArg
+   * @param string           $file
+   * @param array            $dependencies
+   * @param string|bool|null $finalArg
    *
    * @return string
    */
-  private function enqueueRemote(string $file, array $dependencies, $finalArg = null): string
+  private function enqueueRemote(string $file, array $dependencies, string|bool|null $finalArg = null): string
   {
     // enqueuing a remote asset is a little easier than the local stuff we
     // handled above.  because it can be hard to impossible to accurately
@@ -224,7 +317,7 @@ abstract class AbstractThemeHandler extends AbstractHandler implements ThemeHand
     // the extension ourselves.
     
     $asset = md5($file);
-    $isScript = strpos($file, '.js') !== false;
+    $isScript = preg_match('/\.[cm]?js$/', $file);
     $function = $isScript ? "wp_enqueue_script" : "wp_enqueue_style";
     if (is_null($finalArg)) {
       
@@ -272,5 +365,466 @@ abstract class AbstractThemeHandler extends AbstractHandler implements ThemeHand
     
     return $this->enqueue($file, $dependencies, $finalArg,
       get_template_directory_uri(), get_template_directory(), $register);
+  }
+  
+  /**
+   * addMenuPage
+   *
+   * A wrapper for the WordPress core function of similar name that registers
+   * the callback function as a Hook.
+   *
+   * @param MenuItem $menuItem
+   *
+   * @return string
+   * @throws MenuItemException
+   * @throws HandlerException
+   */
+  final public function addMenuPage(MenuItem $menuItem): string
+  {
+    // given a MenuItem we want to add it to WordPress.  we have to call
+    // the WP Core add_menu_page() method first because whether or not the
+    // page is registered within WordPress changes the name of the action
+    // hook used when executing the menu item's callback.
+    
+    $success = add_menu_page(...$menuItem->toArray());
+    $this->hookMenuItem($menuItem);
+    return $success;
+  }
+  
+  /**
+   * hookMenuItem
+   *
+   * Given a menu item, hook it into the WordPress ecosystem so that when
+   * someone clicks it in the Dashboard, its content is loaded correctly by
+   * this Handler.
+   *
+   * @param MenuItem $menuItem
+   *
+   * @return void
+   * @throws MenuItemException
+   * @throws MenuItemException
+   * @throws HandlerException
+   */
+  private function hookMenuItem(MenuItem $menuItem): void
+  {
+    if (!$menuItem->isComplete()) {
+      throw new MenuItemException(
+        'Attempt to use incomplete menu item',
+        MenuItemException::ITEM_NOT_READY
+      );
+    }
+    
+    // WordPress uses the get_plugin_page_hookname function to produce a
+    // unique action hook that is executed when a person clicks each menu
+    // item.  it's created based on the menu and parent slugs for the item.
+    // we'll call that same function here to produce the hook we need, then
+    // we can add it and the menu item's method to this Handler's list of
+    // Hooks.  note that we get both MenuItem objects and their extension,
+    // SubmenuItem, here.  since the latter has a parent slug and the
+    // former does not, we use the getter for that property rather than
+    // reading it like a "normal" one.
+    
+    $displayHook = get_plugin_page_hookname($menuItem->menuSlug, $menuItem->getParentSlug());
+    $this->addAction($displayHook, $menuItem->method);
+  }
+  
+  /**
+   * wpAddMenuPage
+   *
+   * Adds a menu item using arguments that match the WordPress core
+   * add_menu_page() function.
+   *
+   * @param string   $pageTitle
+   * @param string   $menuTitle
+   * @param string   $capability
+   * @param string   $menuSlug
+   * @param string   $method
+   * @param string   $iconUrl
+   * @param int|null $position
+   *
+   * @return string
+   * @throws HandlerException
+   * @throws MenuItemException
+   */
+  final public function wpAddMenuPage(string $pageTitle, string $menuTitle, string $capability, string $menuSlug, string $method, string $iconUrl = "", ?int $position = null): string
+  {
+    try {
+      $menuItem = new MenuItem(
+        $this, [
+          "pageTitle"  => $pageTitle,
+          "menuTitle"  => $menuTitle,
+          "capability" => $capability,
+          "menuSlug"   => $menuSlug,
+          "method"     => $method,
+          "iconUrl"    => $iconUrl,
+          "position"   => $position,
+        ]
+      );
+    } catch (RepositoryException $e) {
+      // rather than throw our general RepositoryException, we'll
+      // "convert" it into a MenuItemException which is a little most
+      // specific for our purposes here.
+      
+      throw new MenuItemException($e->getMessage(), $e->getCode(), $e);
+    }
+    
+    return $this->addMenuPage($menuItem);
+  }
+  
+  /**
+   * addSubmenuPage
+   *
+   * A wrapper for the WordPress core function of similar name that registers
+   * the callback function as a Hook.
+   *
+   * @param SubmenuItem $submenuItem
+   *
+   * @return string
+   * @throws MenuItemException
+   * @throws HandlerException
+   */
+  final public function addSubmenuPage(SubmenuItem $submenuItem): string
+  {
+    // like addMenuPage, but this one gets a SubmenuItem.  as before, the
+    // action hook used to execute the submenu item's callback will be
+    // different once WP Core knows about it, so we'll call its function
+    // first and then hook it up here.
+    
+    $success = add_submenu_page(...$submenuItem->toArray());
+    $this->hookMenuItem($submenuItem);
+    return $success;
+  }
+  
+  /**
+   * wpAddSubmenuPage
+   *
+   * Adds a submenu page using a series of arguments like add_submenu_page()
+   * core function.
+   *
+   * @param string $parentSlug
+   * @param string $pageTitle
+   * @param string $menuTitle
+   * @param string $capability
+   * @param string $menuSlug
+   * @param string $method
+   *
+   * @return string
+   * @throws MenuItemException
+   * @throws HandlerException
+   */
+  public function wpAddSubmenuPage(string $parentSlug, string $pageTitle, string $menuTitle, string $capability, string $menuSlug, string $method): string
+  {
+    try {
+      $submenuItem = new SubmenuItem(
+        $this, [
+          "parentSlug" => $parentSlug,
+          "pageTitle"  => $pageTitle,
+          "menuTitle"  => $menuTitle,
+          "capability" => $capability,
+          "menuSlug"   => $menuSlug,
+        ]
+      );
+    } catch (RepositoryException $e) {
+      
+      // rather than throw our general RepositoryException, we'll
+      // "convert" it into a MenuItemException which is a little most
+      // specific for our purposes here.
+      
+      throw new MenuItemException($e->getMessage(), $e->getCode(), $e);
+    }
+    
+    return $this->addSubmenuPage($submenuItem);
+  }
+  
+  /**
+   * addDashboardPage
+   *
+   * A wrapper for the WordPress core function of similar name that registers
+   * the callback function as a Hook.
+   *
+   * @param SubmenuItem $submenuItem
+   *
+   * @return string
+   * @throws MenuItemException
+   * @throws HandlerException
+   */
+  final public function addDashboardPage(SubmenuItem $submenuItem): string
+  {
+    // the purpose of this and the following methods is to provide similar
+    // methods to the WordPress core functions of similar name mostly for
+    // completeness.  they all add the required parent slug to our
+    // $submenuItem parameter and then pass it over to the addSubmenuPage
+    // method.
+    
+    $submenuItem->setParentSlug("index.php");
+    return $this->addSubmenuPage($submenuItem);
+  }
+  
+  /**
+   * addPostsPage
+   *
+   * A wrapper for the WordPress core function of similar name that registers
+   * the callback function as a Hook.
+   *
+   * @param SubmenuItem $submenuItem
+   *
+   * @return string
+   * @throws MenuItemException
+   * @throws HandlerException
+   */
+  final public function addPostsPage(SubmenuItem $submenuItem): string
+  {
+    $submenuItem->setParentSlug("edit.php");
+    return $this->addSubmenuPage($submenuItem);
+  }
+  
+  /**
+   * addMediaPage
+   *
+   * A wrapper for the WordPress core function of similar name that registers
+   * the callback function as a Hook.
+   *
+   * @param SubmenuItem $submenuItem
+   *
+   * @return string
+   * @throws MenuItemException
+   * @throws HandlerException
+   */
+  final public function addMediaPage(SubmenuItem $submenuItem): string
+  {
+    $submenuItem->setParentSlug("upload.php");
+    return $this->addSubmenuPage($submenuItem);
+  }
+  
+  /**
+   * addCommentsPage
+   *
+   * A wrapper for the WordPress core function of similar name that registers
+   * the callback function as a Hook.
+   *
+   * @param SubmenuItem $submenuItem
+   *
+   * @return string
+   * @throws MenuItemException
+   * @throws HandlerException
+   */
+  final public function addCommentsPage(SubmenuItem $submenuItem): string
+  {
+    $submenuItem->setParentSlug("edit-comments.php");
+    return $this->addSubmenuPage($submenuItem);
+  }
+  
+  /**
+   * addThemePage
+   *
+   * A wrapper for the WordPress core function of similar name that registers
+   * the callback function as a Hook.
+   *
+   * @param SubmenuItem $submenuItem
+   *
+   * @return string
+   * @throws MenuItemException
+   * @throws HandlerException
+   */
+  final public function addThemePage(SubmenuItem $submenuItem): string
+  {
+    $submenuItem->setParentSlug("themes.php");
+    return $this->addSubmenuPage($submenuItem);
+  }
+  
+  /**
+   * addAppearancePage
+   *
+   * A wrapper for addThemePage because this is the name of the parent menu
+   * item in the WP Dashboard so people might want to try and use it as a
+   * method here.
+   *
+   * @param SubmenuItem $submenuItem
+   *
+   * @return string
+   * @throws MenuItemException
+   * @throws HandlerException
+   */
+  final public function addAppearancePage(SubmenuItem $submenuItem): string
+  {
+    return $this->addThemePage($submenuItem);
+  }
+  
+  /**
+   * addPluginsPage
+   *
+   * A wrapper for the WordPress core function of similar name that registers
+   * the callback function as a Hook.
+   *
+   * @param SubmenuItem $submenuItem
+   *
+   * @return string
+   * @throws MenuItemException
+   * @throws HandlerException
+   */
+  final public function addPluginsPage(SubmenuItem $submenuItem): string
+  {
+    $submenuItem->setParentSlug("plugins.php");
+    return $this->addSubmenuPage($submenuItem);
+  }
+  
+  /**
+   * addUsersPage
+   *
+   * A wrapper for the WordPress core function of similar name that registers
+   * the callback function as a Hook.
+   *
+   * @param SubmenuItem $submenuItem
+   *
+   * @return string
+   * @throws MenuItemException
+   * @throws HandlerException
+   */
+  final public function addUsersPage(SubmenuItem $submenuItem): string
+  {
+    $submenuItem->setParentSlug("users.php");
+    return $this->addSubmenuPage($submenuItem);
+  }
+  
+  /**
+   * addManagementPage
+   *
+   * A wrapper for the WordPress core function of similar name that registers
+   * the callback function as a Hook.
+   *
+   * @param SubmenuItem $submenuItem
+   *
+   * @return string
+   * @throws MenuItemException
+   * @throws HandlerException
+   */
+  final public function addManagementPage(SubmenuItem $submenuItem): string
+  {
+    $submenuItem->setParentSlug("tools.php");
+    return $this->addSubmenuPage($submenuItem);
+  }
+  
+  /**
+   * addToolsPage
+   *
+   * A wrapper for the addManagementPage that uses the name of the Dashboard
+   * menu item to which this one will be added.
+   *
+   * @param SubmenuItem $submenuItem
+   *
+   * @return string
+   * @throws MenuItemException
+   * @throws HandlerException
+   */
+  final public function addToolsPage(SubmenuItem $submenuItem): string
+  {
+    return $this->addManagementPage($submenuItem);
+  }
+  
+  /**
+   * addOptionsPage
+   *
+   * A wrapper for the WordPress core function of similar name that registers
+   * the callback function as a Hook.
+   *
+   * @param SubmenuItem $submenuItem
+   *
+   * @return string
+   * @throws MenuItemException
+   * @throws HandlerException
+   */
+  final public function addOptionsPage(SubmenuItem $submenuItem): string
+  {
+    $submenuItem->setParentSlug("options-general.php");
+    return $this->addSubmenuPage($submenuItem);
+  }
+  
+  /**
+   * addSettingsPage
+   *
+   * A wrapper for the addManagementPage that uses the name of the Dashboard
+   * menu item to which this one will be added.
+   *
+   * @param SubmenuItem $submenuItem
+   *
+   * @return string
+   * @throws MenuItemException
+   * @throws HandlerException
+   */
+  final public function addSettingsPage(SubmenuItem $submenuItem): string
+  {
+    return $this->addOptionsPage($submenuItem);
+  }
+  
+  /**
+   * addNetworkSitesPage
+   *
+   * A wrapper for the WordPress core function of similar name that registers
+   * the callback function as a Hook.
+   *
+   * @param SubmenuItem $submenuItem
+   *
+   * @return string
+   * @throws MenuItemException
+   * @throws HandlerException
+   */
+  final public function addNetworkSitesPage(SubmenuItem $submenuItem): string
+  {
+    $submenuItem->setParentSlug("sites.php");
+    return $this->addSubmenuPage($submenuItem);
+  }
+  
+  /**
+   * addNetworkSettingsPage
+   *
+   * A wrapper for the WordPress core function of similar name that registers
+   * the callback function as a Hook.
+   *
+   * @param SubmenuItem $submenuItem
+   *
+   * @return string
+   * @throws MenuItemException
+   * @throws HandlerException
+   */
+  final public function addNetworkSettingsPage(SubmenuItem $submenuItem): string
+  {
+    $submenuItem->setParentSlug("settings.php");
+    return $this->addSubmenuPage($submenuItem);
+  }
+  
+  /**
+   * addPostTypePage
+   *
+   * A convenience function that allows for easier registration of submenu
+   * pages within the menu for a custom post type.
+   *
+   * @param string      $postType
+   * @param SubmenuItem $submenuItem
+   *
+   * @return string
+   * @throws MenuItemException
+   * @throws HandlerException
+   */
+  final public function addPostTypePage(string $postType, SubmenuItem $submenuItem): string
+  {
+    $submenuItem->setParentSlug("edit.php?post_type=" . $postType);
+    return $this->addSubmenuPage($submenuItem);
+  }
+  
+  /**
+   * addPagesPage
+   *
+   * A wrapper for the addPostTypePage which specifically adds this submenu
+   * item to the Pages submenu.
+   *
+   * @param SubmenuItem $submenuItem
+   *
+   * @return string
+   * @throws MenuItemException
+   * @throws HandlerException
+   */
+  final public function addPagesPage(SubmenuItem $submenuItem): string
+  {
+    return $this->addPostTypePage("page", $submenuItem);
   }
 }

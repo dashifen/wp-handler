@@ -4,7 +4,7 @@ namespace Dashifen\WPHandler\Repositories\MenuItems;
 
 use Dashifen\Repository\AbstractRepository;
 use Dashifen\Repository\RepositoryException;
-use Dashifen\WPHandler\Handlers\Plugins\PluginHandlerInterface;
+use Dashifen\WPHandler\Handlers\HandlerInterface;
 
 /**
  * Class MenuItem
@@ -38,7 +38,7 @@ class MenuItem extends AbstractRepository implements MenuItemInterface
     "position",
   ];
   
-  protected PluginHandlerInterface $handler;
+  protected HandlerInterface $handler;
   protected string $pageTitle = "";
   protected string $menuTitle = "";
   protected string $capability = "";
@@ -55,16 +55,16 @@ class MenuItem extends AbstractRepository implements MenuItemInterface
   /**
    * MenuItem constructor.
    *
-   * @param PluginHandlerInterface $handler
+   * @param HandlerInterface $handler
    * @param array                  $data
    *
    * @throws RepositoryException
    */
-  public function __construct(PluginHandlerInterface $handler, array $data = [])
+  public function __construct(HandlerInterface $handler, array $data = [])
   {
     $this->handler = $handler;
     
-    // our parent constructor will start to set properties of this object
+    // our parent constructor will start to set properties of this object,
     // so we need to call it after we set our handler above.  this is
     // because we use the handler in the setCallable() method below.  my
     // usual style is to call the parent constructor first and then do
@@ -282,12 +282,12 @@ class MenuItem extends AbstractRepository implements MenuItemInterface
    *
    * Sets the callable property.
    *
-   * @param PluginHandlerInterface $object
+   * @param HandlerInterface $object
    * @param string                 $method
    *
    * @return void
    */
-  public function setCallable(PluginHandlerInterface $object, string $method): void
+  public function setCallable(HandlerInterface $object, string $method): void
   {
     $this->callable = [$object, $method];
   }
